@@ -22,7 +22,7 @@ ui <- page_navbar(
   title = "Lotic AIM Indicator Benchmark Tool",
   selected = "1. Select Indicators",
   collapsible = TRUE,
-  theme = bslib::bs_theme(),
+  theme = bslib::bs_theme(font_scale = 0.8, spacer = ".5rem"),
   # 1. Select Indicators
   nav_panel(
     title = "1. Select Indicators",
@@ -170,7 +170,7 @@ ui <- page_navbar(
 
 
 server <- function(input, output, session) {
-  
+  #bs_themer()
 # 0. Global Items ------------------------------------------------------------
   
 # 1. Select Indicators -------------------------------------------------------
@@ -232,6 +232,10 @@ server <- function(input, output, session) {
   
   # Editable benchmark table
   output$benchmark_hot <- renderRHandsontable({
+    # if (selectedBenchmarks() == ""){
+    #   return(NULL)
+    # }
+    
     rhandsontable(
       data = defaultBenchmarks %>% filter(benchmark %in% selectedBenchmarks())
       # data = data.frame(Benchmarks = selectedBenchmarks(),
@@ -240,6 +244,7 @@ server <- function(input, output, session) {
       #                   Minor = 24)
     )
   })
+  
   
   output$benchmark_dt <- renderDT({
     defaultBenchmarks %>% filter(benchmark %in% selectedBenchmarks())},

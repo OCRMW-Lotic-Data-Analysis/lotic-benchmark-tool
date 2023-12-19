@@ -1,0 +1,21 @@
+Indicator,ModerateBenchmark1,MajorBenchmark1,ModerateBenchmark2,MajorBenchmark2,IncreaserDecreaser,MajorToModerateRel1,MinimalToModerateRel1,MinimalToModerateRel2,MajorToModerateRel2,MajorToMinimalRel1,MajorToMinimalRel2,ConditionCategoryNum
+PctBankCoveredStableMIM,70,50,NA,NA,Decreases with stress,<=,>=,NA,NA,NA,NA,3
+PctFinesLessThan2mm,NA,21.4,NA,NA,Increases with stress,NA,NA,NA,NA,>=,NA,2
+PctBankOverheadCover,14,6.5,NA,NA,Decreases with stress,<=,>=,NA,NA,NA,NA,3
+FloodplainConnectivity,1.3,1.5,NA,NA,Increases with stress,>=,<=,NA,NA,NA,NA,3
+pH,7,6.5,8.5,9,Decreases and increases with stress,<=,>=,<=,>=,NA,NA,3
+PctNoxiousWoodySpecies,1,5,NA,NA,Increases with stress,>,<,NA,NA,NA,NA,3
+PctBankCoveredStableOld,70,50,NA,NA,Decreases with stress,<=,>=,NA,NA,NA,NA,3
+InstantTemp,17,21.7,NA,NA,Increases with stress,>=,<=,NA,NA,NA,NA,3
+MMI_Macroinvertebrate,45,34,NA,NA,Decreases with stress,<,>,NA,NA,NA,NA,3
+PctFinesLessThan2mm,3,35,NA,NA,Increases with stress,>,<,NA,NA,NA,NA,3
+TotalPhosphorous,NA,35,NA,NA,Increases with stress,NA,NA,NA,NA,>,NA,2
+OE_Macroinvertebrate,0.76,0.69,NA,NA,Decreases with stress,<,>=,NA,NA,NA,NA,3
+TotalNitrogen,NA,400,NA,NA,Increases with stress,NA,NA,NA,NA,>,NA,2
+PctNativeWoodySpecies,90,70,NA,NA,Decreases with stress,<,>=,NA,NA,NA,NA,3
+PctBankStable,70,50,NA,NA,Decreases with stress,<=,>=,NA,NA,NA,NA,3
+PctBankCoveredOld,80,60,NA,NA,Decreases with stress,<=,>=,NA,NA,NA,NA,3
+PctBankCoveredMIM,70,50,NA,NA,Decreases with stress,<=,>=,NA,NA,NA,NA,3
+PctBankOverheadCover,NA,14.9,NA,NA,Decreases with stress,NA,NA,NA,NA,<,NA,2
+LgWoodInChanFreq,NA,1.35,NA,NA,Decreases with stress,NA,NA,NA,NA,<,NA,2
+pH,NA,6.5,NA,9,Decreases and increases with stress,NA,NA,NA,NA,<=,>=,2

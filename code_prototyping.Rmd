@@ -67,7 +67,7 @@ bmOperatorsCount <- defaultBMgroups %>% group_by(Indicator) %>% count(MajorToMod
 bmCategoryCount <- defaultBMgroups %>% group_by(Indicator) %>% count(ConditionCategoryNum,
                                                                     sort = FALSE)
 
-full_join(a, b, by = "Indicator", keep = TRUE)
+comb <- full_join(bmOperatorsCount, bmCategoryCount, by = "Indicator", keep = TRUE)
 
 ```
 

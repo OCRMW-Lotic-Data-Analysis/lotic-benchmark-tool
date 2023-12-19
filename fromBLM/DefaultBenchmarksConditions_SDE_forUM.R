@@ -72,7 +72,7 @@ for (i in levels(as.factor(defaultBenchmarksLines_trans$Indicator))){
   for(j in unique(coordinates_sub$BLM_AdminState)){
     data <-  defaultBenchmarksLines_trans[defaultBenchmarksLines_trans$Indicator == i & defaultBenchmarksLines_trans$BLM_AdminState == j ,]
     points <- coordinates_sub[coordinates_sub$BLM_AdminState == j,]
-    nested_list[[i]][[j]]<- sf::st_join(points, data, join = nngeo::st_nn, maxdist = 200, k = 1, progress = FALSE)
+    nested_list[[i]][[j]]<- sf::st_join(points, data, join = nngeo::st_nn, maxdist = 20, k = 0, progress = FALSE)
     
   }
 }
