@@ -1,0 +1,10 @@
+name: lotic_benchmark_tool
+title: Lotic AIM Indicator Benchmark Tool
+username: ihellman
+account: ihellman
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 10585221
+bundleId:
+url: https://ihellman.shinyapps.io/lotic_benchmark_tool/
+version: 1

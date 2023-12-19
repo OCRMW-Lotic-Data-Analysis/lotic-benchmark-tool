@@ -1,0 +1,85 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+
+library(here)
+library(sf)
+library(leaflet)
+library(mapedit)
+library(leafpop)
+library(tidyverse)
+
+# Set relative file location
+here::i_am("code_prototyping.Rmd")
+
+### Load data
+lcat_layers <- st_layers(here("fromBLM", "Ian_Lotic_LCAT_Layers.gdb"))
+indicators <- st_read(here("fromBLM", "Ian_Lotic_LCAT_Layers.gdb"), layer = "I_Indicators")
+defaultconds <- st_read(here("fromBLM", "Ian_Lotic_LCAT_Layers.gdb"), layer = "A_DefaultConditions") %>% as.data.frame()
+defaultBMgroups <- st_read(here("fromBLM", "Ian_Lotic_LCAT_Layers.gdb"), layer = "A_DefaultBenchmarkGroups") %>% as.data.frame()
+
+pal <- colorFactor(c("navy", "red", "green"), domain = c("Targeted", "RandomGRTS", "RandomSystematic"))
+
+map <- indicators %>% st_transform(4326) %>%
+leaflet() %>%
+  addTiles() %>%
+  addCircleMarkers(
+    radius = 3,
+    color = ~pal(PointSelectionType),
+    stroke = FALSE, fillOpacity = 0.5,
+    label = ~PointID) %>%
+  addProviderTiles("Esri.WorldTopoMap",
+    group = "Esri.WorldTopoMap") %>%
+  addProviderTiles("Esri.WorldImagery",
+    group = "Esri.WorldImagery") %>%
+  addLayersControl(
+    baseGroups = c("Esri.WorldTopoMap",
+                   "Esri.WorldImagery"),
+    # position it on the topleft
+    position = "topleft") %>%
+  addLegend(pal = pal, values = ~PointSelectionType, opacity = 1)
+
+map
+```
+
+```{r}
+
+bmMedValues <- defaultBMgroups %>% group_by(Indicator) %>% summarise(ModerateBenchmark1 = median(ModerateBenchmark1, na.rm = TRUE),
+                                                   MajorBenchmark1 = median(MajorBenchmark1, na.rm = TRUE),
+                                                   ModerateBenchmark2 = median(ModerateBenchmark2, na.rm = TRUE),
+                                                   MajorBenchmark2 = median(MajorBenchmark2, na.rm = TRUE)) 
+
+# Get most common operator 
+operatorColNames <- defaultBMgroups %>% select(contains("Rel")) %>% names()
+bmOperatorsCount <- defaultBMgroups %>% group_by(Indicator) %>% count(MajorToModerateRel1, 
+                                                                    MinimalToModerateRel1,
+                                                                    MinimalToModerateRel2,
+                                                                    MajorToModerateRel2,
+                                                                    MajorToMinimalRel1,
+                                                                    MajorToMinimalRel2,
+                                                                    IncreaserDecreaser,
+                                                                    ConditionCategoryNum,
+                                                                    sort = FALSE)
+
+bmCategoryCount <- defaultBMgroups %>% group_by(Indicator) %>% count(ConditionCategoryNum,
+                                                                    sort = FALSE)
+
+full_join(a, b, by = "Indicator", keep = TRUE)
+
+```
+
+
+```{r}
+## joining indicator and benchmarks
+bm <- read_csv(here("sample_data", "fishbearing_bm_group.csv"))
+ind <- read_csv(here("sample_data", "wy_landerPts.csv"), col_types = cols(.default = "c")) %>% head(1)
+
+indLong <- ind %>% pivot_longer(cols = everything(), names_to = "attribute", values_to = "value")
+
+dat <- full_join(indLong, bm, by = join_by(attribute == benchmark), keep = TRUE)
+
+```
+
