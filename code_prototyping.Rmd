@@ -83,3 +83,19 @@ dat <- full_join(indLong, bm, by = join_by(attribute == benchmark), keep = TRUE)
 
 ```
 
+```{r}
+bm <- read_csv("appData/default_benchmark_and_operators.csv")
+wy <- read_csv("sample_data/wy_landerPts.csv")
+
+wySelect <- wy %>% select(c('EvaluationID','BLM_AdminState','EcoregionStreamSize','ProtocolType','StreamOrder','SampledMidLatitude','SampledMidLongitude', bm$Indicator))
+
+
+wylong <- wySelect %>% pivot_longer(-c('EvaluationID','BLM_AdminState','EcoregionStreamSize','ProtocolType','StreamOrder','SampledMidLatitude','SampledMidLongitude'), 
+                                    names_to = "Indicator", 
+                                    values_to = "value")
+
+indicatorsWithBenchmarks <- left_join(wylong, bm, by = "Indicator", relationship = "many-to-many")
+
+IndicatorValuesBenchmarks <- indicatorsWithBenchmarks
+```
+
