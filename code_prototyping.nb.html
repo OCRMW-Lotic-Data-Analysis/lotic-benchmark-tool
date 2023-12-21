@@ -1791,21 +1791,13 @@ dat &lt;- full_join(indLong, bm, by = join_by(attribute == benchmark), keep = TR
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYm0gPC0gcmVhZF9jc3YoXCJhcHBEYXRhL2RlZmF1bHRfYmVuY2htYXJrX2FuZF9vcGVyYXRvcnMuY3N2XCIpXG53eSA8LSByZWFkX2NzdihcInNhbXBsZV9kYXRhL3d5X2xhbmRlclB0cy5jc3ZcIilcblxud3lTZWxlY3QgPC0gd3kgJT4lIHNlbGVjdChjKCdFdmFsdWF0aW9uSUQnLCdCTE1fQWRtaW5TdGF0ZScsJ0Vjb3JlZ2lvblN0cmVhbVNpemUnLCdQcm90b2NvbFR5cGUnLCdTdHJlYW1PcmRlcicsJ1NhbXBsZWRNaWRMYXRpdHVkZScsJ1NhbXBsZWRNaWRMb25naXR1ZGUnLCBibSRJbmRpY2F0b3IpKVxuXG5cbnd5bG9uZyA8LSB3eVNlbGVjdCAlPiUgcGl2b3RfbG9uZ2VyKC1jKCdFdmFsdWF0aW9uSUQnLCdCTE1fQWRtaW5TdGF0ZScsJ0Vjb3JlZ2lvblN0cmVhbVNpemUnLCdQcm90b2NvbFR5cGUnLCdTdHJlYW1PcmRlcicsJ1NhbXBsZWRNaWRMYXRpdHVkZScsJ1NhbXBsZWRNaWRMb25naXR1ZGUnKSwgXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBuYW1lc190byA9IFwiSW5kaWNhdG9yXCIsIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdmFsdWVzX3RvID0gXCJ2YWx1ZVwiKVxuXG5pbmRpY2F0b3JzV2l0aEJlbmNobWFya3MgPC0gbGVmdF9qb2luKHd5bG9uZywgYm0sIGJ5ID0gXCJJbmRpY2F0b3JcIiwgcmVsYXRpb25zaGlwID0gXCJtYW55LXRvLW1hbnlcIilcblxuSW5kaWNhdG9yVmFsdWVzQmVuY2htYXJrcyA8LSBpbmRpY2F0b3JzV2l0aEJlbmNobWFya3NcbmBgYCJ9 -->
-<pre class="r"><code>bm &lt;- read_csv(&quot;appData/default_benchmark_and_operators.csv&quot;)
-wy &lt;- read_csv(&quot;sample_data/wy_landerPts.csv&quot;)
-
-wySelect &lt;- wy %&gt;% select(c(&#39;EvaluationID&#39;,&#39;BLM_AdminState&#39;,&#39;EcoregionStreamSize&#39;,&#39;ProtocolType&#39;,&#39;StreamOrder&#39;,&#39;SampledMidLatitude&#39;,&#39;SampledMidLongitude&#39;, bm$Indicator))
-
-
-wylong &lt;- wySelect %&gt;% pivot_longer(-c(&#39;EvaluationID&#39;,&#39;BLM_AdminState&#39;,&#39;EcoregionStreamSize&#39;,&#39;ProtocolType&#39;,&#39;StreamOrder&#39;,&#39;SampledMidLatitude&#39;,&#39;SampledMidLongitude&#39;), 
-                                    names_to = &quot;Indicator&quot;, 
-                                    values_to = &quot;value&quot;)
-
-indicatorsWithBenchmarks &lt;- left_join(wylong, bm, by = &quot;Indicator&quot;, relationship = &quot;many-to-many&quot;)
-
-IndicatorValuesBenchmarks &lt;- indicatorsWithBenchmarks</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYm0gPC0gcmVhZF9jc3YoXCJhcHBEYXRhL2RlZmF1bHRfYmVuY2htYXJrX2FuZF9vcGVyYXRvcnMuY3N2XCIpXG5gYGAifQ== -->
+<pre class="r"><code>bm &lt;- read_csv(&quot;appData/default_benchmark_and_operators.csv&quot;)</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gcmVhZF9jc3YoXCJhcHBEYXRhL2RlZmF1bHRfYmVuY2htYXJrX2FuZF9vcGVyYXRvcnMuY3N2XCIpIDogXG4gIGNvdWxkIG5vdCBmaW5kIGZ1bmN0aW9uIFwicmVhZF9jc3ZcIlxuIn0= -->
+<pre><code>Error in read_csv(&quot;appData/default_benchmark_and_operators.csv&quot;) : 
+  could not find function &quot;read_csv&quot;</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->

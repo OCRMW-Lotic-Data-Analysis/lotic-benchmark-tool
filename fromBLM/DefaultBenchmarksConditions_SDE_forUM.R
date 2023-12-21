@@ -169,7 +169,7 @@ IndicatorValuesBenchmarks=rbind(IndicatorValuesBenchmarks1,IndicatorValuesBenchm
 ###########################################################################
 #Start loop. Loop through each row. Create string to evaluate condition.
 
-IndicatorValuesBenchmarks$Condition<-0
+IndicatorValuesBenchmarks$Condition<-NA
 
 
 for (i in 1:nrow(IndicatorValuesBenchmarks)) {
