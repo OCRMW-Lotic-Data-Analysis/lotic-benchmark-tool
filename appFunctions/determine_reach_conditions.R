@@ -1,9 +1,11 @@
-determine_reach_conditions <- function(indicators, benchmarks) {
+determine_reach_conditions <- function(indicators, benchmarks, categoryNum) {
   
   indicators <- as.data.frame(indicators)
+  benchmarks <- benchmarks %>% filter(ConditionCategoryNum == categoryNum)
   
   # Attribute and benchmarks for selecting and pivoting
-  attributeSelection <- c('EvaluationID','BLM_AdminState','EcoregionStreamSize','ProtocolType','StreamOrder','SampledMidLatitude','SampledMidLongitude')
+  #attributeSelection <- c('EvaluationID','BLM_AdminState','EcoregionStreamSize','ProtocolType','StreamOrder','SampledMidLatitude','SampledMidLongitude')
+  attributeSelection <- c('EvaluationID')
   benchmarkNames <- benchmarks$Indicator
   
   # Simplify indicator table using above values
@@ -62,5 +64,6 @@ determine_reach_conditions <- function(indicators, benchmarks) {
     
   }
 
+  IndicatorValuesBenchmarks <- IndicatorValuesBenchmarks %>% select(EvaluationID, Indicator, value, Condition)
   return(IndicatorValuesBenchmarks)
 }

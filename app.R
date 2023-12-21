@@ -95,6 +95,13 @@ ui <- page_navbar(
                                   `actions-box` = TRUE), 
                                 multiple = TRUE
                               ),
+          radioButtons(
+            inputId = "categoryNumSelector",
+            label = "Number of Categories",
+            choices = c("2" = 2, "3" = 3),
+            selected = 3,
+            inline = TRUE
+            ),
           actionButton(
             inputId = "myButton",
             label = "Download Bechmark Config Template"
@@ -151,8 +158,8 @@ ui <- page_navbar(
             label = "Select Indicator for Map",
             choices = NULL
           ),
-          actionButton(
-            inputId = "reachCondDLcsv",
+          downloadButton(
+            outputId = "reachCondDLcsv",
             label = "Download CSV"
           ),
           actionButton(
@@ -309,11 +316,32 @@ server <- function(input, output, session) {
   })
   
   # Table showing reach conditions after benchmark evaluation
-  output$reachConditionTable <- renderDT({determine_reach_conditions(indicators =  indicatorData(), benchmarks = definedBenchmarks())},
-    options = list(lengthChange = FALSE,
-                   dom = 't' #hide search box
-                   )
-    )
+  # output$reachConditionTable <- renderDT({determine_reach_conditions(indicators =  indicatorData(), benchmarks = definedBenchmarks())},
+  #   options = list(lengthChange = FALSE,
+  #                  dom = 't' #hide search box
+  #                  )
+  #   )
+  
+  # Reach conditions (Min, Mod, Max) for each indicator
+  reachConditions <- reactive({determine_reach_conditions(indicators =  indicatorData(), benchmarks = definedBenchmarks(), categoryNum = input$categoryNumSelector)})
+  
+  # Prep data for CSV export.  Currently only outputs pivoted reachConditions table.  Having issues joining with other table within this reactive.
+  indicatorCSV <- reactive({reachConditions() %>% pivot_wider(id_cols = !value, names_from = Indicator, values_from = Condition, names_glue = "{Indicator}{'Condition'}")
+  })
+  
+  # Download CSV button 
+  output$reachCondDLcsv <- downloadHandler(
+    
+    filename = function() {
+      paste("data-", Sys.Date(), ".csv", sep="")
+    },
+    content = function(file) {
+      write.csv(indicatorCSV(), file)
+    }
+  )
+  
+  # Reach Conditions Table (mostly a placeholder for now)
+  output$reachConditionTable <- renderDT({reachConditions()},)
 }
 
 shinyApp(ui, server)
