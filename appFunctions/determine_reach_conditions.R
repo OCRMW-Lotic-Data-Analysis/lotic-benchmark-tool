@@ -1,5 +1,9 @@
 determine_reach_conditions <- function(indicators, benchmarks) {
   
+  print(indicators)
+  print(benchmarks)
+  indicators <- as.data.frame(indicators)
+  
   # Attribute and benchmarks for selecting and pivoting
   attributeSelection <- c('EvaluationID','BLM_AdminState','EcoregionStreamSize','ProtocolType','StreamOrder','SampledMidLatitude','SampledMidLongitude')
   benchmarkNames <- benchmarks$Indicator

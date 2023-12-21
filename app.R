@@ -15,7 +15,8 @@ library(htmltools)
 source("./appFunctions/determine_reach_conditions.R")
 
 # Default "Fish Bearing" example benchmarks from original tool.
-defaultBenchmarks <- read.csv("./sample_data/fishbearing_bm_group.csv", colClasses = "character")
+#defaultBenchmarks <- read.csv("./sample_data/fishbearing_bm_group.csv", colClasses = "character")
+defaultBenchmarks <- read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character")
 
 #shinyuieditor::launch_editor(app_loc = "benchmark_dashboard/")
 ui <- page_navbar(
@@ -88,7 +89,7 @@ ui <- page_navbar(
         card_body(
           pickerInput(inputId = "selectBenchmarks",
                                 label = "Select Benchmarks", 
-                                choices = unique(defaultBenchmarks$benchmark),
+                                choices = unique(defaultBenchmarks$Indicator),
                                 options = list(
                                   `actions-box` = TRUE), 
                                 multiple = TRUE
@@ -237,7 +238,7 @@ server <- function(input, output, session) {
     # }
     
     rhandsontable(
-      data = defaultBenchmarks %>% filter(benchmark %in% selectedBenchmarks())
+      data = defaultBenchmarks %>% filter(Indicator %in% selectedBenchmarks())
       # data = data.frame(Benchmarks = selectedBenchmarks(),
       #                   Major = 76,
       #                   Operator = "<",
@@ -247,7 +248,7 @@ server <- function(input, output, session) {
   
   
   output$benchmark_dt <- renderDT({
-    defaultBenchmarks %>% filter(benchmark %in% selectedBenchmarks())},
+    defaultBenchmarks %>% filter(Indicator %in% selectedBenchmarks())},
     editable = list(target = 'row', 
                     disable = list(columns = c(0, 3, 4, 5))),
     rownames = FALSE,
@@ -285,6 +286,7 @@ server <- function(input, output, session) {
     pal <- colorNumeric(
       palette = "viridis",
       domain = as.numeric(indicatorData()[[mapVar]]))
+    
     indicatorData() %>%
       leaflet() %>%
       addTiles() %>%
@@ -306,7 +308,7 @@ server <- function(input, output, session) {
   })
   
   # Table showing reach conditions after benchmark evaluation
-  output$reachConditionTable <- renderDT({determine_reach_conditions(definedBenchmarks())},
+  output$reachConditionTable <- renderDT({determine_reach_conditions(indicators =  indicatorData(), benchmarks = definedBenchmarks())},
     options = list(lengthChange = FALSE,
                    dom = 't' #hide search box
                    )

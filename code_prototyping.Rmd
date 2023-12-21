@@ -94,7 +94,8 @@ wylong <- wySelect %>% pivot_longer(-c('EvaluationID','BLM_AdminState','Ecoregio
                                     names_to = "Indicator", 
                                     values_to = "value")
 
-indicatorsWithBenchmarks <- left_join(wylong, bm, by = "Indicator", relationship = "many-to-many")
+indicatorsWithBenchmarks <- inner_join(wylong, bm, by = "Indicator", relationship = "many-to-many")
+indicatorsWithBenchmarks <- inner_join(wy1, bm, by = "Indicator")
 
 IndicatorValuesBenchmarks <- indicatorsWithBenchmarks
 ```
