@@ -1,7 +1,5 @@
 determine_reach_conditions <- function(indicators, benchmarks) {
   
-  print(indicators)
-  print(benchmarks)
   indicators <- as.data.frame(indicators)
   
   # Attribute and benchmarks for selecting and pivoting
@@ -13,7 +11,7 @@ determine_reach_conditions <- function(indicators, benchmarks) {
     select(all_of((c(attributeSelection, benchmarkNames))))
   
   # Convert indicators to long format and join with benchmarks
-  indicatorLong <- indicatorSelect %>% pivot_longer(-attributeSelection, 
+  indicatorLong <- indicatorSelect %>% pivot_longer(-all_of(attributeSelection), 
                                       names_to = "Indicator", 
                                       values_to = "value")
   
