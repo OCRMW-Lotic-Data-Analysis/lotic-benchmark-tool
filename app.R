@@ -11,6 +11,7 @@ library(sf)
 library(shinyWidgets)
 library(rhandsontable)
 library(htmltools)
+library(zip)
 
 # Load appFunctions
 source("./appFunctions/determine_reach_conditions.R")
@@ -162,9 +163,9 @@ ui <- page_navbar(
             outputId = "reachCondDLcsv",
             label = "Download CSV"
           ),
-          actionButton(
-            inputId = "reachCondDLshp",
-            label = "Download ESRI Shape File"
+          downloadButton(
+            outputId = "reachCondDLgdb",
+            label = "Download ESRI FileGDB"
           )
         )
       ),
@@ -188,7 +189,7 @@ server <- function(input, output, session) {
   indicatorData <- reactive({
     req(input$upload)
     vroom::vroom(input$upload$datapath, delim = ",") %>%
-      st_as_sf(coords = c("X", "Y"), crs = 4326)
+      st_as_sf(coords = c("X", "Y"), crs = 4269)
   })
   
   # Map showing initial indicators loaded into app
@@ -324,19 +325,78 @@ server <- function(input, output, session) {
   
   # Reach conditions (Min, Mod, Max) for each indicator
   reachConditions <- reactive({determine_reach_conditions(indicators =  indicatorData(), benchmarks = definedBenchmarks(), categoryNum = input$categoryNumSelector)})
+
   
   # Prep data for CSV export.  Currently only outputs pivoted reachConditions table.  Having issues joining with other table within this reactive.
-  indicatorCSV <- reactive({reachConditions() %>% pivot_wider(id_cols = !value, names_from = Indicator, values_from = Condition, names_glue = "{Indicator}{'Condition'}")
+  indicatorCSV <- reactive({
+    
+    indicatorDataNoGeom <- st_drop_geometry(indicatorData())
+    reachConditionsWide <- reachConditions() %>% 
+      pivot_wider(id_cols = !value, names_from = Indicator, values_from = Condition, names_glue = "{Indicator}{'Condition'}")
+    
+    left_join(indicatorDataNoGeom, reachConditionsWide, by = "EvaluationID")
   })
   
   # Download CSV button 
   output$reachCondDLcsv <- downloadHandler(
     
-    filename = function() {
-      paste("data-", Sys.Date(), ".csv", sep="")
-    },
+    filename = "reachConditions.csv",
     content = function(file) {
       write.csv(indicatorCSV(), file)
+    }
+  )
+  
+  # Prep data for Shapefile export.  Currently only outputs pivoted reachConditions table.  Having issues joining with other table within this reactive.
+  indicatorSHP <- reactive({
+    
+    reachConditionsWide <- reachConditions() %>% 
+      pivot_wider(id_cols = !value, names_from = Indicator, values_from = Condition, names_glue = "{Indicator}{'Condition'}")
+    
+    indicatorsWithConditions <- left_join(indicatorData(), reachConditionsWide, by = "EvaluationID")
+    return(indicatorsWithConditions)
+  })
+  
+  # # Download shapefile button 
+  # output$reachCondDLshp <- downloadHandler(
+  #   
+  #   filename = function() {
+  #     paste("reachConditions", ".gdb", sep="")
+  #   },
+  #   content = function(file) {
+  #     st_write(obj =indicatorSHP(), 
+  #              dsn = file,
+  #              layer = "reachConditions",
+  #              driver = "OpenFileGDB")
+  #   }
+  # )
+  
+  output$reachCondDLgdb <- downloadHandler(
+    filename = "reachConditions.zip",
+    content = function(file) {
+      data <- indicatorSHP() # I assume this is a reactive object
+      # create a temp folder for shp files
+      temp_gdb <- tempdir()
+      # write shp files
+      st_write(obj = data, 
+               dsn = file.path(temp_gdb, "reachConditions.gdb"),
+               layer = "reachConditions",
+               driver = "OpenFileGDB",
+               append = FALSE)
+      # zip all the shp files
+      zip_file <- file.path(temp_gdb, "reachConditionstemp.zip")
+      gdb_files <- list.files(temp_gdb,
+                              "reachConditions.gdb",
+                              full.names = TRUE)
+      # # the following zip method works for me in linux but substitute with whatever method working in your OS 
+      # zip_command <- paste("zip -j", 
+      #                      zip_file, 
+      #                      paste(shp_files, collapse = " "))
+      zip::zip(zip_file, files = "reachConditions.gdb", root = temp_gdb)
+      
+      # copy the zip file to the file argument
+      file.copy(zip_file, file)
+      # remove all the files created
+      file.remove(zip_file, gdb_files)
     }
   )
   

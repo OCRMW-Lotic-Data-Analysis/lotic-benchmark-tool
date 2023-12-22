@@ -103,9 +103,14 @@ IndicatorValuesBenchmarks <- indicatorsWithBenchmarks
 
 
 ```{r}
-dat <- determine_reach_conditions(wy, defaultBenchmarks, 3)
+dat <- determine_reach_conditions(wy, bm, 3)
 
 dat2 <- dat %>% pivot_wider(id_cols = !value, names_from = Indicator, values_from = Condition, names_glue = "{Indicator}{'Condition'}")
+
+reachConditionsWide <- dat %>% 
+      pivot_wider(id_cols = !value, names_from = Indicator, values_from = Condition, names_glue = "{Indicator}{'Condition'}")
+    
+datfinal <- left_join(wy, reachConditionsWide, by = "EvaluationID")
 
 
 ```
