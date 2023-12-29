@@ -205,9 +205,12 @@ server <- function(input, output, session) {
       leaflet() %>%
       addTiles() %>%
       addCircleMarkers(
-        radius = 5,
-        color = ~pal(PointSelectionType),
-        stroke = FALSE, fillOpacity = 1,
+        radius = 7,
+        color = "black",
+        fillColor = ~pal(PointSelectionType),
+        stroke = TRUE, 
+        weight = 1,
+        fillOpacity = 1,
         label = ~labels) %>%
       addProviderTiles("Esri.WorldTopoMap",
                        group = "Esri.WorldTopoMap") %>%
@@ -307,16 +310,18 @@ server <- function(input, output, session) {
       lapply(htmltools::HTML)
     
     # Palet
-    pal <- colorFactor(c("green", "yellow", "red"), domain = c("Minimal", "Moderate", "Major"))
+    pal <- colorFactor(c("#ffeda0", "#feb24c", "#f03b20"), levels = c("Minimal", "Moderate", "Major"), ordered = TRUE)
     
     # Map
     reachConditions() %>%
       leaflet() %>%
       addTiles() %>%
       addCircleMarkers(
-        radius = 5,
-        color = ~pal(reachConditions()[[mapVar]]),
-        stroke = FALSE, 
+        radius = 7,
+        color = "black",
+        fillColor = ~pal(reachConditions()[[mapVar]]),
+        stroke = TRUE,
+        weight = 1,
         fillOpacity = 1,
         label = ~labels
       ) %>%
@@ -329,7 +334,11 @@ server <- function(input, output, session) {
                        "Esri.WorldImagery"),
         # position it on the topleft
         position = "topleft") %>%
-      addLegend(pal = pal, values = ~reachConditions()[[mapVar]], opacity = 1, title = mapVar)
+      #addLegend(pal = pal, values = ~reachConditions()[[mapVar]], opacity = 1, title = mapVar)
+      addLegend(pal = pal, 
+                values = factor(reachConditions()[[mapVar]],
+                                levels = c("Major", "Moderate", "Minimal")), 
+                opacity = 1, title = mapVar)
     
   })
 
