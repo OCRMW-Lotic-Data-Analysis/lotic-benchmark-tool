@@ -337,52 +337,19 @@ server <- function(input, output, session) {
                                                           categoryNum = input$categoryNumSelector)})
 
   
-  # Prep data for CSV export.  Currently only outputs pivoted reachConditions table.  Having issues joining with other table within this reactive.
-  indicatorCSV <- reactive({
-    
-    indicatorDataNoGeom <- st_drop_geometry(indicatorData())
-    reachConditionsWide <- reachConditions() %>% 
-      pivot_wider(id_cols = !value, names_from = Indicator, values_from = Condition, names_glue = "{Indicator}{'Condition'}")
-    
-    left_join(indicatorDataNoGeom, reachConditionsWide, by = "EvaluationID")
-  })
-  
   # Download CSV button 
   output$reachCondDLcsv <- downloadHandler(
     filename = "reachConditions.csv",
     content = function(file) {
-      write.csv(indicatorCSV(), file)
+      write.csv(st_drop_geometry(reachConditions()), file) # need st_drop_geometry or it splits geom into two columns that overwrite data.
     }
   )
   
-  # Prep data for Shapefile export.  Currently only outputs pivoted reachConditions table.  Having issues joining with other table within this reactive.
-  indicatorSHP <- reactive({
-    
-    reachConditionsWide <- reachConditions() %>% 
-      pivot_wider(id_cols = !value, names_from = Indicator, values_from = Condition, names_glue = "{Indicator}{'Condition'}")
-    
-    indicatorsWithConditions <- left_join(indicatorData(), reachConditionsWide, by = "EvaluationID")
-    return(indicatorsWithConditions)
-  })
-  
-  # # Download shapefile button 
-  # output$reachCondDLshp <- downloadHandler(
-  #   
-  #   filename = function() {
-  #     paste("reachConditions", ".gdb", sep="")
-  #   },
-  #   content = function(file) {
-  #     st_write(obj =indicatorSHP(), 
-  #              dsn = file,
-  #              layer = "reachConditions",
-  #              driver = "OpenFileGDB")
-  #   }
-  # )
-  
+  # Download ESRI FileGDB button (currently works locally but not on Shinyapps.io)
   output$reachCondDLgdb <- downloadHandler(
     filename = "reachConditions.zip",
     content = function(file) {
-      data <- indicatorSHP() # I assume this is a reactive object
+      data <- reachConditions() # I assume this is a reactive object
       # create a temp folder for shp files
       temp_gdb <- tempdir()
       # write shp files
