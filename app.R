@@ -89,7 +89,7 @@ ui <- page_navbar(
       gap_size = "10px",
       grid_card(
         area = "benchmark_sidebar",
-        card_header("Benchmark Groups"),
+        #card_header("Benchmark Groups"),
         card_body(
           pickerInput(inputId = "selectBenchmarks",
                                 label = "Select Benchmarks", 
@@ -286,16 +286,22 @@ server <- function(input, output, session) {
   
   # Map showing indicators colored by selected reach condition variable
   output$reachCondMap <- renderLeaflet({
+    
+    # Pull variable to plot from input select.  Input just shows benchmark name
+    # to make select cleaner but "Condition" is appended to select col with value.
     mapVar <- paste0(input$reachCondMapSelect, "Condition")
     
+    # Label that shows up on hover
     labels <- paste0(
       "<strong>", reachConditions()$PointID, "</strong><br>",
       reachConditions()$StreamName, "<br>",
       mapVar, ": ", reachConditions()[[mapVar]]) %>%
       lapply(htmltools::HTML)
     
+    # Palet
     pal <- colorFactor(c("green", "yellow", "red"), domain = c("Minimal", "Moderate", "Major"))
     
+    # Map
     reachConditions() %>%
       leaflet() %>%
       addTiles() %>%
@@ -317,46 +323,6 @@ server <- function(input, output, session) {
         position = "topleft") %>%
       addLegend(pal = pal, values = ~reachConditions()[[mapVar]], opacity = 1, title = mapVar)
     
-    
-    
-    
-    
-    #mapVar <- input$reachCondMapSelect
-    
-    # labels <- paste0(
-    #   "<strong>", indicatorData()$PointID, "</strong><br>",
-    #   indicatorData()$StreamName, "<br>",
-    #   mapVar, ": ", selectedBenchmarks()[[mapVar]]) %>%
-    #   lapply(htmltools::HTML)
-    
-    # pal <- colorFactor(
-    #   palette = "viridis",
-    #   domain = as.numeric(selectedBenchmarks()$Condition))
-    
-    # pal <- colorFactor(
-    #      palette = "viridis",
-    #      domain = as.numeric(selectedBenchmarks()$Condition))
-    # 
-    # indicatorData() %>%
-    #   leaflet() %>%
-    #   addTiles() %>%
-    #   addCircleMarkers(
-    #     radius = 5,
-    #     color = ~pal,
-    #     stroke = FALSE, 
-    #     fillOpacity = 1,
-    #     #label = ~labels
-    #     ) %>%
-    #   addProviderTiles("Esri.WorldTopoMap",
-    #                    group = "Esri.WorldTopoMap") %>%
-    #   addProviderTiles("Esri.WorldImagery",
-    #                    group = "Esri.WorldImagery") %>%
-    #   addLayersControl(
-    #     baseGroups = c("Esri.WorldTopoMap",
-    #                    "Esri.WorldImagery"),
-    #     # position it on the topleft
-    #     position = "topleft") #%>%
-    #   #addLegend(pal = pal, values = ~as.numeric(selectedBenchmarks()[[mapVar]]), opacity = 1)
   })
   
   # Table showing reach conditions after benchmark evaluation
