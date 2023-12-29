@@ -20,7 +20,9 @@ source("./appFunctions/determine_reach_conditions.R")
 #defaultBenchmarks <- read.csv("./sample_data/fishbearing_bm_group.csv", colClasses = "character")
 defaultBenchmarks <- read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character")
 
-#shinyuieditor::launch_editor(app_loc = "benchmark_dashboard/")
+#shinyuieditor::launch_editor(app_loc = "benchmark_dashboard/"
+
+### UI -------------------------------------------------------------------------
 ui <- page_navbar(
   title = "Lotic AIM Indicator Benchmark Tool",
   selected = "1. Select Indicators",
@@ -178,7 +180,7 @@ ui <- page_navbar(
   )
 )
 
-
+# SERVER -----------------------------------------------------------------------
 server <- function(input, output, session) {
   #bs_themer()
 # 0. Global Items ------------------------------------------------------------

@@ -4,16 +4,15 @@ determine_reach_conditions <- function(indicators, benchmarks, categoryNum) {
   benchmarks <- benchmarks %>% filter(ConditionCategoryNum == categoryNum)
   
   # Attribute and benchmarks for selecting and pivoting
-  #attributeSelection <- c('EvaluationID','BLM_AdminState','EcoregionStreamSize','ProtocolType','StreamOrder','SampledMidLatitude','SampledMidLongitude')
-  attributeSelection <- c('EvaluationID')
+  columnSelection <- c('EvaluationID')  #lseparate in case more columns are desired later.
   benchmarkNames <- benchmarks$Indicator
   
   # Simplify indicator table using above values
   indicatorSelect <- indicatorsdf %>% 
-    select(all_of((c(attributeSelection, benchmarkNames))))
+    select(all_of((c(columnSelection, benchmarkNames))))
   
   # Convert indicatorsdf to long format and join with benchmarks
-  indicatorLong <- indicatorSelect %>% pivot_longer(-all_of(attributeSelection), 
+  indicatorLong <- indicatorSelect %>% pivot_longer(-all_of(columnSelection), 
                                       names_to = "Indicator", 
                                       values_to = "value")
   
@@ -63,10 +62,15 @@ determine_reach_conditions <- function(indicators, benchmarks, categoryNum) {
       )
     
   }
-
-  IndicatorValuesBenchmarks <- IndicatorValuesBenchmarks %>% select(EvaluationID, Indicator, value, Condition)
   
-  #IndicatorValuesBenchmarks.sf <- left_join(indicators, IndicatorValuesBenchmarks, by = "EvaluationID")
+  # Convert to wide format to join with original indicators input
+  reachConditionsWide <- IndicatorValuesBenchmarks %>% 
+    select(EvaluationID, Indicator, value, Condition) %>% 
+    pivot_wider(id_cols = !value, names_from = Indicator, values_from = Condition, names_glue = "{Indicator}{'Condition'}")
   
-  return(IndicatorValuesBenchmarks)
+  # Join reach conditions with indicators
+  reachConditions <- left_join(indicators, reachConditionsWide, by = "EvaluationID")
+  
+  
+  return(reachConditions)
 }
