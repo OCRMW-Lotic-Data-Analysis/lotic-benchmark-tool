@@ -89,7 +89,6 @@ ui <- page_navbar(
       gap_size = "10px",
       grid_card(
         area = "benchmark_sidebar",
-        #card_header("Benchmark Groups"),
         card_body(
           pickerInput(inputId = "selectBenchmarks",
                                 label = "Select Benchmarks", 
