@@ -1,6 +1,6 @@
 determine_reach_conditions <- function(indicators, benchmarks, categoryNum) {
   
-  indicators <- as.data.frame(indicators)
+  indicatorsdf <- as.data.frame(indicators)
   benchmarks <- benchmarks %>% filter(ConditionCategoryNum == categoryNum)
   
   # Attribute and benchmarks for selecting and pivoting
@@ -9,10 +9,10 @@ determine_reach_conditions <- function(indicators, benchmarks, categoryNum) {
   benchmarkNames <- benchmarks$Indicator
   
   # Simplify indicator table using above values
-  indicatorSelect <- indicators %>% 
+  indicatorSelect <- indicatorsdf %>% 
     select(all_of((c(attributeSelection, benchmarkNames))))
   
-  # Convert indicators to long format and join with benchmarks
+  # Convert indicatorsdf to long format and join with benchmarks
   indicatorLong <- indicatorSelect %>% pivot_longer(-all_of(attributeSelection), 
                                       names_to = "Indicator", 
                                       values_to = "value")
@@ -65,5 +65,8 @@ determine_reach_conditions <- function(indicators, benchmarks, categoryNum) {
   }
 
   IndicatorValuesBenchmarks <- IndicatorValuesBenchmarks %>% select(EvaluationID, Indicator, value, Condition)
+  
+  #IndicatorValuesBenchmarks.sf <- left_join(indicators, IndicatorValuesBenchmarks, by = "EvaluationID")
+  
   return(IndicatorValuesBenchmarks)
 }

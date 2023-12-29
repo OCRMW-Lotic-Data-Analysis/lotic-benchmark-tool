@@ -189,7 +189,7 @@ server <- function(input, output, session) {
   indicatorData <- reactive({
     req(input$upload)
     vroom::vroom(input$upload$datapath, delim = ",") %>%
-      st_as_sf(coords = c("X", "Y"), crs = 4269)
+      st_as_sf(coords = c("SampledMidLongitude", "SampledMidLatitude"), crs = 4269)
   })
   
   # Map showing initial indicators loaded into app
@@ -284,26 +284,32 @@ server <- function(input, output, session) {
   
   # Map showing indicators colored by selected reach condition variable
   output$reachCondMap <- renderLeaflet({
-    mapVar <- input$reachCondMapSelect
+    #mapVar <- input$reachCondMapSelect
     
-    labels <- paste0(
-      "<strong>", indicatorData()$PointID, "</strong><br>",
-      indicatorData()$StreamName, "<br>",
-      mapVar, ": ", indicatorData()[[mapVar]]) %>%
-      lapply(htmltools::HTML)
+    # labels <- paste0(
+    #   "<strong>", indicatorData()$PointID, "</strong><br>",
+    #   indicatorData()$StreamName, "<br>",
+    #   mapVar, ": ", selectedBenchmarks()[[mapVar]]) %>%
+    #   lapply(htmltools::HTML)
     
-    pal <- colorNumeric(
-      palette = "viridis",
-      domain = as.numeric(indicatorData()[[mapVar]]))
+    # pal <- colorFactor(
+    #   palette = "viridis",
+    #   domain = as.numeric(selectedBenchmarks()$Condition))
+    
+    pal <- colorFactor(
+         palette = "viridis",
+         domain = as.numeric(selectedBenchmarks()$Condition))
     
     indicatorData() %>%
       leaflet() %>%
       addTiles() %>%
       addCircleMarkers(
         radius = 5,
-        color = ~pal(as.numeric(indicatorData()[[mapVar]])),
-        stroke = FALSE, fillOpacity = 1,
-        label = ~labels) %>%
+        color = ~pal,
+        stroke = FALSE, 
+        fillOpacity = 1,
+        #label = ~labels
+        ) %>%
       addProviderTiles("Esri.WorldTopoMap",
                        group = "Esri.WorldTopoMap") %>%
       addProviderTiles("Esri.WorldImagery",
@@ -312,8 +318,8 @@ server <- function(input, output, session) {
         baseGroups = c("Esri.WorldTopoMap",
                        "Esri.WorldImagery"),
         # position it on the topleft
-        position = "topleft") %>%
-      addLegend(pal = pal, values = ~as.numeric(indicatorData()[[mapVar]]), opacity = 1)
+        position = "topleft") #%>%
+      #addLegend(pal = pal, values = ~as.numeric(selectedBenchmarks()[[mapVar]]), opacity = 1)
   })
   
   # Table showing reach conditions after benchmark evaluation
@@ -324,7 +330,9 @@ server <- function(input, output, session) {
   #   )
   
   # Reach conditions (Min, Mod, Max) for each indicator
-  reachConditions <- reactive({determine_reach_conditions(indicators =  indicatorData(), benchmarks = definedBenchmarks(), categoryNum = input$categoryNumSelector)})
+  reachConditions <- reactive({determine_reach_conditions(indicators =  indicatorData(), 
+                                                          benchmarks = definedBenchmarks(), 
+                                                          categoryNum = input$categoryNumSelector)})
 
   
   # Prep data for CSV export.  Currently only outputs pivoted reachConditions table.  Having issues joining with other table within this reactive.
@@ -339,7 +347,6 @@ server <- function(input, output, session) {
   
   # Download CSV button 
   output$reachCondDLcsv <- downloadHandler(
-    
     filename = "reachConditions.csv",
     content = function(file) {
       write.csv(indicatorCSV(), file)
