@@ -110,7 +110,37 @@ dat2 <- dat %>% pivot_wider(id_cols = !value, names_from = Indicator, values_fro
 reachConditionsWide <- dat %>% 
       pivot_wider(id_cols = !value, names_from = Indicator, values_from = Condition, names_glue = "{Indicator}{'Condition'}")
     
-datfinal <- left_join(wy, reachConditionsWide, by = "EvaluationID")
+datfinal <- left_join(wysf, dat, by = "EvaluationID")
+
+
+```
+
+
+```{r}
+mapVar <- "PctBankCoveredMIMCondition"
+
+pal <- colorFactor(c("green", "yellow", "red"), domain = c("Minimal", "Moderate", "Major"))
+    
+    datfinal %>%
+      leaflet() %>%
+      addTiles() %>%
+      addCircleMarkers(
+        radius = 5,
+        color = ~pal(mapVar),
+        stroke = FALSE, 
+        fillOpacity = 1,
+        #label = ~labels
+        ) %>%
+      addProviderTiles("Esri.WorldTopoMap",
+                       group = "Esri.WorldTopoMap") %>%
+      addProviderTiles("Esri.WorldImagery",
+                       group = "Esri.WorldImagery") %>%
+      addLayersControl(
+        baseGroups = c("Esri.WorldTopoMap",
+                       "Esri.WorldImagery"),
+        # position it on the topleft
+        position = "topleft") %>%
+      addLegend(pal = pal, values = ~datfinal$PctBankCoveredMIMCondition, opacity = 1, title = "test")
 
 
 ```
