@@ -25,7 +25,7 @@ ui <- page_navbar(
   title = "Lotic AIM Indicator Benchmark Tool",
   selected = "1. Select Indicators",
   collapsible = TRUE,
-  theme = bslib::bs_theme(font_scale = 0.8, spacer = ".5rem"),
+  theme = bslib::bs_theme(font_scale = NULL, preset = "yeti"),
   # 1. Select Indicators
   nav_panel(
     title = "1. Select Indicators",
@@ -39,8 +39,8 @@ ui <- page_navbar(
         "1fr"
       ),
       col_sizes = c(
-        "0.5fr",
-        "1.5fr"
+        "0.4fr",
+        "1.6fr"
       ),
       gap_size = "10px",
       grid_card(
@@ -135,8 +135,8 @@ ui <- page_navbar(
         "1fr"
       ),
       col_sizes = c(
-        "0.5fr",
-        "1.5fr"
+        "0.4fr",
+        "1.6fr"
       ),
       gap_size = "10px",
       grid_card(
