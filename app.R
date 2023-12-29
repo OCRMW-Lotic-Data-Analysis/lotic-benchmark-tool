@@ -222,17 +222,21 @@ server <- function(input, output, session) {
     })
   
   # Table showing initial indicators loaded into app
+  # output$indicatorTable <- renderDT({
+  #   indicatorData()},
+  #   extensions = 'Scroller',
+  #   options = list(
+  #     dom = 't',  #hide search box
+  #     deferRender = FALSE,
+  #     scrollY = 350,
+  #     scrollCollapse = TRUE,
+  #     scroller = TRUE,
+  #     scrollX = TRUE)
+  #   )
+  
+  # Simple table - doesnt autofit data though.  Above version does but isn't perfect.
   output$indicatorTable <- renderDT({
-    indicatorData()},
-    extensions = 'Scroller',
-    options = list(
-      dom = 't',  #hide search box
-      deferRender = FALSE,
-      scrollY = 350,
-      scrollCollapse = TRUE,
-      scroller = TRUE,
-      scrollX = TRUE)
-    )
+    indicatorData()},)
   
 # 2. Define Benchmarks -------------------------------------------------------
   
@@ -273,6 +277,11 @@ server <- function(input, output, session) {
   })
   
 # 3. Reach Conditions --------------------------------------------------------
+  
+  # Reach conditions (Min, Mod, Max) for each indicator
+  reachConditions <- reactive({determine_reach_conditions(indicators =  indicatorData(), 
+                                                          benchmarks = definedBenchmarks(), 
+                                                          categoryNum = input$categoryNumSelector)})
   
   #Use selectedBenchmarks to update dropdown options for plotting reach conditions
   observe({
@@ -323,20 +332,7 @@ server <- function(input, output, session) {
       addLegend(pal = pal, values = ~reachConditions()[[mapVar]], opacity = 1, title = mapVar)
     
   })
-  
-  # Table showing reach conditions after benchmark evaluation
-  # output$reachConditionTable <- renderDT({determine_reach_conditions(indicators =  indicatorData(), benchmarks = definedBenchmarks())},
-  #   options = list(lengthChange = FALSE,
-  #                  dom = 't' #hide search box
-  #                  )
-  #   )
-  
-  # Reach conditions (Min, Mod, Max) for each indicator
-  reachConditions <- reactive({determine_reach_conditions(indicators =  indicatorData(), 
-                                                          benchmarks = definedBenchmarks(), 
-                                                          categoryNum = input$categoryNumSelector)})
 
-  
   # Download CSV button 
   output$reachCondDLcsv <- downloadHandler(
     filename = "reachConditions.csv",
