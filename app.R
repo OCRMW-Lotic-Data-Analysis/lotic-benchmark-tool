@@ -15,6 +15,7 @@ library(zip)
 
 # Load appFunctions
 source("./appFunctions/determine_reach_conditions.R")
+source("./appFunctions/condition_summary_table.R")
 
 # Default "Fish Bearing" example benchmarks from original tool.
 #defaultBenchmarks <- read.csv("./sample_data/fishbearing_bm_group.csv", colClasses = "character")
@@ -176,7 +177,14 @@ ui <- page_navbar(
         leafletOutput(outputId = "reachCondMap")
       )
     )
-  )
+  ),
+  nav_panel(
+    title = "4. Summary",
+    navset_card_tab(
+      nav_panel(title = "Table", DTOutput("bmSummaryTable")),
+      nav_panel(title = "Box Plots", DTOutput("bmSummaryBoxplots"))
+      )
+    )
 )
 
 # SERVER -----------------------------------------------------------------------
@@ -383,6 +391,10 @@ server <- function(input, output, session) {
   
   # Reach Conditions Table (mostly a placeholder for now)
   output$reachConditionTable <- renderDT({reachConditions()},)
+  
+# 4. Condition Summary ---------------------------------------------------------
+  output$bmSummaryTable <- renderDT({
+    condition_summary_table(reachConditions(), selectedBenchmarks())},)
 }
 
 shinyApp(ui, server)
