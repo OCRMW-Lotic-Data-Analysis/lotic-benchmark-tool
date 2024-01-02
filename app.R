@@ -29,7 +29,7 @@ ui <- page_navbar(
   selected = "1. Select Indicators",
   collapsible = TRUE,
   theme = bslib::bs_theme(font_scale = NULL, preset = "yeti"),
-  # 1. Select Indicators
+  # 1. Select Indicators ----
   nav_panel(
     title = "1. Select Indicators",
     grid_container(
@@ -71,7 +71,7 @@ ui <- page_navbar(
       )
     )
   ),
-  # 2. Define Benchmarks
+  # 2. Define Benchmarks ----
   nav_panel(
     title = "2. Define Benchmarks",
     grid_container(
@@ -124,7 +124,7 @@ ui <- page_navbar(
       )
     )
   ),
-  # 3. Reach Conditions
+  # 3. Reach Conditions ----
   nav_panel(
     title = "3. Reach Conditions",
     grid_container(
@@ -178,6 +178,7 @@ ui <- page_navbar(
       )
     )
   ),
+  # 4. Summary ----
   nav_panel(
     title = "4. Summary",
     navset_card_tab(
@@ -197,7 +198,7 @@ server <- function(input, output, session) {
 # Uploaded indicator data (pre-filtered by user)
   indicatorData <- reactive({
     req(input$upload)
-    vroom::vroom(input$upload$datapath, delim = ",") %>%
+    vroom::vroom(input$upload$datapath, delim = ",", show_col_types = FALSE) %>%
       st_as_sf(coords = c("SampledMidLongitude", "SampledMidLatitude"), crs = 4269)
   })
   
@@ -288,7 +289,8 @@ server <- function(input, output, session) {
   # Reach conditions (Min, Mod, Max) for each indicator
   reachConditions <- reactive({determine_reach_conditions(indicators =  indicatorData(), 
                                                           benchmarks = definedBenchmarks(), 
-                                                          categoryNum = input$categoryNumSelector)})
+                                                          categoryNum = input$categoryNumSelector)
+    })
   
   #Use selectedBenchmarks to update dropdown options for plotting reach conditions
   observe({

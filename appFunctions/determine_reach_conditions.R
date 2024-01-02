@@ -68,7 +68,7 @@ determine_reach_conditions <- function(indicators, benchmarks, categoryNum) {
     select(EvaluationID, Indicator, value, Condition) %>% 
     pivot_wider(id_cols = !value, names_from = Indicator, values_from = Condition, names_glue = "{Indicator}{'Condition'}")
   
-  # Join reach conditions with indicators
+  # Join reach conditions with indicators (the original, spatial object) and NOT indicatorsdf
   reachConditions <- left_join(indicators, reachConditionsWide, by = "EvaluationID")
   
   
