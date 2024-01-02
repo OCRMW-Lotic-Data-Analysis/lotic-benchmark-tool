@@ -251,11 +251,6 @@ server <- function(input, output, session) {
   
 # 2. Define Benchmarks -------------------------------------------------------
   
-  # Benchmarks to include for uploaded points
-  # selectedBenchmarks <- reactive({
-  #   input$selectBenchmarks
-  #   })
-  
   # Editable benchmark table
   output$benchmark_hot <- renderRHandsontable({
     # if (selectedBenchmarks() == ""){
@@ -263,7 +258,8 @@ server <- function(input, output, session) {
     # }
     
     rhandsontable(
-      data = defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks)
+      data = defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks &
+                                          ConditionCategoryNum == input$categoryNumSelector)
       # data = data.frame(Benchmarks = selectedBenchmarks(),
       #                   Major = 76,
       #                   Operator = "<",
@@ -297,7 +293,7 @@ server <- function(input, output, session) {
   #Use selectedBenchmarks to update dropdown options for plotting reach conditions
   observe({
     updateSelectInput(session, "reachCondMapSelect",
-                      choices = input$selectBenchmarks,
+                      choices = definedBenchmarks()$Indicator,
                       selected = ""
                       )
     })
@@ -394,7 +390,7 @@ server <- function(input, output, session) {
   
 # 4. Condition Summary ---------------------------------------------------------
   output$bmSummaryTable <- renderDT({
-    condition_summary_table(reachConditions(), input$selectBenchmarks)},)
+    condition_summary_table(reachConditions(), definedBenchmarks()$Indicator)},)
 }
 
 shinyApp(ui, server)

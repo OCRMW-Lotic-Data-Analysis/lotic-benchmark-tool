@@ -1,5 +1,9 @@
 condition_summary_table <- function(reachConditions, selectedBenchmarks){
 
+# Blank template of bmCondSummary table.  Used to prevent errors when Min, Mod, or Maj is missing.
+bmSummaryBlank <- tibble(Indicator = character(), Minimal = numeric(), Moderate = numeric(), Major = numeric())
+
+# Convert to normal dataframe
 reachConditions <- st_drop_geometry(reachConditions)
 
 #selectedBenchmarks <- c("PctBankCoveredStableMIM", "PctBankOverheadCover")
@@ -13,7 +17,9 @@ bmCondSummary <- reachConditions %>% select(all_of(selectedBenchmarkConditions))
   pivot_wider(names_from = condition, values_from = count) %>%
   # Remove "Condition" suffix to get normal indicator name
   mutate(Indicator = str_replace(Indicator, "Condition", "")) %>%
-  relocate(Indicator, Minimal, Moderate, Major)
+  # bind to blank template
+  bind_rows(bmSummaryBlank) %>%
+  select(Indicator, Minimal, Moderate, Major)
 
 
 bmStatSummary <- reachConditions %>% select(all_of(selectedBenchmarks)) %>%
