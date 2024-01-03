@@ -342,8 +342,7 @@ server <- function(input, output, session) {
         position = "topleft") %>%
       #addLegend(pal = pal, values = ~reachConditions()[[mapVar]], opacity = 1, title = mapVar)
       addLegend(pal = pal, 
-                values = factor(reachConditions()[[mapVar]],
-                                levels = c("Major", "Moderate", "Minimal")), 
+                values = c("Major", "Moderate", "Minimal"),
                 opacity = 1, title = mapVar)
     
   })
