@@ -117,28 +117,11 @@ datfinal <- left_join(wy, dat, by = "EvaluationID")
 
 
 ```{r}
-selectedBenchmarks <- c("PctBankCoveredStableMIM", "PctBankOverheadCover")
-selectedBenchmarkConditions <- selectedBenchmarks %>% paste0("Condition")
-
-bmCondSummary <- dat %>% select(all_of(selectedBenchmarkConditions)) %>%
-  pivot_longer(cols = everything(), names_to = "Indicator", values_to = "condition") %>%
-  group_by(Indicator, condition) %>%
-  summarise(count = n()) %>%
-  pivot_wider(names_from = condition, values_from = count) %>%
-  # Remove "Condition" suffix to get normal indicator name
-  mutate(Indicator = str_replace(Indicator, "Condition", "")) %>%
-  relocate(Indicator, Minimal, Moderate, Major)
-
-
-bmStatSummary <- dat %>% select(all_of(selectedBenchmarks)) %>%
-  pivot_longer(cols = everything(), names_to = "Indicator", values_to = "value") %>%
-  group_by(Indicator) %>%
-  summarise(Min = min(value),
-            Max = max(value),
-            Mean = round(mean(value), digits = 2))
-  
-
-bmSummary <- full_join(bmCondSummary, bmStatSummary, by = "Indicator")
-
+bm <- read_csv("appData/default_benchmark_and_operators.csv")
+wy <- read_csv("sample_data/wy_landerPts.csv") %>%
+  st_as_sf(coords = c("SampledMidLongitude", "SampledMidLatitude"), crs = 4269)
+dat <- determine_reach_conditions(wy, bm, 3)
+condition_summary_table(dat, "PctFinesLessThan2mm")
+condition_summary_table(dat, "FloodplainConnectivity")
 ```
 
