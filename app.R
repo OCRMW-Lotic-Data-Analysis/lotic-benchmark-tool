@@ -63,10 +63,13 @@ ui <- page_navbar(
         area = "indicatorTable",
         full_screen = TRUE,
         card_body(
-          DTOutput(
-            outputId = "indicatorTable",
-            height = "auto",
-            fill = TRUE
+          # DTOutput(
+          #   outputId = "indicatorTable",
+          #   height = "auto",
+          #   fill = TRUE
+          # )
+          reactableOutput(
+            outputId = "indicatorTable"
           )
         )
       )
@@ -247,9 +250,17 @@ server <- function(input, output, session) {
   #   )
   
   # Simple table - doesnt autofit data though.  Above version does but isn't perfect.
-  output$indicatorTable <- renderDT({
-    indicatorData()},)
+  # output$indicatorTable <- renderDT({
+  #   indicatorData()},)
   
+  
+  output$indicatorTable <- renderReactable({  
+    reactable(indicatorData(),
+              wrap = FALSE,
+              fullWidth = TRUE,
+              defaultColDef = colDef(minWidth = 250),
+              style = list(maxWidth = 16000))
+  })
 # 2. Define Benchmarks -------------------------------------------------------
   
   # Editable benchmark table
