@@ -186,7 +186,7 @@ ui <- page_navbar(
     title = "4. Summary",
     navset_card_tab(
       nav_panel(title = "Table", DTOutput("bmSummaryTable")),
-      nav_panel(title = "Box Plots", DTOutput("bmSummaryBoxplots"))
+      nav_panel(title = "Box Plots", plotlyOutput("bmSummaryBoxplots"))
       )
     )
 )
@@ -403,6 +403,17 @@ server <- function(input, output, session) {
 # 4. Condition Summary ---------------------------------------------------------
   output$bmSummaryTable <- renderDT({
     condition_summary_table(reachConditions(), definedBenchmarks()$Indicator)},)
+  
+  output$bmSummaryBoxplots <- renderPlotly({
+    p <- indicatorData() %>% st_drop_geometry() %>% select(any_of(definedBenchmarks()$Indicator)) %>%
+      pivot_longer(cols = everything(), names_to = "indicator", values_to = "value") %>%
+      ggplot(aes(x = indicator, y = value)) +
+      geom_boxplot() +
+      coord_flip() +
+      theme_minimal()
+    
+    ggplotly(p)
+  })
 }
 
 shinyApp(ui, server)
