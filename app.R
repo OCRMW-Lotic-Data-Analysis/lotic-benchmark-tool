@@ -296,7 +296,7 @@ server <- function(input, output, session) {
   observe({
     updateSelectInput(session, "reachCondMapSelect",
                       choices = definedBenchmarks()$Indicator,
-                      selected = ""
+                      selected = definedBenchmarks()$Indicator[1]
                       )
     })
   
