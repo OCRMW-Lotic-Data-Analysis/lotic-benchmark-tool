@@ -141,21 +141,8 @@ ui <- page_navbar(
         "0.4fr",
         "1.6fr"
       ),
-      gap_size = "10px",
-      grid_card(
-        area = "reach_conditions_table",
-        full_screen = TRUE,
-        card_body(
-          DTOutput(
-            outputId = "reachConditionTable",
-            height = "auto",
-            fill = TRUE
-          )
-        )
-      ),
       grid_card(
         area = "reach_cond_selectors",
-        full_screen = TRUE,
         card_body(
           selectInput(
             inputId = "reachCondMapSelect",
@@ -169,6 +156,18 @@ ui <- page_navbar(
           downloadButton(
             outputId = "reachCondDLgdb",
             label = "Download ESRI FileGDB"
+          )
+        )
+      ),
+      gap_size = "10px",
+      grid_card(
+        area = "reach_conditions_table",
+        full_screen = TRUE,
+        card_body(
+          DTOutput(
+            outputId = "reachConditionTable",
+            height = "auto",
+            fill = TRUE
           )
         )
       ),
