@@ -25,9 +25,9 @@ bmCondSummary <- reachConditions %>% select(all_of(selectedBenchmarkConditions))
 bmStatSummary <- reachConditions %>% select(all_of(selectedBenchmarks)) %>%
   pivot_longer(cols = everything(), names_to = "Indicator", values_to = "value") %>%
   group_by(Indicator) %>%
-  summarise(Min = min(value),
-            Max = max(value),
-            Mean = round(mean(value), digits = 2))
+  summarise(Min = min(value, na.rm = TRUE),
+            Max = max(value, na.rm = TRUE),
+            Mean = round(mean(value, na.rm = TRUE), digits = 2))
 
 
 bmSummary <- full_join(bmCondSummary, bmStatSummary, by = "Indicator")  
