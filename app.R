@@ -11,6 +11,7 @@ library(leaflet)
 library(sf)
 library(shinyWidgets)
 library(rhandsontable)
+library(reactable)
 library(htmltools)
 library(zip)
 
@@ -214,7 +215,10 @@ server <- function(input, output, session) {
     
     pal <- colorFactor(c("navy", "red", "red"), domain = c("Targeted", "RandomGRTS", "RandomSystematic"))
     indicatorData() %>%
-      leaflet() %>%
+      leaflet(
+        options = leafletOptions(
+          attributionControl=FALSE)
+        ) %>%
       addTiles() %>%
       addCircleMarkers(
         radius = 7,
@@ -233,7 +237,7 @@ server <- function(input, output, session) {
                        "Esri.WorldImagery"),
         # position it on the topleft
         position = "topleft") %>%
-      addLegend(pal = pal, values = ~PointSelectionType, opacity = 1)
+      addLegend(pal = pal, values = ~PointSelectionType, opacity = 1) 
     })
   
   # Table showing initial indicators loaded into app
@@ -331,7 +335,10 @@ server <- function(input, output, session) {
     
     # Map
     reachConditions() %>%
-      leaflet() %>%
+      leaflet(
+        options = leafletOptions(
+          attributionControl=FALSE)
+      ) %>%
       addTiles() %>%
       addCircleMarkers(
         radius = 7,
