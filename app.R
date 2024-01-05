@@ -18,6 +18,7 @@ library(zip)
 # Load appFunctions
 source("./appFunctions/determine_reach_conditions.R")
 source("./appFunctions/condition_summary_table.R")
+source("./appFunctions/conditionsBoxplot.R")
 
 # Default "Fish Bearing" example benchmarks from original tool.
 #defaultBenchmarks <- read.csv("./sample_data/fishbearing_bm_group.csv", colClasses = "character")
@@ -429,7 +430,7 @@ server <- function(input, output, session) {
   
   
   output$bmSummaryBoxplots <- renderPlotly({
-    conditionsBoxplot(input$bmSummaryBoxplotsSelect)
+    conditionsBoxplot(reachConditions(), input$bmSummaryBoxplotsSelect)
   })
 }
 

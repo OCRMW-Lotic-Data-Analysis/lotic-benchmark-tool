@@ -1,10 +1,13 @@
-conditionsBoxplot <- function(benchmark) {
+conditionsBoxplot <- function(reachCond, benchmark) {
   
   selectedVars <- c(benchmark, paste0(benchmark, "Condition"))
   
-  plotdat <- dat %>% st_drop_geometry() %>% select(any_of(selectedVars)) %>%
+  plotdat <- reachCond %>% 
+    st_drop_geometry() %>% 
+    select(any_of(selectedVars)) %>%
     pivot_longer(cols = -selectedVars[2], names_to = "indicator", values_to = "value") %>%
-    dplyr::rename(condition = selectedVars[2])
+    dplyr::rename(condition = selectedVars[2]) %>%
+    mutate(condition = factor(condition, levels = c("Minimal", "Moderate", "Major")))
   
   p <- ggplot(plotdat, aes(x = indicator, y = value)) + 
     # ggdist::stat_halfeye(
@@ -18,15 +21,29 @@ conditionsBoxplot <- function(benchmark) {
        outlier.shape = NA
      ) +
     geom_point(
-      aes(color = condition),
+      aes(fill = condition),
+      color = "black",
+      stroke = 0.3,
       size = 3,
       alpha = .7,
       position = position_jitter(
         seed = 1, width = .1
       )
     ) + 
-    #coord_cartesian(xlim = c(1.2, 1.3), clip = "off") +
-    theme_minimal()
+    scale_fill_manual(values = c("Minimal" = "green2", 
+                                 "Moderate" = "yellow2", 
+                                 "Major" = "red2"),
+                      name = "Condition") +
+    # scale_color_manual(
+    #   values = c("green", "yellow", "red"),
+    #   labels = c("Minor", "Moderate", "Major", 
+    #   drop = FALSE)) +
+    expand_limits(y=-1) +
+    #ylim(c(-1, NA), clip = "off") +
+    labs(x = "", y = "") +
+    theme_minimal() +
+    theme(legend.position = c(0.8, 0.8))
   
   ggplotly(p, height = 700, width = 700)
 }
+
