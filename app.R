@@ -187,7 +187,16 @@ ui <- page_navbar(
     title = "4. Summary",
     navset_card_tab(
       nav_panel(title = "Table", DTOutput("bmSummaryTable")),
-      nav_panel(title = "Box Plots", plotlyOutput("bmSummaryBoxplots"))
+      nav_panel(title = "Box Plots", 
+                layout_sidebar(
+                  sidebar = sidebar(selectInput(
+                    inputId = "bmSummaryBoxplotsSelect",
+                    label = "Select Indicator to Plot",
+                    choices = NULL),
+                    width = "300px"),
+                  plotlyOutput("bmSummaryBoxplots")
+                  )
+                )
       )
     )
 )
@@ -411,15 +420,16 @@ server <- function(input, output, session) {
   output$bmSummaryTable <- renderDT({
     condition_summary_table(reachConditions(), definedBenchmarks()$Indicator)},)
   
+  observe({
+    updateSelectInput(session, "bmSummaryBoxplotsSelect",
+                      choices = definedBenchmarks()$Indicator,
+                      selected = definedBenchmarks()$Indicator[1]
+                      )
+    })
+  
+  
   output$bmSummaryBoxplots <- renderPlotly({
-    p <- indicatorData() %>% st_drop_geometry() %>% select(any_of(definedBenchmarks()$Indicator)) %>%
-      pivot_longer(cols = everything(), names_to = "indicator", values_to = "value") %>%
-      ggplot(aes(x = indicator, y = value)) +
-      geom_boxplot() +
-      coord_flip() +
-      theme_minimal()
-    
-    ggplotly(p)
+    conditionsBoxplot(input$bmSummaryBoxplotsSelect)
   })
 }
 
