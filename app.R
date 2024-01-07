@@ -340,8 +340,14 @@ server <- function(input, output, session) {
       mapVar, ": ", reachConditions()[[mapVar]]) %>%
       lapply(htmltools::HTML)
     
+    # Create a new grouping variable.  Ensures legend item order is correct.
+    ord <- factor(c("Major", "Moderate", "Minimal"), levels = c("Major", "Moderate", "Minimal"))
+    
+    
     # Palet
-    pal <- colorFactor(c("#ffeda0", "#feb24c", "#f03b20"), levels = c("Minimal", "Moderate", "Major"), ordered = TRUE)
+    pal <- colorFactor(c("#f03b20", "#feb24c", "#ffeda0"), 
+                       levels = ord,
+                       ordered = TRUE)
     
     # Map
     reachConditions() %>%
@@ -368,9 +374,8 @@ server <- function(input, output, session) {
                        "Esri.WorldImagery"),
         # position it on the topleft
         position = "topleft") %>%
-      #addLegend(pal = pal, values = ~reachConditions()[[mapVar]], opacity = 1, title = mapVar)
       addLegend(pal = pal, 
-                values = c("Major", "Moderate", "Minimal"),
+                values = ord,
                 opacity = 1, title = mapVar)
     
   })
