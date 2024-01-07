@@ -35,47 +35,70 @@ ui <- page_navbar(
   # 1. Select Indicators ----
   nav_panel(
     title = "1. Select Indicators",
-    grid_container(
-      layout = c(
-        "selectIndicatorSidebar indicatorMap  ",
-        "indicatorTable         indicatorTable"
-      ),
-      row_sizes = c(
-        "1fr",
-        "1fr"
-      ),
-      col_sizes = c(
-        "0.4fr",
-        "1.6fr"
-      ),
-      gap_size = "10px",
-      grid_card(
-        area = "selectIndicatorSidebar",
-        card_body(
-          fileInput("upload", "Upload Indicators", accept = c(".csv"))
+    page_sidebar(
+        sidebar = sidebar(fileInput("upload", "Upload Indicators", accept = c(".csv"))),
+      navset_card_tab(
+        nav_panel("Map", 
+                  leafletOutput(outputId = "indicatorMap")),
+        nav_panel("Table",
+                  DTOutput(outputId = "indicatorTable",height = "auto",fill = TRUE)
+                  )
         )
       ),
-      grid_card(
-        area = "indicatorMap",
-        full_screen = TRUE,
-        card_body(
-          leafletOutput(outputId = "indicatorMap"))
-      ),
-      grid_card(
-        area = "indicatorTable",
-        full_screen = TRUE,
-        card_body(
-          # DTOutput(
-          #   outputId = "indicatorTable",
-          #   height = "auto",
-          #   fill = TRUE
-          # )
-          reactableOutput(
-            outputId = "indicatorTable"
-          )
-        )
-      )
-    )
+    
+    
+    
+    
+    
+    
+    
+    
+    # grid_container(
+    #   layout = c(
+    #     "selectIndicatorSidebar indicatorMap  ",
+    #     "indicatorTable         indicatorTable"
+    #   ),
+    #   row_sizes = c(
+    #     "1fr",
+    #     "1fr"
+    #   ),
+    #   col_sizes = c(
+    #     "0.4fr",
+    #     "1.6fr"
+    #   ),
+    #   gap_size = "10px",
+    #   grid_card(
+    #     area = "selectIndicatorSidebar",
+    #     card_body(
+    #       fileInput("upload", "Upload Indicators", accept = c(".csv"))
+    #     )
+    #   ),
+    #   grid_card(
+    #     area = "indicatorMap",
+    #     full_screen = TRUE,
+    #     card_body(
+    #       leafletOutput(outputId = "indicatorMap"))
+    #   ),
+    #   grid_card(
+    #     area = "indicatorTable",
+    #     full_screen = TRUE,
+    #     card_body(
+    #       # DTOutput(
+    #       #   outputId = "indicatorTable",
+    #       #   height = "auto",
+    #       #   fill = TRUE
+    #       # )
+    #       reactableOutput(
+    #         outputId = "indicatorTable"
+    #       )
+    #     )
+    #   )
+    # )
+    # 
+    
+    
+    
+    
   ),
   # 2. Define Benchmarks ----
   nav_panel(
@@ -263,18 +286,10 @@ server <- function(input, output, session) {
   #     scrollX = TRUE)
   #   )
   
-  # Simple table - doesnt autofit data though.  Above version does but isn't perfect.
-  # output$indicatorTable <- renderDT({
-  #   indicatorData()},)
+  #Simple table - doesnt autofit data though.  Above version does but isn't perfect.
+  output$indicatorTable <- renderDT({
+    indicatorData()},)
   
-  
-  output$indicatorTable <- renderReactable({  
-    reactable(indicatorData(),
-              wrap = FALSE,
-              fullWidth = TRUE,
-              defaultColDef = colDef(minWidth = 250),
-              style = list(maxWidth = 16000))
-  })
 # 2. Define Benchmarks -------------------------------------------------------
   
   # Editable benchmark table
@@ -286,11 +301,7 @@ server <- function(input, output, session) {
     rhandsontable(
       data = defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks &
                                           ConditionCategoryNum == input$categoryNumSelector)
-      # data = data.frame(Benchmarks = selectedBenchmarks(),
-      #                   Major = 76,
-      #                   Operator = "<",
-      #                   Minor = 24)
-    )
+      )
   })
   
   
