@@ -32,14 +32,27 @@ ui <- page_navbar(
   selected = "1. Select Indicators",
   collapsible = TRUE,
   theme = bslib::bs_theme(font_scale = NULL, preset = "yeti"),
+  
   # 1. Select Indicators ----
   nav_panel(
     title = "1. Select Indicators",
     page_sidebar(
-        sidebar = sidebar(fileInput("upload", "Upload Indicators", accept = c(".csv"))),
+        sidebar = sidebar(fileInput("upload", "Upload Indicators", accept = c(".csv")),
+                          selectInput(
+                            inputId = "indicatorMapSelect",
+                            label = "Select Indicator for Map",
+                            choices = c("PointSelectionType", "EcoregionStreamSize","BeaverFlowMod",
+                                        "BeaverSigns", "StreamOrder", "Project",
+                                        "District", "FieldOffice")
+                            ),
+                          width = "300px"
+                          ),
       navset_card_tab(
-        nav_panel("Map", 
-                  leafletOutput(outputId = "indicatorMap")),
+        nav_panel("Map",
+                  leafletOutput(outputId = "indicatorMap"),
+                  top = 80, right = 300,
+                                
+                  ),
         nav_panel("Table",
                   DTOutput(outputId = "indicatorTable",height = "auto",fill = TRUE)
                   )
@@ -140,7 +153,8 @@ ui <- page_navbar(
                     inputId = "bmSummaryBoxplotsSelect",
                     label = "Select Indicator to Plot",
                     choices = NULL),
-                    width = "300px"),
+                    width = "300px",
+                    open = "always"),
                   plotlyOutput("bmSummaryBoxplots")
                   )
                 )
@@ -164,12 +178,20 @@ server <- function(input, output, session) {
   
   # Map showing initial indicators loaded into app
   output$indicatorMap <- renderLeaflet({
+    
+    # Label to display when hovering over point
     labels <- paste(
       "<strong>", indicatorData()$PointID,
       "</strong><br>", indicatorData()$StreamName) %>%
       lapply(htmltools::HTML)
     
-    pal <- colorFactor(c("navy", "red", "red"), domain = c("Targeted", "RandomGRTS", "RandomSystematic"))
+    # Indicators to map
+    mapVals <- indicatorData()[[input$indicatorMapSelect]]
+    
+    # Make a palette
+    pal <- colorFactor(palette = "Set2", levels = unique(mapVals))
+    
+    # Map
     indicatorData() %>%
       leaflet(
         options = leafletOptions(
@@ -179,7 +201,7 @@ server <- function(input, output, session) {
       addCircleMarkers(
         radius = 7,
         color = "black",
-        fillColor = ~pal(PointSelectionType),
+        fillColor = ~pal(mapVals),
         stroke = TRUE, 
         weight = 1,
         fillOpacity = 1,
@@ -193,7 +215,10 @@ server <- function(input, output, session) {
                        "Esri.WorldImagery"),
         # position it on the topleft
         position = "topleft") %>%
-      addLegend(pal = pal, values = ~PointSelectionType, opacity = 1) 
+      addLegend(pal = pal, 
+                values = mapVals, 
+                opacity = 1,
+                title = input$indicatorMapSelect) 
     })
   
   # Table showing initial indicators loaded into app
@@ -310,7 +335,8 @@ server <- function(input, output, session) {
         position = "topleft") %>%
       addLegend(pal = pal, 
                 values = ord,
-                opacity = 1, title = mapVar)
+                opacity = 1, 
+                title = mapVar)
     
   })
 
