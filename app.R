@@ -45,60 +45,6 @@ ui <- page_navbar(
                   )
         )
       ),
-    
-    
-    
-    
-    
-    
-    
-    
-    # grid_container(
-    #   layout = c(
-    #     "selectIndicatorSidebar indicatorMap  ",
-    #     "indicatorTable         indicatorTable"
-    #   ),
-    #   row_sizes = c(
-    #     "1fr",
-    #     "1fr"
-    #   ),
-    #   col_sizes = c(
-    #     "0.4fr",
-    #     "1.6fr"
-    #   ),
-    #   gap_size = "10px",
-    #   grid_card(
-    #     area = "selectIndicatorSidebar",
-    #     card_body(
-    #       fileInput("upload", "Upload Indicators", accept = c(".csv"))
-    #     )
-    #   ),
-    #   grid_card(
-    #     area = "indicatorMap",
-    #     full_screen = TRUE,
-    #     card_body(
-    #       leafletOutput(outputId = "indicatorMap"))
-    #   ),
-    #   grid_card(
-    #     area = "indicatorTable",
-    #     full_screen = TRUE,
-    #     card_body(
-    #       # DTOutput(
-    #       #   outputId = "indicatorTable",
-    #       #   height = "auto",
-    #       #   fill = TRUE
-    #       # )
-    #       reactableOutput(
-    #         outputId = "indicatorTable"
-    #       )
-    #     )
-    #   )
-    # )
-    # 
-    
-    
-    
-    
   ),
   # 2. Define Benchmarks ----
   nav_panel(
@@ -156,56 +102,33 @@ ui <- page_navbar(
   # 3. Reach Conditions ----
   nav_panel(
     title = "3. Reach Conditions",
-    grid_container(
-      layout = c(
-        "reach_cond_selectors   reach_cond_map        ",
-        "reach_conditions_table reach_conditions_table"
-      ),
-      row_sizes = c(
-        "1fr",
-        "1fr"
-      ),
-      col_sizes = c(
-        "0.4fr",
-        "1.6fr"
-      ),
-      grid_card(
-        area = "reach_cond_selectors",
-        card_body(
-          selectInput(
-            inputId = "reachCondMapSelect",
-            label = "Select Indicator for Map",
-            choices = NULL
+    page_sidebar(
+      sidebar = sidebar(
+        selectInput(
+          inputId = "reachCondMapSelect",
+          label = "Select Indicator for Map",
+          choices = NULL
           ),
-          downloadButton(
-            outputId = "reachCondDLcsv",
-            label = "Download CSV"
+        downloadButton(
+          outputId = "reachCondDLcsv",
+          label = "Download CSV"
           ),
-          downloadButton(
-            outputId = "reachCondDLgdb",
-            label = "Download ESRI FileGDB"
-          )
+        downloadButton(
+          outputId = "reachCondDLgdb",
+          label = "Download ESRI FileGDB"
+          ),
+        width = "300px"
+        ),
+      navset_card_tab(
+        nav_panel("Map", 
+                  leafletOutput(outputId = "reachCondMap")),
+        nav_panel("Table",
+                  DTOutput(outputId = "reachConditionTable",height = "auto", fill = TRUE)
         )
-      ),
-      gap_size = "10px",
-      grid_card(
-        area = "reach_conditions_table",
-        full_screen = TRUE,
-        card_body(
-          DTOutput(
-            outputId = "reachConditionTable",
-            height = "auto",
-            fill = TRUE
-          )
-        )
-      ),
-      grid_card(
-        area = "reach_cond_map",
-        full_screen = TRUE,
-        leafletOutput(outputId = "reachCondMap")
       )
-    )
+    ),
   ),
+  
   # 4. Summary ----
   nav_panel(
     title = "4. Summary",
