@@ -12,6 +12,7 @@ library(sf)
 library(shinyWidgets)
 library(rhandsontable)
 library(reactable)
+library(reactable.extras)
 library(htmltools)
 library(zip)
 
@@ -62,56 +63,93 @@ ui <- page_navbar(
   # 2. Define Benchmarks ----
   nav_panel(
     title = "2. Define Benchmarks",
-    grid_container(
-      layout = c(
-        "benchmark_sidebar benchmark_table",
-        "benchmark_sidebar benchmark_table"
-      ),
-      row_sizes = c(
-        "365px",
-        "1fr"
-      ),
-      col_sizes = c(
-        "0.4fr",
-        "1.6fr"
-      ),
-      gap_size = "10px",
-      grid_card(
-        area = "benchmark_sidebar",
-        card_body(
-          pickerInput(inputId = "selectBenchmarks",
-                                label = "Select Benchmarks", 
-                                choices = unique(defaultBenchmarks$Indicator),
-                                options = list(
-                                  `actions-box` = TRUE), 
-                                multiple = TRUE
-                              ),
-          radioButtons(
-            inputId = "categoryNumSelector",
-            label = "Number of Categories",
-            choices = c("2" = 2, "3" = 3),
-            selected = 3,
-            inline = TRUE
-            ),
-          actionButton(
-            inputId = "myButton",
-            label = "Download Bechmark Config Template"
-          ),
-          actionButton(
-            inputId = "myButton",
-            label = "Upload Benchmark Config"
-          )
-        )
-      ),
-      grid_card(
-        area = "benchmark_table",
-        card_body(
-          rHandsontableOutput("benchmark_hot"),
-          DTOutput('benchmark_dt')
-        )
-      )
-    )
-  ),
+    page_sidebar(
+      sidebar = sidebar(width = "300px",
+        pickerInput(inputId = "selectBenchmarks",
+                    label = "Select Benchmarks", 
+                    choices = unique(defaultBenchmarks$Indicator),
+                    options = list(
+                      `actions-box` = TRUE), 
+                    multiple = TRUE
+        ),
+        radioButtons(
+          inputId = "categoryNumSelector",
+          label = "Number of Categories",
+          choices = c("2" = 2, "3" = 3),
+          selected = 3,
+          inline = TRUE
+        ),
+        actionButton(
+          inputId = "myButton",
+          label = "Download Bechmark Config Template"
+        ),
+        actionButton(
+          inputId = "myButton",
+          label = "Upload Benchmark Config"
+        )),
+        reactable.extras::reactable_extras_dependency(),
+        reactableOutput("benchmark_react"),
+        rHandsontableOutput("benchmark_hot"),
+        DTOutput('benchmark_dt')
+  )),
+  
+  
+  
+  
+  # nav_panel(
+  #   title = "2. Define Benchmarks",
+  #   grid_container(
+  #     layout = c(
+  #       "benchmark_sidebar benchmark_table",
+  #       "benchmark_sidebar benchmark_table"
+  #     ),
+  #     row_sizes = c(
+  #       "365px",
+  #       "1fr"
+  #     ),
+  #     col_sizes = c(
+  #       "0.4fr",
+  #       "1.6fr"
+  #     ),
+  #     gap_size = "10px",
+  #     grid_card(
+  #       area = "benchmark_sidebar",
+  #       card_body(
+  #         pickerInput(inputId = "selectBenchmarks",
+  #                               label = "Select Benchmarks", 
+  #                               choices = unique(defaultBenchmarks$Indicator),
+  #                               options = list(
+  #                                 `actions-box` = TRUE), 
+  #                               multiple = TRUE
+  #                             ),
+  #         radioButtons(
+  #           inputId = "categoryNumSelector",
+  #           label = "Number of Categories",
+  #           choices = c("2" = 2, "3" = 3),
+  #           selected = 3,
+  #           inline = TRUE
+  #           ),
+  #         actionButton(
+  #           inputId = "myButton",
+  #           label = "Download Bechmark Config Template"
+  #         ),
+  #         actionButton(
+  #           inputId = "myButton",
+  #           label = "Upload Benchmark Config"
+  #         )
+  #       )
+  #     ),
+  #     grid_card(
+  #       area = "benchmark_table",
+  #       card_body(
+  #         reactable.extras::reactable_extras_dependency(),
+  #         reactableOutput("benchmark_react"),
+  #         rHandsontableOutput("benchmark_hot"),
+  #         DTOutput('benchmark_dt')
+  #       )
+  #     )
+  #   )
+  # ),
   # 3. Reach Conditions ----
   nav_panel(
     title = "3. Reach Conditions",
@@ -149,10 +187,11 @@ ui <- page_navbar(
       nav_panel(title = "Table", DTOutput("bmSummaryTable")),
       nav_panel(title = "Box Plots", 
                 layout_sidebar(
-                  sidebar = sidebar(selectInput(
-                    inputId = "bmSummaryBoxplotsSelect",
-                    label = "Select Indicator to Plot",
-                    choices = NULL),
+                  sidebar = sidebar(
+                    selectInput(
+                      inputId = "bmSummaryBoxplotsSelect",
+                      label = "Select Indicator to Plot",
+                      choices = NULL),
                     width = "300px",
                     open = "always"),
                   plotlyOutput("bmSummaryBoxplots")
@@ -241,28 +280,47 @@ server <- function(input, output, session) {
   
 # 2. Define Benchmarks -------------------------------------------------------
   
-  # Editable benchmark table
-  output$benchmark_hot <- renderRHandsontable({
-    # if (selectedBenchmarks() == ""){
-    #   return(NULL)
-    # }
+  output$benchmark_react <- renderReactable({
+    dat <- defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks &
+                                   ConditionCategoryNum == input$categoryNumSelector) %>%
+      select(Indicator, ConditionCategoryNum)
     
-    rhandsontable(
-      data = defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks &
-                                          ConditionCategoryNum == input$categoryNumSelector)
-      )
+    reactable(dat,
+              columns = list(
+                ConditionCategoryNum = colDef(
+                  cell = dropdown_extra(
+                    "dropdown",
+                    c(2,3),
+                    class = "dropdown-extra"
+                    )
+                  )
+                )
+              )
   })
   
   
-  output$benchmark_dt <- renderDT({
-    defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks)},
-    editable = list(target = 'row', 
-                    disable = list(columns = c(0, 3, 4, 5))),
-    rownames = FALSE,
-    selection = 'none',
-    options = list(dom = 't')  #hide search box
-    )
-  
+  # Editable benchmark table
+  # output$benchmark_hot <- renderRHandsontable({
+  #   # if (selectedBenchmarks() == ""){
+  #   #   return(NULL)
+  #   # }
+  #   
+  #   rhandsontable(
+  #     data = defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks &
+  #                                         ConditionCategoryNum == input$categoryNumSelector)
+  #     )
+  # })
+  # 
+  # 
+  # output$benchmark_dt <- renderDT({
+  #   defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks)},
+  #   editable = list(target = 'row', 
+  #                   disable = list(columns = c(0, 3, 4, 5))),
+  #   rownames = FALSE,
+  #   selection = 'none',
+  #   options = list(dom = 't')  #hide search box
+  #   )
+  # 
   
   # Save edited benchmark table for calculations
   definedBenchmarks <- reactive({
