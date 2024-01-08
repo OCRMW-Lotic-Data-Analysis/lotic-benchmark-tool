@@ -1,4 +1,4 @@
-conditionsBoxplot <- function(reachCond, benchmark) {
+conditions_boxplot <- function(reachCond, benchmark) {
   
   selectedVars <- c(benchmark, paste0(benchmark, "Condition"))
   
