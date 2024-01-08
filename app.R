@@ -193,6 +193,7 @@ server <- function(input, output, session) {
     
     # Map
     indicatorData() %>%
+      st_transform(crs = 4326) %>%
       leaflet(
         options = leafletOptions(
           attributionControl=FALSE)
@@ -310,6 +311,7 @@ server <- function(input, output, session) {
     
     # Map
     reachConditions() %>%
+      st_transform(crs = 4326) %>%
       leaflet(
         options = leafletOptions(
           attributionControl=FALSE)
