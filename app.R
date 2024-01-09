@@ -251,7 +251,11 @@ server <- function(input, output, session) {
     
     dat <- bind_rows(cond2, cond3) %>% arrange(Indicator)
     
-    rhandsontable(data = dat)
+    rhandsontable(data = dat) %>%
+      hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE) %>%
+      hot_table(highlightRow = TRUE) %>%
+      hot_cols(fixedColumnsLeft = 1) 
+      
   })
 
   # Save edited benchmark table for calculations
@@ -280,13 +284,16 @@ server <- function(input, output, session) {
     
     # Pull variable to plot from input select.  Input just shows benchmark name
     # to make select cleaner but "Condition" is appended to select col with value.
-    mapVar <- paste0(input$reachCondMapSelect, "Condition")
+    conditionVar <- paste0(input$reachCondMapSelect, "Condition")
+    indicatorVar <- input$reachCondMapSelect
+    
     
     # Label that shows up on hover
     labels <- paste0(
       "<strong>", reachConditions()$PointID, "</strong><br>",
       reachConditions()$StreamName, "<br>",
-      mapVar, ": ", reachConditions()[[mapVar]]) %>%
+      indicatorVar,": ", reachConditions()[[indicatorVar]], "<br>",
+      "Condition: ", reachConditions()[[conditionVar]]) %>%
       lapply(htmltools::HTML)
     
     # Create a new grouping variable.  Ensures legend item order is correct.
@@ -309,7 +316,7 @@ server <- function(input, output, session) {
       addCircleMarkers(
         radius = 7,
         color = "black",
-        fillColor = ~pal(reachConditions()[[mapVar]]),
+        fillColor = ~pal(reachConditions()[[conditionVar]]),
         stroke = TRUE,
         weight = 1,
         fillOpacity = 1,
@@ -327,7 +334,7 @@ server <- function(input, output, session) {
       addLegend(pal = pal, 
                 values = ord,
                 opacity = 1, 
-                title = mapVar)
+                title = conditionVar)
     
   })
 
