@@ -246,8 +246,8 @@ server <- function(input, output, session) {
     # if (input$selectBenchmarks3 == "" & input$selectBenchmarks2 == ""){
     #   return(NULL)
     # }
-    cond2 <- dplyr::filter(bm, Indicator %in% input$selectBenchmarks3 & ConditionCategoryNum == 3)
-    cond3 <- dplyr::filter(bm, Indicator %in% input$selectBenchmarks2 & ConditionCategoryNum == 2)
+    cond2 <- dplyr::filter(defaultBenchmarks, Indicator %in% input$selectBenchmarks3 & ConditionCategoryNum == 3)
+    cond3 <- dplyr::filter(defaultBenchmarks, Indicator %in% input$selectBenchmarks2 & ConditionCategoryNum == 2)
     
     dat <- bind_rows(cond2, cond3) %>% arrange(Indicator)
     
