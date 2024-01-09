@@ -21,8 +21,7 @@ source("./appFunctions/determine_reach_conditions.R")
 source("./appFunctions/condition_summary_table.R")
 source("./appFunctions/conditions_boxplot.R")
 
-# Default "Fish Bearing" example benchmarks from original tool.
-#defaultBenchmarks <- read.csv("./sample_data/fishbearing_bm_group.csv", colClasses = "character")
+# Load default benchmarks 
 defaultBenchmarks <- read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character")
 
 #shinyuieditor::launch_editor(app_loc = "benchmark_dashboard/"
@@ -64,21 +63,25 @@ ui <- page_navbar(
   nav_panel(
     title = "2. Define Benchmarks",
     page_sidebar(
-      sidebar = sidebar(width = "300px",
-        pickerInput(inputId = "selectBenchmarks",
-                    label = "Select Benchmarks", 
-                    choices = unique(defaultBenchmarks$Indicator),
+      sidebar = sidebar(
+        width = "300px",
+        h5("Select Benchmarks"),
+        pickerInput(inputId = "selectBenchmarks3",
+                    label = "Three Condition Categories",
+                    choices = filter(defaultBenchmarks, ConditionCategoryNum == 3) %>% pull(Indicator),
                     options = list(
-                      `actions-box` = TRUE), 
+                      `actions-box` = TRUE),
                     multiple = TRUE
         ),
-        radioButtons(
-          inputId = "categoryNumSelector",
-          label = "Number of Categories",
-          choices = c("2" = 2, "3" = 3),
-          selected = 3,
-          inline = TRUE
+        pickerInput(inputId = "selectBenchmarks2",
+                    label = "Two Condition Categories",
+                    choices = filter(defaultBenchmarks, ConditionCategoryNum == 2) %>% pull(Indicator),
+                    options = list(
+                      `actions-box` = TRUE),
+                    multiple = TRUE
         ),
+        
+        
         actionButton(
           inputId = "myButton",
           label = "Download Bechmark Config Template"
@@ -87,70 +90,9 @@ ui <- page_navbar(
           inputId = "myButton",
           label = "Upload Benchmark Config"
         )),
-        #reactable.extras::reactable_extras_dependency(),
-        #reactableOutput("benchmark_cat_sel_react"),
-        #reactableOutput("benchmark_def_react")
-        rHandsontableOutput("benchmark_hot"),
-        #DTOutput('benchmark_dt')
+        rHandsontableOutput("benchmark_hot")
   )),
-  
-  
-  
-  
-  # nav_panel(
-  #   title = "2. Define Benchmarks",
-  #   grid_container(
-  #     layout = c(
-  #       "benchmark_sidebar benchmark_table",
-  #       "benchmark_sidebar benchmark_table"
-  #     ),
-  #     row_sizes = c(
-  #       "365px",
-  #       "1fr"
-  #     ),
-  #     col_sizes = c(
-  #       "0.4fr",
-  #       "1.6fr"
-  #     ),
-  #     gap_size = "10px",
-  #     grid_card(
-  #       area = "benchmark_sidebar",
-  #       card_body(
-  #         pickerInput(inputId = "selectBenchmarks",
-  #                               label = "Select Benchmarks", 
-  #                               choices = unique(defaultBenchmarks$Indicator),
-  #                               options = list(
-  #                                 `actions-box` = TRUE), 
-  #                               multiple = TRUE
-  #                             ),
-  #         radioButtons(
-  #           inputId = "categoryNumSelector",
-  #           label = "Number of Categories",
-  #           choices = c("2" = 2, "3" = 3),
-  #           selected = 3,
-  #           inline = TRUE
-  #           ),
-  #         actionButton(
-  #           inputId = "myButton",
-  #           label = "Download Bechmark Config Template"
-  #         ),
-  #         actionButton(
-  #           inputId = "myButton",
-  #           label = "Upload Benchmark Config"
-  #         )
-  #       )
-  #     ),
-  #     grid_card(
-  #       area = "benchmark_table",
-  #       card_body(
-  #         reactable.extras::reactable_extras_dependency(),
-  #         reactableOutput("benchmark_react"),
-  #         rHandsontableOutput("benchmark_hot"),
-  #         DTOutput('benchmark_dt')
-  #       )
-  #     )
-  #   )
-  # ),
+
   # 3. Reach Conditions ----
   nav_panel(
     title = "3. Reach Conditions",
@@ -261,79 +203,57 @@ server <- function(input, output, session) {
                 opacity = 1,
                 title = input$indicatorMapSelect) 
     })
-  
-  # Table showing initial indicators loaded into app
-  # output$indicatorTable <- renderDT({
-  #   indicatorData()},
-  #   extensions = 'Scroller',
-  #   options = list(
-  #     dom = 't',  #hide search box
-  #     deferRender = FALSE,
-  #     scrollY = 350,
-  #     scrollCollapse = TRUE,
-  #     scroller = TRUE,
-  #     scrollX = TRUE)
-  #   )
-  
+
   #Simple table - doesnt autofit data though.  Above version does but isn't perfect.
   output$indicatorTable <- renderDT({
     indicatorData()},)
   
 # 2. Define Benchmarks -------------------------------------------------------
   
-  # output$benchmark_cat_sel_react <- renderReactable({
-  #   dat <- defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks) %>%
-  #     select(Indicator, ConditionCategoryNum) %>%
-  #     group_by(Indicator) %>%
-  #     slice(1) %>% # takes the first occurrence so only 1 condition category row is shown
-  #     ungroup()
-  #   
-  #   reactable(dat,
-  #             defaultPageSize = 20,
-  #             columns = list(
-  #               ConditionCategoryNum = colDef(
-  #                 cell = dropdown_extra(
-  #                   "dropdown",
-  #                   c(2,3),
-  #                   class = "dropdown-extra"
-  #                   )
-  #                 )
-  #               )
-  #             )
-  # })
-  
-  #output$benchmark_def_react({
-   # bechmark_cat_nums <- getReactableState("benchmark_cat_sel_react")
-    #req(bechmark_cat_nums)
-    #reactable(bechmark_cat_nums)
-  #})
- 
-  
-  
+  # Create mutually exclusive selectors for 2 and 3 category benchmarks.  This 
+  # means that if, for example, pH is selected for 3 Category, it will be removed
+  # from the dropdown selector for 2 Category.
+  observeEvent(
+    input$selectBenchmarks3,
+    {
+      updatePickerInput(
+        session = session,
+        inputId = "selectBenchmarks2",
+        choices = setdiff(filter(defaultBenchmarks, ConditionCategoryNum == 2) %>% pull(Indicator), 
+                          input$selectBenchmarks3),
+        selected = input$selectBenchmarks2
+      )
+    },
+    ignoreNULL = FALSE
+  )
+  observeEvent(
+    input$selectBenchmarks2,
+    {
+      
+      updatePickerInput(
+        session = session,
+        inputId = "selectBenchmarks3",
+        choices = setdiff(filter(defaultBenchmarks, ConditionCategoryNum == 3) %>% pull(Indicator), 
+                          input$selectBenchmarks2),
+        selected = input$selectBenchmarks3
+      )
+    },
+    ignoreNULL = FALSE
+  )
   
   # Editable benchmark table
   output$benchmark_hot <- renderRHandsontable({
-    # if (selectedBenchmarks() == ""){
+    # if (input$selectBenchmarks3 == "" & input$selectBenchmarks2 == ""){
     #   return(NULL)
     # }
-
-    rhandsontable(
-      data = defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks &
-                                          ConditionCategoryNum == input$categoryNumSelector)
-      )
+    cond2 <- dplyr::filter(bm, Indicator %in% input$selectBenchmarks3 & ConditionCategoryNum == 3)
+    cond3 <- dplyr::filter(bm, Indicator %in% input$selectBenchmarks2 & ConditionCategoryNum == 2)
+    
+    dat <- bind_rows(cond2, cond3) %>% arrange(Indicator)
+    
+    rhandsontable(data = dat)
   })
 
-
-  output$benchmark_dt <- renderDT({
-    defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks)},
-    editable = list(target = 'row',
-                    disable = list(columns = c(0, 3, 4, 5))),
-    rownames = FALSE,
-    selection = 'none',
-    options = list(dom = 't')  #hide search box
-    )
-
-  
   # Save edited benchmark table for calculations
   definedBenchmarks <- reactive({
     hot_to_r(input$benchmark_hot)
@@ -343,8 +263,7 @@ server <- function(input, output, session) {
   
   # Reach conditions (Min, Mod, Max) for each indicator
   reachConditions <- reactive({determine_reach_conditions(indicators =  indicatorData(), 
-                                                          benchmarks = definedBenchmarks(), 
-                                                          categoryNum = input$categoryNumSelector)
+                                                          benchmarks = definedBenchmarks())
     })
   
   #Use selectedBenchmarks to update dropdown options for plotting reach conditions

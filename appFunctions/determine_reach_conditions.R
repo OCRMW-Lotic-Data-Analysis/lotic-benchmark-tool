@@ -1,7 +1,8 @@
-determine_reach_conditions <- function(indicators, benchmarks, categoryNum) {
+determine_reach_conditions <- function(indicators, benchmarks) {
   
   indicatorsdf <- as.data.frame(indicators)
-  benchmarks <- benchmarks %>% filter(ConditionCategoryNum == categoryNum)
+  #benchmarks <- benchmarks %>% filter(ConditionCategoryNum == categoryNum)
+  #benchmarks <- benchmarks %>% filter(ConditionCategoryNum == categoryNum)
   
   # Attribute and benchmarks for selecting and pivoting
   columnSelection <- c('EvaluationID')  #lseparate in case more columns are desired later.
