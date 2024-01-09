@@ -87,10 +87,11 @@ ui <- page_navbar(
           inputId = "myButton",
           label = "Upload Benchmark Config"
         )),
-        reactable.extras::reactable_extras_dependency(),
-        reactableOutput("benchmark_react"),
+        #reactable.extras::reactable_extras_dependency(),
+        #reactableOutput("benchmark_cat_sel_react"),
+        #reactableOutput("benchmark_def_react")
         rHandsontableOutput("benchmark_hot"),
-        DTOutput('benchmark_dt')
+        #DTOutput('benchmark_dt')
   )),
   
   
@@ -280,47 +281,58 @@ server <- function(input, output, session) {
   
 # 2. Define Benchmarks -------------------------------------------------------
   
-  output$benchmark_react <- renderReactable({
-    dat <- defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks &
-                                   ConditionCategoryNum == input$categoryNumSelector) %>%
-      select(Indicator, ConditionCategoryNum)
-    
-    reactable(dat,
-              columns = list(
-                ConditionCategoryNum = colDef(
-                  cell = dropdown_extra(
-                    "dropdown",
-                    c(2,3),
-                    class = "dropdown-extra"
-                    )
-                  )
-                )
-              )
-  })
+  # output$benchmark_cat_sel_react <- renderReactable({
+  #   dat <- defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks) %>%
+  #     select(Indicator, ConditionCategoryNum) %>%
+  #     group_by(Indicator) %>%
+  #     slice(1) %>% # takes the first occurrence so only 1 condition category row is shown
+  #     ungroup()
+  #   
+  #   reactable(dat,
+  #             defaultPageSize = 20,
+  #             columns = list(
+  #               ConditionCategoryNum = colDef(
+  #                 cell = dropdown_extra(
+  #                   "dropdown",
+  #                   c(2,3),
+  #                   class = "dropdown-extra"
+  #                   )
+  #                 )
+  #               )
+  #             )
+  # })
+  
+  #output$benchmark_def_react({
+   # bechmark_cat_nums <- getReactableState("benchmark_cat_sel_react")
+    #req(bechmark_cat_nums)
+    #reactable(bechmark_cat_nums)
+  #})
+ 
+  
   
   
   # Editable benchmark table
-  # output$benchmark_hot <- renderRHandsontable({
-  #   # if (selectedBenchmarks() == ""){
-  #   #   return(NULL)
-  #   # }
-  #   
-  #   rhandsontable(
-  #     data = defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks &
-  #                                         ConditionCategoryNum == input$categoryNumSelector)
-  #     )
-  # })
-  # 
-  # 
-  # output$benchmark_dt <- renderDT({
-  #   defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks)},
-  #   editable = list(target = 'row', 
-  #                   disable = list(columns = c(0, 3, 4, 5))),
-  #   rownames = FALSE,
-  #   selection = 'none',
-  #   options = list(dom = 't')  #hide search box
-  #   )
-  # 
+  output$benchmark_hot <- renderRHandsontable({
+    # if (selectedBenchmarks() == ""){
+    #   return(NULL)
+    # }
+
+    rhandsontable(
+      data = defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks &
+                                          ConditionCategoryNum == input$categoryNumSelector)
+      )
+  })
+
+
+  output$benchmark_dt <- renderDT({
+    defaultBenchmarks %>% filter(Indicator %in% input$selectBenchmarks)},
+    editable = list(target = 'row',
+                    disable = list(columns = c(0, 3, 4, 5))),
+    rownames = FALSE,
+    selection = 'none',
+    options = list(dom = 't')  #hide search box
+    )
+
   
   # Save edited benchmark table for calculations
   definedBenchmarks <- reactive({
