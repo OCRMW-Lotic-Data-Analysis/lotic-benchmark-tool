@@ -225,3 +225,15 @@ plotdat <- dat %>% st_drop_geometry() %>% select(any_of(selectedVars)) %>%
 
 ```
 
+```{r}
+selectBenchmarks3 <- "PctFinesLessThan2mm"
+selectBenchmarks2 <- "LgWoodInChanFreq"
+
+cond2 <- dplyr::filter(bm, Indicator == selectBenchmarks3 & ConditionCategoryNum == 3)
+cond3 <- dplyr::filter(bm, Indicator == selectBenchmarks2 & ConditionCategoryNum == 2)
+
+dat <- bind_rows(cond2, cond3) %>% arrange(Indicator)
+
+
+```
+
