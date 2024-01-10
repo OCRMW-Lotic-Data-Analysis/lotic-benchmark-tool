@@ -381,7 +381,17 @@ server <- function(input, output, session) {
   
 # 4. Condition Summary ---------------------------------------------------------
   output$bmSummaryTable <- renderDT({
-    condition_summary_table(reachConditions(), definedBenchmarks()$Indicator)},)
+    condition_summary_table(reachConditions(), definedBenchmarks()$Indicator)},
+    extensions = 'Buttons',
+    options = list(
+      paging =FALSE,
+      searching = FALSE,
+      dom = 'tB',
+      buttons = list( 
+        list(extend = 'csv',   filename =  "benchmarkSummaryTable"),
+        list(extend = 'excel', filename =  "benchmarkSummaryTable"))
+      )
+    )
   
   observe({
     updateSelectInput(session, "bmSummaryBoxplotsSelect",
