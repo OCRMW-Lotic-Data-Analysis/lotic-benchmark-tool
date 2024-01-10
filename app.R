@@ -36,16 +36,36 @@ ui <- page_navbar(
   nav_panel(
     title = "1. Select Indicators",
     page_sidebar(
-        sidebar = sidebar(fileInput("upload", "Upload Indicators", accept = c(".csv")),
-                          selectInput(
-                            inputId = "indicatorMapSelect",
-                            label = "Select Indicator for Map",
-                            choices = c("PointSelectionType", "EcoregionStreamSize","BeaverFlowMod",
-                                        "BeaverSigns", "StreamOrder", "Project",
-                                        "District", "FieldOffice")
-                            ),
-                          width = "300px"
-                          ),
+        sidebar = sidebar(
+          selectInput("startingDataType", "Indicator Data Source",
+                      choices = c("Upload" = "upload", "Filter from all indicators" = "filter")),
+          
+          conditionalPanel(
+            condition = "input.startingDataType == 'upload'",
+            fileInput("upload", "Upload Indicators", accept = c(".csv"))),
+          
+          
+          #fileInput("upload", "Upload Indicators", accept = c(".csv")),
+          selectInput(
+            inputId = "indicatorMapSelect",
+            label = "Select Indicator for Map",
+            choices = c("PointSelectionType", "EcoregionStreamSize","BeaverFlowMod",
+                        "BeaverSigns", "StreamOrder", "Project",
+                        "District", "FieldOffice")
+            ),
+          conditionalPanel(condition = "input.startingDataType == 'filter'",
+            accordion_panel(
+            "  Filters", icon = bsicons::bs_icon("sliders"),
+            pickerInput(inputId = "adminState",
+                        label = "Admin State",
+                        choices = NULL,
+                        options = list(
+                          `actions-box` = TRUE),
+                        multiple = TRUE
+                        )
+          )),
+          width = "300px"
+          ),
       navset_card_tab(
         nav_panel("Map",
                   leafletOutput(outputId = "indicatorMap"),
@@ -152,10 +172,44 @@ server <- function(input, output, session) {
     
 # Uploaded indicator data (pre-filtered by user)
   indicatorData <- reactive({
+    if (input$startingDataType == "upload") {
     req(input$upload)
-    vroom::vroom(input$upload$datapath, delim = ",", show_col_types = FALSE) %>%
-      st_as_sf(coords = c("SampledMidLongitude", "SampledMidLatitude"), crs = 4269)
+    ext <- tools::file_ext(input$upload$name)
+    dat <- switch(ext,
+           csv = vroom::vroom(input$upload$datapath, delim = ",", show_col_types = FALSE) %>% 
+             st_as_sf(coords = c("SampledMidLongitude", "SampledMidLatitude"), crs = 4269),
+           validate("Invalid file; Please upload a .csv")
+           )
+    } else if (input$startingDataType == "filter") {
+      dat <- vroom::vroom("./appData/BLM_Natl_AIM_Lotic_Indicators_Hub.csv", delim = ",", show_col_types = FALSE) %>%
+        st_as_sf(coords = c("SampledMidLongitude", "SampledMidLatitude"), crs = 4269)
+      
+      updatePickerInput(
+        session = session,
+        inputId = "adminState",
+        choices = unique(dat$BLM_AdminState),
+        selected = NULL
+      )
+    }
+    
+    return(dat)
   })
+  
+  event_trigger <- reactive({
+    list(input$adminState)
+  })
+  
+  observeEvent(ignoreInit = TRUE, event_trigger(),
+               {
+                 asdf <- indicatorData() %>% filter(BLM_AdminState %in% input$adminState)
+                 updatePickerInput(
+                   session = session,
+                   inputId = "adminState",
+                   choices = unique(asdf$BLM_AdminState,
+                   selected = unique(asdf$BLM_AdminState))
+                   
+                 )
+               })
   
   # Map showing initial indicators loaded into app
   output$indicatorMap <- renderLeaflet({
