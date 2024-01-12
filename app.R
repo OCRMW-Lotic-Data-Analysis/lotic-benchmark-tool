@@ -97,9 +97,9 @@ ui <- page_navbar(
         ),
         
         
-        actionButton(
-          inputId = "myButton",
-          label = "Download Bechmark Config Template"
+        downloadButton(
+          outputId = "benchmarkConfigDLcsv",
+          label = "Download Current Benchmark Configuration"
         ),
         actionButton(
           inputId = "myButton",
@@ -322,6 +322,14 @@ server <- function(input, output, session) {
       hot_cols(fixedColumnsLeft = 1) 
       
   })
+  
+  # Download benchmarks as displayed in table 
+  output$benchmarkConfigDLcsv <- downloadHandler(
+    filename = "benchmarkConfig.csv",
+    content = function(file) {
+      write.csv(definedBenchmarks(), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
+    }
+  )
 
   # Save edited benchmark table for calculations
   definedBenchmarks <- reactive({
@@ -407,7 +415,7 @@ server <- function(input, output, session) {
   output$reachCondDLcsv <- downloadHandler(
     filename = "reachConditions.csv",
     content = function(file) {
-      write.csv(st_drop_geometry(reachConditions()), file) # need st_drop_geometry or it splits geom into two columns that overwrite data.
+      write.csv(st_drop_geometry(reachConditions()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
     }
   )
   
