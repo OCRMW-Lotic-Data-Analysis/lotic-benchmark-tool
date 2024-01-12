@@ -21,7 +21,7 @@ source("./appFunctions/condition_summary_table.R")
 source("./appFunctions/conditions_boxplot.R")
 
 # Load default benchmarks 
-defaultBenchmarks <- read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character")
+#defaultBenchmarks <- read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character")
 
 #shinyuieditor::launch_editor(app_loc = "benchmark_dashboard/"
 
@@ -42,7 +42,7 @@ ui <- page_navbar(
           
           conditionalPanel(
             condition = "input.startingDataType == 'upload'",
-            fileInput("upload", "Upload Indicators", accept = c(".csv"))),
+            fileInput("indicatorUpload", "Upload Indicators", accept = c(".csv"))),
           
           
           # Map indicator select that only displays when data is loaded.  Logic in server.
@@ -83,14 +83,16 @@ ui <- page_navbar(
         h5("Select Benchmarks"),
         pickerInput(inputId = "selectBenchmarks3",
                     label = "Three Condition Categories",
-                    choices = filter(defaultBenchmarks, ConditionCategoryNum == 3) %>% pull(Indicator),
+                    #choices = filter(defaultBenchmarks, ConditionCategoryNum == 3) %>% pull(Indicator),
+                    choices = "",
                     options = list(
                       `actions-box` = TRUE),
                     multiple = TRUE
         ),
         pickerInput(inputId = "selectBenchmarks2",
                     label = "Two Condition Categories",
-                    choices = filter(defaultBenchmarks, ConditionCategoryNum == 2) %>% pull(Indicator),
+                    #choices = filter(defaultBenchmarks, ConditionCategoryNum == 2) %>% pull(Indicator),
+                    choices = "",
                     options = list(
                       `actions-box` = TRUE),
                     multiple = TRUE
@@ -101,10 +103,9 @@ ui <- page_navbar(
           outputId = "benchmarkConfigDLcsv",
           label = "Download Current Benchmark Configuration"
         ),
-        actionButton(
-          inputId = "myButton",
-          label = "Upload Benchmark Config"
-        )),
+        fileInput("benchmarkUpload", 
+                  "Upload Benchmark Config", 
+                  accept = c(".csv"))),
         rHandsontableOutput("benchmark_hot")
   )),
 
@@ -169,10 +170,10 @@ server <- function(input, output, session) {
 # Uploaded indicator data (pre-filtered by user)
   indicatorData <- reactive({
     if (input$startingDataType == "upload") {
-    req(input$upload)
-    ext <- tools::file_ext(input$upload$name)
+    req(input$indicatorUpload)
+    ext <- tools::file_ext(input$indicatorUpload$name)
     dat <- switch(ext,
-           csv = vroom::vroom(input$upload$datapath, delim = ",", show_col_types = FALSE) %>% 
+           csv = vroom::vroom(input$indicatorUpload$datapath, delim = ",", show_col_types = FALSE) %>% 
              st_as_sf(coords = c("SampledMidLongitude", "SampledMidLatitude"), crs = 4269),
            validate("Invalid file; Please upload a .csv")
            )
@@ -275,6 +276,17 @@ server <- function(input, output, session) {
   
 # 2. Define Benchmarks -------------------------------------------------------
   
+  # Load default benchmarks
+  defaultBenchmarks <-reactiveVal(read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character"))
+  
+  observe({
+    updateSelectInput(session, "selectBenchmarks3",
+                      choices = filter(defaultBenchmarks(), ConditionCategoryNum == 3) %>% pull(Indicator))
+                      
+    updateSelectInput(session, "selectBenchmarks2",
+                      choices = filter(defaultBenchmarks(), ConditionCategoryNum == 2) %>% pull(Indicator))
+    })
+  
   # Create mutually exclusive selectors for 2 and 3 category benchmarks.  This 
   # means that if, for example, pH is selected for 3 Category, it will be removed
   # from the dropdown selector for 2 Category.
@@ -284,7 +296,7 @@ server <- function(input, output, session) {
       updatePickerInput(
         session = session,
         inputId = "selectBenchmarks2",
-        choices = setdiff(filter(defaultBenchmarks, ConditionCategoryNum == 2) %>% pull(Indicator), 
+        choices = setdiff(filter(defaultBenchmarks(), ConditionCategoryNum == 2) %>% pull(Indicator), 
                           input$selectBenchmarks3),
         selected = input$selectBenchmarks2
       )
@@ -298,7 +310,7 @@ server <- function(input, output, session) {
       updatePickerInput(
         session = session,
         inputId = "selectBenchmarks3",
-        choices = setdiff(filter(defaultBenchmarks, ConditionCategoryNum == 3) %>% pull(Indicator), 
+        choices = setdiff(filter(defaultBenchmarks(), ConditionCategoryNum == 3) %>% pull(Indicator), 
                           input$selectBenchmarks2),
         selected = input$selectBenchmarks3
       )
@@ -311,8 +323,8 @@ server <- function(input, output, session) {
     # if (input$selectBenchmarks3 == "" & input$selectBenchmarks2 == ""){
     #   return(NULL)
     # }
-    cond2 <- dplyr::filter(defaultBenchmarks, Indicator %in% input$selectBenchmarks3 & ConditionCategoryNum == 3)
-    cond3 <- dplyr::filter(defaultBenchmarks, Indicator %in% input$selectBenchmarks2 & ConditionCategoryNum == 2)
+    cond2 <- dplyr::filter(defaultBenchmarks(), Indicator %in% input$selectBenchmarks3 & ConditionCategoryNum == 3)
+    cond3 <- dplyr::filter(defaultBenchmarks(), Indicator %in% input$selectBenchmarks2 & ConditionCategoryNum == 2)
     
     dat <- bind_rows(cond2, cond3) %>% arrange(Indicator)
     
@@ -330,6 +342,25 @@ server <- function(input, output, session) {
       write.csv(definedBenchmarks(), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
     }
   )
+  
+  observeEvent(input$benchmarkUpload,{
+    ext <- tools::file_ext(input$benchmarkUpload$name)
+    bmul <- switch(ext,
+                  csv = vroom::vroom(input$benchmarkUpload$datapath, delim = ",", show_col_types = FALSE),
+                  validate("Invalid file; Please upload a .csv")
+    )
+    defaultBenchmarks(bmul)
+    
+    updateSelectInput(session, "selectBenchmarks3",
+                      choices = filter(defaultBenchmarks(), ConditionCategoryNum == 3) %>% pull(Indicator),
+                      selected = filter(defaultBenchmarks(), ConditionCategoryNum == 3) %>% pull(Indicator))
+    
+    updateSelectInput(session, "selectBenchmarks2",
+                      choices = filter(defaultBenchmarks(), ConditionCategoryNum == 2) %>% pull(Indicator),
+                      selected = filter(defaultBenchmarks(), ConditionCategoryNum == 2) %>% pull(Indicator))
+    
+    
+  })
 
   # Save edited benchmark table for calculations
   definedBenchmarks <- reactive({
