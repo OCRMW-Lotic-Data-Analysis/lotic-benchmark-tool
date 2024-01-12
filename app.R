@@ -21,11 +21,6 @@ source("./appFunctions/determine_reach_conditions.R")
 source("./appFunctions/condition_summary_table.R")
 source("./appFunctions/conditions_boxplot.R")
 
-# Load default benchmarks 
-#benchmarkValues <- read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character")
-
-#shinyuieditor::launch_editor(app_loc = "benchmark_dashboard/"
-
 ### UI -------------------------------------------------------------------------
 ui <- page_navbar(
   title = "Lotic AIM Indicator Benchmark Tool",
