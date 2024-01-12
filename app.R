@@ -1,4 +1,5 @@
 library(shiny)
+library(readr)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -97,7 +98,7 @@ ui <- page_navbar(
                       `actions-box` = TRUE),
                     multiple = TRUE
         ),
-        
+        hr(),
         
         downloadButton(
           outputId = "benchmarkConfigDLcsv",
