@@ -6,6 +6,7 @@ library(tidyr)
 library(stringr)
 library(bslib)
 library(plotly)
+library(ggiraph)
 library(DT)
 library(leaflet)
 library(sf)
@@ -149,7 +150,7 @@ ui <- page_navbar(
                       choices = NULL),
                     width = "300px",
                     open = "always"),
-                  plotlyOutput("bmSummaryBoxplots")
+                  girafeOutput("bmSummaryBoxplots")
                   )
                 )
       )
@@ -502,7 +503,11 @@ server <- function(input, output, session) {
     })
   
   
-  output$bmSummaryBoxplots <- renderPlotly({
+  # output$bmSummaryBoxplots <- renderPlotly({
+  #   conditions_boxplot(reachConditions(), input$bmSummaryBoxplotsSelect)
+  # })
+  
+  output$bmSummaryBoxplots <- renderGirafe({
     conditions_boxplot(reachConditions(), input$bmSummaryBoxplotsSelect)
   })
 }

@@ -1,49 +1,50 @@
 conditions_boxplot <- function(reachCond, benchmark) {
-  
-  selectedVars <- c(benchmark, paste0(benchmark, "Condition"))
-  
-  plotdat <- reachCond %>% 
-    st_drop_geometry() %>% 
-    select(any_of(selectedVars)) %>%
-    pivot_longer(cols = -selectedVars[2], names_to = "indicator", values_to = "value") %>%
-    dplyr::rename(condition = selectedVars[2]) %>%
-    mutate(condition = factor(condition, levels = c("Minimal", "Moderate", "Major")))
-  
-  p <- ggplot(plotdat, aes(x = indicator, y = value)) + 
-    # ggdist::stat_halfeye(
-    #   adjust = .5, 
-    #   width = .6, 
-    #   .width = 0, 
-    #   justification = -.3, 
-    #   point_colour = NA) + 
-     geom_boxplot(
-       width = .25, 
-       outlier.shape = NA
-     ) +
-    geom_point(
-      aes(fill = condition),
-      color = "black",
-      stroke = 0.3,
-      size = 3,
-      alpha = .7,
-      position = position_jitter(
-        seed = 1, width = .1
-      )
-    ) + 
-    scale_fill_manual(values = c("Minimal" = "green2", 
-                                 "Moderate" = "yellow2", 
-                                 "Major" = "red2"),
-                      name = "Condition") +
-    # scale_color_manual(
-    #   values = c("green", "yellow", "red"),
-    #   labels = c("Minor", "Moderate", "Major", 
-    #   drop = FALSE)) +
-    expand_limits(y=-1) +
-    #ylim(c(-1, NA), clip = "off") +
-    labs(x = "", y = "") +
-    theme_minimal() +
-    theme(legend.position = c(0.8, 0.8))
-  
-  ggplotly(p, height = 700, width = 700)
-}
+selectedVars <- c(benchmark, paste0(benchmark, "Condition"),
+                  "PointID", "StreamName")
 
+plotdat <- reachCond %>% 
+  st_drop_geometry() %>% 
+  select(any_of(selectedVars)) %>%
+  pivot_longer(cols = -c(selectedVars[2:4]), names_to = "indicator", values_to = "value") %>%
+  dplyr::rename(condition = selectedVars[2]) %>%
+  mutate(condition = factor(condition, levels = c("Minimal", "Moderate", "Major")),
+         tooltiptext = paste0("PointID: ", PointID, 
+                              "\n Stream Name: ", StreamName, 
+                              "\n Condition: ", condition, 
+                              "\n Value: ", value))
+
+p <- ggplot(plotdat, aes(x = indicator, y = value)) + 
+  ggdist::stat_slab(
+    adjust = .5,
+    width = .6,
+    justification = -.3,
+    slab_linewidth= 0.5,
+    color = "gray50",
+    fill = "gray85") +
+  geom_boxplot_interactive(
+    width = .25, 
+    outlier.shape = NA,
+    show.legend = FALSE) +  # hide boxplot legend items
+  geom_point_interactive(
+    aes(tooltip = tooltiptext, data_id = PointID, fill = condition),
+    color = "black", # color = border (stroke), fill = inside of point
+    shape = 21,
+    stroke = 0.3,
+    size = 3,
+    alpha = .7,
+    position = position_jitter(
+      seed = 1, width = .1)) +
+  scale_fill_manual_interactive(values = c(Minimal = "green2", 
+                                           Moderate = "yellow2", 
+                                           Major = "red2"),
+                                data_id = c(Minimal = "Minimal", Moderate = "Moderate", Major = "Major"),
+                                name = "Condition") +
+  expand_limits(y=-1) +  # for more consistent y values. -1 is the min value of all indicators
+  labs(x = "", y = "") +
+  coord_cartesian(xlim = c(1.3, 1.35)) +
+  theme_minimal() +
+  theme(legend.position = "right",
+        legend.text.align = 0)  # left justified text
+
+girafe(ggobj = p)
+}
