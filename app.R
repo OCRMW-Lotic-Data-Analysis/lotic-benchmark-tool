@@ -206,7 +206,7 @@ server <- function(input, output, session) {
   
   # Map showing initial indicators loaded into app
   
-  # Once data is loaded (uploaded or local version of ALL), display the map
+  # Only once data is loaded (uploaded or local version of ALL), display the map
   # attribute selector.
   output[["indicatorMapSelect"]] <- renderUI({
     
