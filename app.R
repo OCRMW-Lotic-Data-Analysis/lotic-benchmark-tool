@@ -21,6 +21,7 @@ library(zip)
 source("./appFunctions/determine_reach_conditions.R")
 source("./appFunctions/condition_summary_table.R")
 source("./appFunctions/conditions_boxplot.R")
+source("./appFunctions/load_indicator_data.R")
 
 ### UI -------------------------------------------------------------------------
 ui <- page_navbar(
@@ -164,31 +165,31 @@ server <- function(input, output, session) {
   
 # 1. Select Indicators -------------------------------------------------------
     
-# Uploaded indicator data (pre-filtered by user)
-  indicatorData <- reactive({
-    if (input$startingDataType == "upload") {
+#  Uploaded indicator data (pre-filtered by user) or filter from all available indicators
+
+indicatorData <- reactive({
+  if (input$startingDataType == "upload") {
     req(input$indicatorUpload)
-    ext <- tools::file_ext(input$indicatorUpload$name)
-    dat <- switch(ext,
-           csv = vroom::vroom(input$indicatorUpload$datapath, delim = ",", show_col_types = FALSE) %>% 
-             st_as_sf(coords = c("SampledMidLongitude", "SampledMidLatitude"), crs = 4269),
-           validate("Invalid file; Please upload a .csv")
-           )
-    } else if (input$startingDataType == "filter") {
-      dat <- vroom::vroom("./appData/BLM_Natl_AIM_Lotic_Indicators_Hub.csv", delim = ",", show_col_types = FALSE) %>%
-        st_as_sf(coords = c("SampledMidLongitude", "SampledMidLatitude"), crs = 4269)
-      
-      updatePickerInput(
-        session = session,
-        inputId = "adminState",
-        choices = unique(dat$BLM_AdminState),
-        selected = NULL
-      )
-    }
-    
-    return(dat)
+    #dat <- load_indicator_data(input$indicatorUpload$name, input$indicatorUpload$datapath)
+    load_indicator_data(input$indicatorUpload$name, input$indicatorUpload$datapath)
+  } else if (input$startingDataType == "filter") {
+    #dat <- load_indicator_data("BLM_Natl_AIM_Lotic_Indicators_Hub.csv", "./appData/BLM_Natl_AIM_Lotic_Indicators_Hub.csv")
+    load_indicator_data("BLM_Natl_AIM_Lotic_Indicators_Hub.csv", "./appData/BLM_Natl_AIM_Lotic_Indicators_Hub.csv")
+  }
+})
+
+### Experimental filtering 
+observeEvent(
+  input$startingDataType == "filter",
+  {
+    updatePickerInput(
+      session = session,
+      inputId = "adminState",
+      choices = unique(indicatorData()$BLM_AdminState),
+      selected = NULL
+    )
   })
-  
+
   event_trigger <- reactive({
     list(input$adminState)
   })
@@ -204,6 +205,8 @@ server <- function(input, output, session) {
                    
                  )
                })
+## End experimenting filters
+  
   
   # Map showing initial indicators loaded into app
   
