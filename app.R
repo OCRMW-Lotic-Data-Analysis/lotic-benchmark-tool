@@ -22,7 +22,7 @@ source("./appFunctions/determine_reach_conditions.R")
 source("./appFunctions/condition_summary_table.R")
 source("./appFunctions/conditions_boxplot.R")
 source("./appFunctions/load_indicator_data.R")
-source("./appFunctions/indicator_leaflet_map.R")
+source("./appFunctions/leaflet_maps.R")
 
 ### UI -------------------------------------------------------------------------
 ui <- page_navbar(
@@ -348,59 +348,61 @@ observeEvent(
   # Map showing indicators colored by selected reach condition variable
   output$reachCondMap <- renderLeaflet({
     
-    # Pull variable to plot from input select.  Input just shows benchmark name
-    # to make select cleaner but "Condition" is appended to select col with value.
-    conditionVar <- paste0(input$reachCondMapSelect, "Condition")
-    indicatorVar <- input$reachCondMapSelect
+    reachCond_leaflet_map(reachConditions(), input$reachCondMapSelect)
     
-    
-    # Label that shows up on hover
-    labels <- paste0(
-      "<strong>", reachConditions()$PointID, "</strong><br>",
-      reachConditions()$StreamName, "<br>",
-      indicatorVar,": ", reachConditions()[[indicatorVar]], "<br>",
-      "Condition: ", reachConditions()[[conditionVar]]) %>%
-      lapply(htmltools::HTML)
-    
-    # Create a new grouping variable.  Ensures legend item order is correct.
-    ord <- factor(c("Major", "Moderate", "Minimal"), levels = c("Major", "Moderate", "Minimal"))
-    
-    
-    # Palet
-    pal <- colorFactor(c("#f03b20", "#feb24c", "#ffeda0"), 
-                       levels = ord,
-                       ordered = TRUE)
-    
-    # Map
-    reachConditions() %>%
-      st_transform(crs = 4326) %>%
-      leaflet(
-        options = leafletOptions(
-          attributionControl=FALSE)
-      ) %>%
-      addTiles() %>%
-      addCircleMarkers(
-        radius = 7,
-        color = "black",
-        fillColor = ~pal(reachConditions()[[conditionVar]]),
-        stroke = TRUE,
-        weight = 1,
-        fillOpacity = 1,
-        label = ~labels
-      ) %>%
-      addProviderTiles("Esri.WorldTopoMap",
-                       group = "Esri.WorldTopoMap") %>%
-      addProviderTiles("Esri.WorldImagery",
-                       group = "Esri.WorldImagery") %>%
-      addLayersControl(
-        baseGroups = c("Esri.WorldTopoMap",
-                       "Esri.WorldImagery"),
-        # position it on the topleft
-        position = "topleft") %>%
-      addLegend(pal = pal, 
-                values = ord,
-                opacity = 1, 
-                title = conditionVar)
+    # # Pull variable to plot from input select.  Input just shows benchmark name
+    # # to make select cleaner but "Condition" is appended to select col with value.
+    # conditionVar <- paste0(input$reachCondMapSelect, "Condition")
+    # indicatorVar <- input$reachCondMapSelect
+    # 
+    # 
+    # # Label that shows up on hover
+    # labels <- paste0(
+    #   "<strong>", reachConditions()$PointID, "</strong><br>",
+    #   reachConditions()$StreamName, "<br>",
+    #   indicatorVar,": ", reachConditions()[[indicatorVar]], "<br>",
+    #   "Condition: ", reachConditions()[[conditionVar]]) %>%
+    #   lapply(htmltools::HTML)
+    # 
+    # # Create a new grouping variable.  Ensures legend item order is correct.
+    # ord <- factor(c("Major", "Moderate", "Minimal"), levels = c("Major", "Moderate", "Minimal"))
+    # 
+    # 
+    # # Palet
+    # pal <- colorFactor(c("#f03b20", "#feb24c", "#ffeda0"), 
+    #                    levels = ord,
+    #                    ordered = TRUE)
+    # 
+    # # Map
+    # reachConditions() %>%
+    #   st_transform(crs = 4326) %>%
+    #   leaflet(
+    #     options = leafletOptions(
+    #       attributionControl=FALSE)
+    #   ) %>%
+    #   addTiles() %>%
+    #   addCircleMarkers(
+    #     radius = 7,
+    #     color = "black",
+    #     fillColor = ~pal(reachConditions()[[conditionVar]]),
+    #     stroke = TRUE,
+    #     weight = 1,
+    #     fillOpacity = 1,
+    #     label = ~labels
+    #   ) %>%
+    #   addProviderTiles("Esri.WorldTopoMap",
+    #                    group = "Esri.WorldTopoMap") %>%
+    #   addProviderTiles("Esri.WorldImagery",
+    #                    group = "Esri.WorldImagery") %>%
+    #   addLayersControl(
+    #     baseGroups = c("Esri.WorldTopoMap",
+    #                    "Esri.WorldImagery"),
+    #     # position it on the topleft
+    #     position = "topleft") %>%
+    #   addLegend(pal = pal, 
+    #             values = ord,
+    #             opacity = 1, 
+    #             title = conditionVar)
     
   })
 
