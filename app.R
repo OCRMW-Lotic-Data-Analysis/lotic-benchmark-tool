@@ -22,6 +22,7 @@ source("./appFunctions/determine_reach_conditions.R")
 source("./appFunctions/condition_summary_table.R")
 source("./appFunctions/conditions_boxplot.R")
 source("./appFunctions/load_indicator_data.R")
+source("./appFunctions/indicator_leaflet_map.R")
 
 ### UI -------------------------------------------------------------------------
 ui <- page_navbar(
@@ -227,47 +228,8 @@ observeEvent(
   
   output$indicatorMap <- renderLeaflet({
     
-    # Label to display when hovering over point
-    labels <- paste(
-      "<strong>", indicatorData()$PointID,
-      "</strong><br>", indicatorData()$StreamName) %>%
-      lapply(htmltools::HTML)
-    
-    # Indicators to map
-    mapVals <- indicatorData()[[input$indicatorMapSelect]]
-    
-    # Make a palette
-    pal <- colorFactor(palette = "Set2", levels = unique(mapVals))
-    
-    # Map
-    indicatorData() %>%
-      st_transform(crs = 4326) %>%
-      leaflet(
-        options = leafletOptions(
-          attributionControl=FALSE)
-        ) %>%
-      addTiles() %>%
-      addCircleMarkers(
-        radius = 7,
-        color = "black",
-        fillColor = ~pal(mapVals),
-        stroke = TRUE, 
-        weight = 1,
-        fillOpacity = 1,
-        label = ~labels) %>%
-      addProviderTiles("Esri.WorldTopoMap",
-                       group = "Esri.WorldTopoMap") %>%
-      addProviderTiles("Esri.WorldImagery",
-                       group = "Esri.WorldImagery") %>%
-      addLayersControl(
-        baseGroups = c("Esri.WorldTopoMap",
-                       "Esri.WorldImagery"),
-        # position it on the topleft
-        position = "topleft") %>%
-      addLegend(pal = pal, 
-                values = mapVals, 
-                opacity = 1,
-                title = input$indicatorMapSelect) 
+    indicator_leaflet_map(indicatorData(), input$indicatorMapSelect)
+
     })
 
   #Simple table - doesnt autofit data though.  Above version does but isn't perfect.
