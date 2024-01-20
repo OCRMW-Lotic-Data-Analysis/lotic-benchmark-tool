@@ -166,20 +166,36 @@ server <- function(input, output, session) {
   
   # Initialize empty container for saved benchmark groups
   benchmarkGroupDFs <- reactiveValues()
+  benchmarkGroupWideSum <- reactiveValues()
   
   observeEvent(input$saveNewBMGroup,{
     benchmarkGroupDFs[[input$bmGroupNameinput]] <- definedBenchmarks() %>% tibble::add_column(bmgroup = input$bmGroupNameinput)
+    benchmarkGroupWideSum$df <- reactiveValuesToList(benchmarkGroupDFs) %>% 
+      bind_rows() %>% 
+      select(bmgroup, Indicator, ModerateBenchmark1, ConditionCategoryNum) %>% 
+      pivot_wider(names_from = Indicator, values_from = ModerateBenchmark1)
     updateTextInput(session, "bmGroupNameinput", value = "")
     updatePickerInput(session,"selectBenchmarks3", selected = character(0))
     updatePickerInput(session,"selectBenchmarks2", selected = character(0))
   }
   )
   
+  observeEvent(input$deleteBMGroup,{
+
+    if (!is.null(input$benchmarkGroupsTable_rows_selected)) {
+      #data(data()[-as.numeric(input$TBL1_rows_selected),])
+      
+      #benchmarkGroupWideSum$df <- benchmarkGroupWideSum$df[-as.numeric(input$benchmarkGroupsTable), ]
+      groupName <- benchmarkGroupWideSum$df[as.numeric(input$benchmarkGroupsTable_rows_selected), "bmgroup"]
+      
+      benchmarkGroupWideSum$df <- benchmarkGroupWideSum$df %>% filter(bmgroup != groupName)
+      
+      #rv$df <- rv$df[-as.numeric(input$TBL1_rows_selected), ]
+    }
+  })
+  
   output$benchmarkGroupsTable <- renderDataTable({
-    reactiveValuesToList(benchmarkGroupDFs) %>% 
-      bind_rows() %>% 
-      select(bmgroup, Indicator, ModerateBenchmark1, ConditionCategoryNum) %>% 
-      pivot_wider(names_from = Indicator, values_from = ModerateBenchmark1)
+    benchmarkGroupWideSum$df
   })
   
   output$value <- renderPrint({ names(benchmarkGroupDFs) })
