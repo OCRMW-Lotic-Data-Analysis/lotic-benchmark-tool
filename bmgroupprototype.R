@@ -165,23 +165,31 @@ server <- function(input, output, session) {
     })
   
   # Initialize empty container for saved benchmark groups
-  # cant delete items in 
-  benchmarkGroupDFs <- reactiveValues()
+  benchmarkGroupDF <- reactiveValues()
   benchmarkGroupWideSum <- reactiveValues()
   
   observeEvent(input$saveNewBMGroup,{
     req(input$bmGroupNameinput)
-    benchmarkGroupDFs[[input$bmGroupNameinput]] <- definedBenchmarks() %>% tibble::add_column(bmgroup = input$bmGroupNameinput)
-    benchmarkGroupWideSum$df <- reactiveValuesToList(benchmarkGroupDFs) %>% 
-      bind_rows() %>% 
+    #benchmarkGroupDF[[input$bmGroupNameinput]] <- definedBenchmarks() %>% tibble::add_column(bmgroup = input$bmGroupNameinput)
+    
+    # Get new benchmark group data into data frame
+    newGroupData <- definedBenchmarks() %>% tibble::add_column(bmgroup = input$bmGroupNameinput)
+    
+    # Merge previously saved groups with newly entered group (long form)
+    benchmarkGroupDF$df <- bind_rows(benchmarkGroupDF$df, newGroupData)
+    
+    # Merge previously saved groups with newly entered group (wide form summary table)
+    benchmarkGroupWideSum$df <- benchmarkGroupDF$df %>% 
       select(bmgroup, Indicator, ModerateBenchmark1, ConditionCategoryNum) %>% 
       pivot_wider(names_from = Indicator, values_from = ModerateBenchmark1)
+    
+    # Reset all inputs to blank to prepare for next benchmark group
     updateTextInput(session, "bmGroupNameinput", value = "")
     updatePickerInput(session,"selectBenchmarks3", selected = character(0))
     updatePickerInput(session,"selectBenchmarks2", selected = character(0))
-    print(names(benchmarkGroupDFs))
-  }
-  )
+    print(names(benchmarkGroupDF))
+    }
+    )
   
   observeEvent(input$deleteBMGroup,{
 
@@ -189,20 +197,38 @@ server <- function(input, output, session) {
       # Get groupName(s) you want to delete into vector of strings
       groupNames <- benchmarkGroupWideSum$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(bmgroup)
   
-      # Actually remove the data from benchmarkGroupWideSum reactive value
+      # Actually remove the data from benchmarkGroupWideSum and benchmarkGroupDF reactive value
       benchmarkGroupWideSum$df <- benchmarkGroupWideSum$df %>% subset(!(bmgroup %in% groupNames))
-      
-      # cant delete items in reactiveValues.  Mayabe make it is list in reactive?
-      #https://stackoverflow.com/questions/39436713/r-shiny-reactivevalues-vs-reactive
+      benchmarkGroupDF$df <- benchmarkGroupDF$df %>% subset(!(bmgroup %in% groupNames))
     }
   })
   
-  output$benchmarkGroupsTable <- renderDataTable({
-    benchmarkGroupWideSum$df
+  # almost works. opens table to edit but doesnt allow for saving.  
+  observeEvent(input$editBMGroup,{
+    groupNames <- benchmarkGroupWideSum$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(bmgroup)
+    bmedit <- benchmarkGroupDF$df %>% subset(bmgroup %in% groupNames)
+    print(groupNames)
+    print(bmedit)
+    benchmarkValues(bmedit)
+    
+    updateSelectInput(session, "selectBenchmarks3",
+                      choices = filter(benchmarkValues(), ConditionCategoryNum == 3) %>% pull(Indicator),
+                      selected = filter(benchmarkValues(), ConditionCategoryNum == 3) %>% pull(Indicator))
+    
+    updateSelectInput(session, "selectBenchmarks2",
+                      choices = filter(benchmarkValues(), ConditionCategoryNum == 2) %>% pull(Indicator),
+                      selected = filter(benchmarkValues(), ConditionCategoryNum == 2) %>% pull(Indicator))
+    
+    #print(benchmarkValues()) 
   })
   
-  #output$value <- renderPrint({ names(benchmarkGroupDFs) })
-  output$value <- renderPrint({ paste(input$benchmarkGroupsTable_rows_selected) })
+  output$benchmarkGroupsTable <- renderDataTable(
+    benchmarkGroupWideSum$df,
+    selection = "single"
+    )
+  
+  #output$value <- renderPrint({ names(benchmarkGroupDF) })
+  #output$value <- renderPrint({ benchmarkGroupDF$df })
   
 }
 
