@@ -162,13 +162,15 @@ server <- function(input, output, session) {
   # Save edited benchmark table for calculations
   definedBenchmarks <- reactive({
     hot_to_r(input$benchmark_hot)
-  })
+    })
   
   # Initialize empty container for saved benchmark groups
+  # cant delete items in 
   benchmarkGroupDFs <- reactiveValues()
   benchmarkGroupWideSum <- reactiveValues()
   
   observeEvent(input$saveNewBMGroup,{
+    req(input$bmGroupNameinput)
     benchmarkGroupDFs[[input$bmGroupNameinput]] <- definedBenchmarks() %>% tibble::add_column(bmgroup = input$bmGroupNameinput)
     benchmarkGroupWideSum$df <- reactiveValuesToList(benchmarkGroupDFs) %>% 
       bind_rows() %>% 
@@ -177,20 +179,21 @@ server <- function(input, output, session) {
     updateTextInput(session, "bmGroupNameinput", value = "")
     updatePickerInput(session,"selectBenchmarks3", selected = character(0))
     updatePickerInput(session,"selectBenchmarks2", selected = character(0))
+    print(names(benchmarkGroupDFs))
   }
   )
   
   observeEvent(input$deleteBMGroup,{
 
     if (!is.null(input$benchmarkGroupsTable_rows_selected)) {
-      #data(data()[-as.numeric(input$TBL1_rows_selected),])
+      # Get groupName(s) you want to delete into vector of strings
+      groupNames <- benchmarkGroupWideSum$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(bmgroup)
+  
+      # Actually remove the data from benchmarkGroupWideSum reactive value
+      benchmarkGroupWideSum$df <- benchmarkGroupWideSum$df %>% subset(!(bmgroup %in% groupNames))
       
-      #benchmarkGroupWideSum$df <- benchmarkGroupWideSum$df[-as.numeric(input$benchmarkGroupsTable), ]
-      groupName <- benchmarkGroupWideSum$df[as.numeric(input$benchmarkGroupsTable_rows_selected), "bmgroup"]
-      
-      benchmarkGroupWideSum$df <- benchmarkGroupWideSum$df %>% filter(bmgroup != groupName)
-      
-      #rv$df <- rv$df[-as.numeric(input$TBL1_rows_selected), ]
+      # cant delete items in reactiveValues.  Mayabe make it is list in reactive?
+      #https://stackoverflow.com/questions/39436713/r-shiny-reactivevalues-vs-reactive
     }
   })
   
@@ -198,7 +201,8 @@ server <- function(input, output, session) {
     benchmarkGroupWideSum$df
   })
   
-  output$value <- renderPrint({ names(benchmarkGroupDFs) })
+  #output$value <- renderPrint({ names(benchmarkGroupDFs) })
+  output$value <- renderPrint({ paste(input$benchmarkGroupsTable_rows_selected) })
   
 }
 
