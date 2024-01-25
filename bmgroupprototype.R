@@ -49,10 +49,12 @@ ui <- page_navbar(
                       `actions-box` = TRUE),
                     multiple = TRUE
         ),
-        actionButton("saveNewBMGroup", label = "Save New Benchmark Group", style="color: #fff; background-color: #53C1BE"),
+        br(),
+        actionButton("saveNewBMGroup", label = "Save New Benchmark Group", style="color: #000000; background-color: #DEFFDE"),
+        actionButton("deleteBMGroup", label = "Delete Selected Benchmark Group", style="color: #000000; background-color: #FFDEDE"),
         hr(),
         actionButton("editBMGroup", label = "Edit Selected Benchmark Group"),
-        actionButton("deleteBMGroup", label = "Delete Selected Benchmark Group"),
+        
         
         
         downloadButton(
@@ -62,17 +64,31 @@ ui <- page_navbar(
         fileInput("benchmarkUpload", 
                   "Upload Benchmark Config", 
                   accept = c(".csv"))),
-      rHandsontableOutput("benchmark_hot"),
+      rHandsontableOutput("defineBenchmark_hot"),
       dataTableOutput("benchmarkGroupsTable"),
       verbatimTextOutput("value")
-    ))
+    )),
+  
+  # 3. Define Benchmarks ----
+  nav_panel(
+    title = "3 Apply Benchmarks",
+    page_sidebar(
+      sidebar = sidebar(
+        width = "300px",
+        h5("Apply Benchmarks")
+      )
+    ,
+    rHandsontableOutput("applyBenchmarks_hot"),
+    rHandsontableOutput("benchmarkGroupTEST")
+    
+  ))
   
   
 )
 
 server <- function(input, output, session) {
   
- 
+  # 2. Define Benchmarks -------------------------------------------------------
   
   benchmarkValues <-reactiveVal(read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character"))
   
@@ -116,7 +132,7 @@ server <- function(input, output, session) {
   )
   
   # Editable benchmark table
-  output$benchmark_hot <- renderRHandsontable({
+  output$defineBenchmark_hot <- renderRHandsontable({
     # if (input$selectBenchmarks3 == "" & input$selectBenchmarks2 == ""){
     #   return(NULL)
     # }
@@ -161,7 +177,7 @@ server <- function(input, output, session) {
   
   # Save edited benchmark table for calculations
   definedBenchmarks <- reactive({
-    hot_to_r(input$benchmark_hot)
+    hot_to_r(input$defineBenchmark_hot)
     })
   
   # Initialize empty container for saved benchmark groups
@@ -229,6 +245,21 @@ server <- function(input, output, session) {
   
   #output$value <- renderPrint({ names(benchmarkGroupDF) })
   #output$value <- renderPrint({ benchmarkGroupDF$df })
+  
+  
+  # 3. Apply Benchmarks --------------------------------------------------------
+  output$applyBenchmarks_hot <- renderRHandsontable({
+    benchmarkGroupDF$df 
+    dat <- 
+    rhandsontable(data = dat) %>%
+      hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE) %>%
+      hot_table(highlightRow = TRUE) %>%
+      hot_cols(fixedColumnsLeft = 1)
+  })
+  
+  output$benchmarkGroupTEST <- renderRHandsontable({
+      rhandsontable(data = benchmarkGroupDF$df)
+  })
   
 }
 
