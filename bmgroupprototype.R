@@ -32,33 +32,31 @@ ui <- page_navbar(
   nav_panel(
     title = "2. Define Benchmarks",
     page_sidebar(
+      #Sidebar
       sidebar = sidebar(
         width = "300px",
         h5("Create Benchmark Groups"),
         textInput("bmGroupNameinput", label = "Group Name"),
         pickerInput(inputId = "selectBenchmarks3",
                     label = "Three Condition Categories",
-                    #choices = filter(benchmarkValues, ConditionCategoryNum == 3) %>% pull(Indicator),
-                    choices = "",
+                    choices = "",    # choices are updated based on input of benchmarkValues()
                     options = list(
                       `actions-box` = TRUE),
                     multiple = TRUE
         ),
         pickerInput(inputId = "selectBenchmarks2",
                     label = "Two Condition Categories",
-                    #choices = filter(benchmarkValues, ConditionCategoryNum == 2) %>% pull(Indicator),
-                    choices = "",
+                    choices = "",    # choices are updated based on input of benchmarkValues()
                     options = list(
                       `actions-box` = TRUE),
                     multiple = TRUE
         ),
         br(),
+        
         actionButton("saveNewBMGroup", label = "Save New Benchmark Group", style="color: #000000; background-color: #DEFFDE"),
         actionButton("deleteBMGroup", label = "Delete Selected Benchmark Group", style="color: #000000; background-color: #FFDEDE"),
         hr(),
         actionButton("editBMGroup", label = "Edit Selected Benchmark Group"),
-        
-        
         
         downloadButton(
           outputId = "benchmarkConfigDLcsv",
@@ -67,25 +65,28 @@ ui <- page_navbar(
         fileInput("benchmarkUpload", 
                   "Upload Benchmark Config", 
                   accept = c(".csv"))),
+      # Main Panel
       rHandsontableOutput("defineBenchmark_hot"),
       dataTableOutput("benchmarkGroupsTable"),
-      verbatimTextOutput("value")
-    )),
+      #verbatimTextOutput("value")
+      )
+    ),
   
   # 3. Define Benchmarks ----
   nav_panel(
     title = "3 Apply Benchmarks",
     page_sidebar(
+      #Sidebar
       sidebar = sidebar(
         width = "300px",
         h5("Apply Benchmarks")
+        ),
+      # Main Panel
+      rHandsontableOutput("applyBenchmarks_hot"),
+      verbatimTextOutput("groupnames"),
+      rHandsontableOutput("benchmarkGroupTEST")
       )
-    ,
-    rHandsontableOutput("applyBenchmarks_hot"),
-    verbatimTextOutput("groupnames"),
-    rHandsontableOutput("benchmarkGroupTEST")
-    
-  ))
+    )
   
   
 )
@@ -122,7 +123,8 @@ server <- function(input, output, session) {
   # 2. Define Benchmarks -------------------------------------------------------
   
   
-  
+  # Update benchmark selectors based on benchmarkValues().  This could come from
+  # manual entry or upload.
   observe({
     updateSelectInput(session, "selectBenchmarks3",
                       choices = filter(benchmarkValues(), ConditionCategoryNum == 3) %>% pull(Indicator))
@@ -131,8 +133,8 @@ server <- function(input, output, session) {
                       choices = filter(benchmarkValues(), ConditionCategoryNum == 2) %>% pull(Indicator))
   })
   
-  # Create mutually exclusive selectors for 2 and 3 category benchmarks.  This 
-  # means that if, for example, pH is selected for 3 Category, it will be removed
+  # Create mutually exclusive selectors for 2 and 3 category benchmarks.
+  # For example: if pH is selected for 3 Category, it will be removed
   # from the dropdown selector for 2 Category.
   observeEvent(
     input$selectBenchmarks3,
@@ -162,7 +164,7 @@ server <- function(input, output, session) {
     ignoreNULL = FALSE
   )
   
-  # Editable benchmark table
+  # Editable benchmark table.  This is where users enter major/moderate thresholds
   output$defineBenchmark_hot <- renderRHandsontable({
     # if (input$selectBenchmarks3 == "" & input$selectBenchmarks2 == ""){
     #   return(NULL)
@@ -179,7 +181,7 @@ server <- function(input, output, session) {
     
   })
   
-  # Download benchmarks as displayed in table 
+  # Download benchmarks as currently displayed in 'defineBenchmark_hot' table 
   output$benchmarkConfigDLcsv <- downloadHandler(
     filename = "benchmarkConfig.csv",
     content = function(file) {
@@ -206,7 +208,7 @@ server <- function(input, output, session) {
     #print(benchmarkValues()) 
   })
   
-  # Save edited benchmark table for calculations
+  # Save the currently displayed values of the 'defineBenchmark_hot' table
   definedBenchmarks <- reactive({
     hot_to_r(input$defineBenchmark_hot)
     })
@@ -215,10 +217,9 @@ server <- function(input, output, session) {
   benchmarkGroupDF <- reactiveValues()
   benchmarkGroupWideSum <- reactiveValues()
   
+  # Save edited benchmark table.  Also resets text/picker inputs and clears table.
   observeEvent(input$saveNewBMGroup,{
     req(input$bmGroupNameinput)
-    #benchmarkGroupDF[[input$bmGroupNameinput]] <- definedBenchmarks() %>% tibble::add_column(bmgroup = input$bmGroupNameinput)
-    
     # Get new benchmark group data into data frame
     newGroupData <- definedBenchmarks() %>% tibble::add_column(bmgroup = input$bmGroupNameinput)
     
@@ -238,6 +239,8 @@ server <- function(input, output, session) {
     }
     )
   
+  
+  # Delete the benchmark group based on the selected row in table.
   observeEvent(input$deleteBMGroup,{
 
     if (!is.null(input$benchmarkGroupsTable_rows_selected)) {
@@ -250,7 +253,9 @@ server <- function(input, output, session) {
     }
   })
   
-  # almost works. opens table to edit but doesnt allow for saving.  
+  
+  # Edit previously saved benchmark group. 
+  # almost works. opens table to edit but doesnt allow for saving and selectInputs are not correct. 
   observeEvent(input$editBMGroup,{
     groupNames <- benchmarkGroupWideSum$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(bmgroup)
     bmedit <- benchmarkGroupDF$df %>% subset(bmgroup %in% groupNames)
@@ -269,6 +274,7 @@ server <- function(input, output, session) {
     #print(benchmarkValues()) 
   })
   
+  # Summary table of defined benchmark groups.  
   output$benchmarkGroupsTable <- renderDataTable(
     benchmarkGroupWideSum$df,
     selection = "single"
@@ -278,18 +284,28 @@ server <- function(input, output, session) {
   
   # 3. Apply Benchmarks --------------------------------------------------------
   
+  # Selected which benchmark groups to apply to each pointID/indicator combo.
   output$applyBenchmarks_hot <- renderRHandsontable({
+    # Get the names of all possible benchmarks (will likley need to tweak this)
     bmVars <- unique(benchmarkValues()$Indicator)
+    
+    # Unique benchmark group names (unique b/c it's pulling from long-form table)
     bmGroups <- reactiveValuesToList(benchmarkGroupDF)[['df']] %>% pull(bmgroup) %>% unique()
     #print(bmGroups)
     
+    # Strip indicator table to basic info and set benchmark group to "Default".
+    # "Default" setting will be used to apply BLM's pre-defined, default conditions.
     applyBechmarkDat <- indicatorData() %>% st_drop_geometry() %>% select(c(PointID, StreamName, EvaluationID))
     applyBechmarkDat[bmVars] <- "Default"
     
+    # Actual table
     rhandsontable(applyBechmarkDat, rowHeaders = NULL, overflow = "visible") %>%
-
-      hot_col(col = "PctBankCoveredStableMIM", type = "dropdown", source = c(bmGroups, "Default"),
+      hot_col(col = bmVars, 
+              type = "dropdown", 
+              # Including "Default" below is key. If 'bmGroups' only has 1 value, the dropdown doesn't work.
+              source = c(bmGroups, "Default"),  
               strict = FALSE,
+              # Cells with "Default" selected are greyed out a bit.  Makes it easier to see where custom values are used.
               renderer = "
                function (instance, td, row, col, prop, value, cellProperties) {
                Handsontable.renderers.TextRenderer.apply(this, arguments);
@@ -297,14 +313,14 @@ server <- function(input, output, session) {
                td.style.color = 'lightgrey';
                }
                Handsontable.renderers.DropdownRenderer.apply(this, arguments);
-               }")
-  }
-  )
+               }"
+              )
+    })
   
   #output$groupnames <- renderText({ bmGroups })
-  output$benchmarkGroupTEST <- renderRHandsontable({
-      rhandsontable(data = benchmarkGroupDF$df)
-  })
+  #output$benchmarkGroupTEST <- renderRHandsontable({
+  #    rhandsontable(data = benchmarkGroupDF$df)
+  #})
   
 }
 
