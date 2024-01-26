@@ -38,7 +38,9 @@ ui <- page_navbar(
     page_sidebar(
         sidebar = sidebar(
           selectInput("startingDataType", "Indicator Data Source",
-                      choices = c("Upload" = "upload", "Filter from all indicators" = "filter")),
+                      choices = c("Upload" = "upload", 
+                                  "Filter from all indicators" = "filter",
+                                  "Lander Sample Data" = "sampleData")),
           
           conditionalPanel(
             condition = "input.startingDataType == 'upload'",
@@ -177,6 +179,8 @@ indicatorData <- reactive({
   } else if (input$startingDataType == "filter") {
     #dat <- load_indicator_data("BLM_Natl_AIM_Lotic_Indicators_Hub.csv", "./appData/BLM_Natl_AIM_Lotic_Indicators_Hub.csv")
     load_indicator_data("BLM_Natl_AIM_Lotic_Indicators_Hub.csv", "./appData/BLM_Natl_AIM_Lotic_Indicators_Hub.csv")
+  } else if (input$startingDataType == "sampleData") {
+    load_indicator_data("wy_landerPts.csv", "./appData/wy_landerPts.csv")
   }
 })
 

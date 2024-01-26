@@ -17,6 +17,9 @@ library(reactable.extras)
 library(htmltools)
 library(zip)
 
+source("./appFunctions/load_indicator_data.R")
+
+
 ui <- page_navbar(
   title = "Lotic AIM Indicator Benchmark Tool",
   selected = "2. Define Benchmarks",
@@ -79,6 +82,7 @@ ui <- page_navbar(
       )
     ,
     rHandsontableOutput("applyBenchmarks_hot"),
+    verbatimTextOutput("groupnames"),
     rHandsontableOutput("benchmarkGroupTEST")
     
   ))
@@ -88,9 +92,36 @@ ui <- page_navbar(
 
 server <- function(input, output, session) {
   
-  # 2. Define Benchmarks -------------------------------------------------------
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  indicatorData <- reactive({
+  
+  read_csv("C:/Users/ianhe/OneDrive - The University of Montana/EMMA/analysis/lotic-benchmark-tool/sample_data/wy_landerPts.csv", show_col_types = FALSE) %>%
+      st_as_sf(coords = c("SampledMidLongitude", "SampledMidLatitude"), crs = 4269)
+
+  })
+  
   
   benchmarkValues <-reactiveVal(read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character"))
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  # 2. Define Benchmarks -------------------------------------------------------
+  
+  
   
   observe({
     updateSelectInput(session, "selectBenchmarks3",
@@ -172,7 +203,7 @@ server <- function(input, output, session) {
                       choices = filter(benchmarkValues(), ConditionCategoryNum == 2) %>% pull(Indicator),
                       selected = filter(benchmarkValues(), ConditionCategoryNum == 2) %>% pull(Indicator))
     
-    print(benchmarkValues()) 
+    #print(benchmarkValues()) 
   })
   
   # Save edited benchmark table for calculations
@@ -203,7 +234,7 @@ server <- function(input, output, session) {
     updateTextInput(session, "bmGroupNameinput", value = "")
     updatePickerInput(session,"selectBenchmarks3", selected = character(0))
     updatePickerInput(session,"selectBenchmarks2", selected = character(0))
-    print(names(benchmarkGroupDF))
+    #print(names(benchmarkGroupDF))
     }
     )
   
@@ -223,8 +254,8 @@ server <- function(input, output, session) {
   observeEvent(input$editBMGroup,{
     groupNames <- benchmarkGroupWideSum$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(bmgroup)
     bmedit <- benchmarkGroupDF$df %>% subset(bmgroup %in% groupNames)
-    print(groupNames)
-    print(bmedit)
+    #print(groupNames)
+    #print(bmedit)
     benchmarkValues(bmedit)
     
     updateSelectInput(session, "selectBenchmarks3",
@@ -243,20 +274,34 @@ server <- function(input, output, session) {
     selection = "single"
     )
   
-  #output$value <- renderPrint({ names(benchmarkGroupDF) })
-  #output$value <- renderPrint({ benchmarkGroupDF$df })
   
   
   # 3. Apply Benchmarks --------------------------------------------------------
-  output$applyBenchmarks_hot <- renderRHandsontable({
-    benchmarkGroupDF$df 
-    dat <- 
-    rhandsontable(data = dat) %>%
-      hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE) %>%
-      hot_table(highlightRow = TRUE) %>%
-      hot_cols(fixedColumnsLeft = 1)
-  })
   
+  output$applyBenchmarks_hot <- renderRHandsontable({
+    bmVars <- unique(benchmarkValues()$Indicator)
+    bmGroups <- reactiveValuesToList(benchmarkGroupDF)[['df']] %>% pull(bmgroup) %>% unique()
+    #print(bmGroups)
+    
+    applyBechmarkDat <- indicatorData() %>% st_drop_geometry() %>% select(c(PointID, StreamName, EvaluationID))
+    applyBechmarkDat[bmVars] <- "Default"
+    
+    rhandsontable(applyBechmarkDat, rowHeaders = NULL, overflow = "visible") %>%
+
+      hot_col(col = "PctBankCoveredStableMIM", type = "dropdown", source = c(bmGroups, "Default"),
+              strict = FALSE,
+              renderer = "
+               function (instance, td, row, col, prop, value, cellProperties) {
+               Handsontable.renderers.TextRenderer.apply(this, arguments);
+               if (value == 'Default') {
+               td.style.color = 'lightgrey';
+               }
+               Handsontable.renderers.DropdownRenderer.apply(this, arguments);
+               }")
+  }
+  )
+  
+  #output$groupnames <- renderText({ bmGroups })
   output$benchmarkGroupTEST <- renderRHandsontable({
       rhandsontable(data = benchmarkGroupDF$df)
   })
