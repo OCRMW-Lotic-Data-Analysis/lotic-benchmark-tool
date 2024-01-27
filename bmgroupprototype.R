@@ -300,6 +300,10 @@ server <- function(input, output, session) {
     
     # Actual table
     rhandsontable(applyBechmarkDat, rowHeaders = NULL, overflow = "visible") %>%
+      hot_table(highlightRow = TRUE, contextMenu = FALSE) %>%
+      hot_cols(fixedColumnsLeft = 3) %>%
+      hot_rows(fixedRowsTop = 1) %>%
+      hot_col(1:3, readOnly = TRUE) %>%
       hot_col(col = bmVars, 
               type = "dropdown", 
               # Including "Default" below is key. If 'bmGroups' only has 1 value, the dropdown doesn't work.
