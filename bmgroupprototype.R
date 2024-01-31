@@ -308,13 +308,15 @@ server <- function(input, output, session) {
             type = "dropdown",
             # Including "Default" below is key. If 'bmGroups' only has 1 value, the dropdown doesn't work.
             source = c(bmGroups, "Default"),
-            strict = FALSE,
+            allowInvalid = FALSE,
             # Cells with "Default" selected are greyed out a bit.  Makes it easier to see where custom values are used.
             renderer = "
              function (instance, td, row, col, prop, value, cellProperties) {
              Handsontable.renderers.TextRenderer.apply(this, arguments);
              if (value == 'Default') {
              td.style.color = 'lightgrey';
+             } else if (value != 'Default') {
+             td.style.background = '#C1FFC1';
              }
              Handsontable.renderers.DropdownRenderer.apply(this, arguments);
              }"
