@@ -72,7 +72,7 @@ ui <- page_navbar(
       )
     ),
   
-  # 3. Define Benchmarks ----
+  # 3. Apply Benchmarks ----
   nav_panel(
     title = "3 Apply Benchmarks",
     page_sidebar(
@@ -83,8 +83,8 @@ ui <- page_navbar(
         ),
       # Main Panel
       rHandsontableOutput("applyBenchmarks_hot"),
-      verbatimTextOutput("groupnames"),
-      rHandsontableOutput("benchmarkGroupTEST")
+      #verbatimTextOutput("groupnames"),
+      #rHandsontableOutput("benchmarkGroupTEST")
       )
     )
   
@@ -299,26 +299,26 @@ server <- function(input, output, session) {
     applyBechmarkDat[bmVars] <- "Default"
     
     # Actual table
-    rhandsontable(applyBechmarkDat, rowHeaders = NULL, overflow = "visible") %>%
-      hot_table(highlightRow = TRUE, contextMenu = FALSE) %>%
-      hot_cols(fixedColumnsLeft = 3) %>%
-      hot_rows(fixedRowsTop = 1) %>%
-      hot_col(1:3, readOnly = TRUE) %>%
-      hot_col(col = bmVars, 
-              type = "dropdown", 
-              # Including "Default" below is key. If 'bmGroups' only has 1 value, the dropdown doesn't work.
-              source = c(bmGroups, "Default"),  
-              strict = FALSE,
-              # Cells with "Default" selected are greyed out a bit.  Makes it easier to see where custom values are used.
-              renderer = "
-               function (instance, td, row, col, prop, value, cellProperties) {
-               Handsontable.renderers.TextRenderer.apply(this, arguments);
-               if (value == 'Default') {
-               td.style.color = 'lightgrey';
-               }
-               Handsontable.renderers.DropdownRenderer.apply(this, arguments);
-               }"
-              )
+    rhandsontable(applyBechmarkDat,
+                  rowHeaders = FALSE) %>%
+    hot_table(highlightRow = TRUE, contextMenu = FALSE) %>%
+    hot_cols(fixedColumnsLeft = 3) %>%
+    hot_col(1:3, readOnly = TRUE) %>%
+    hot_col(col = bmVars,
+            type = "dropdown",
+            # Including "Default" below is key. If 'bmGroups' only has 1 value, the dropdown doesn't work.
+            source = c(bmGroups, "Default"),
+            strict = FALSE,
+            # Cells with "Default" selected are greyed out a bit.  Makes it easier to see where custom values are used.
+            renderer = "
+             function (instance, td, row, col, prop, value, cellProperties) {
+             Handsontable.renderers.TextRenderer.apply(this, arguments);
+             if (value == 'Default') {
+             td.style.color = 'lightgrey';
+             }
+             Handsontable.renderers.DropdownRenderer.apply(this, arguments);
+             }"
+            )
     })
   
   #output$groupnames <- renderText({ bmGroups })
