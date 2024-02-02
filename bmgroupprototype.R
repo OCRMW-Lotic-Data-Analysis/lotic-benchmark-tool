@@ -221,14 +221,14 @@ server <- function(input, output, session) {
   observeEvent(input$saveNewBMGroup,{
     req(input$bmGroupNameinput)
     # Get new benchmark group data into data frame
-    newGroupData <- definedBenchmarks() %>% tibble::add_column(bmgroup = input$bmGroupNameinput)
+    newGroupData <- definedBenchmarks() %>% tibble::add_column(bmGroup = input$bmGroupNameinput)
     
     # Merge previously saved groups with newly entered group (long form)
     benchmarkGroupDF$df <- bind_rows(benchmarkGroupDF$df, newGroupData)
     
     # Merge previously saved groups with newly entered group (wide form summary table)
     benchmarkGroupWideSum$df <- benchmarkGroupDF$df %>% 
-      select(bmgroup, Indicator, ModerateBenchmark1, ConditionCategoryNum) %>% 
+      select(bmGroup, Indicator, ModerateBenchmark1, ConditionCategoryNum) %>% 
       pivot_wider(names_from = Indicator, values_from = ModerateBenchmark1)
     
     # Reset all inputs to blank to prepare for next benchmark group
@@ -245,11 +245,11 @@ server <- function(input, output, session) {
 
     if (!is.null(input$benchmarkGroupsTable_rows_selected)) {
       # Get groupName(s) you want to delete into vector of strings
-      groupNames <- benchmarkGroupWideSum$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(bmgroup)
+      groupNames <- benchmarkGroupWideSum$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(bmGroup)
   
       # Actually remove the data from benchmarkGroupWideSum and benchmarkGroupDF reactive value
-      benchmarkGroupWideSum$df <- benchmarkGroupWideSum$df %>% subset(!(bmgroup %in% groupNames))
-      benchmarkGroupDF$df <- benchmarkGroupDF$df %>% subset(!(bmgroup %in% groupNames))
+      benchmarkGroupWideSum$df <- benchmarkGroupWideSum$df %>% subset(!(bmGroup %in% groupNames))
+      benchmarkGroupDF$df <- benchmarkGroupDF$df %>% subset(!(bmGroup %in% groupNames))
     }
   })
   
@@ -257,8 +257,8 @@ server <- function(input, output, session) {
   # Edit previously saved benchmark group. 
   # almost works. opens table to edit but doesnt allow for saving and selectInputs are not correct. 
   observeEvent(input$editBMGroup,{
-    groupNames <- benchmarkGroupWideSum$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(bmgroup)
-    bmedit <- benchmarkGroupDF$df %>% subset(bmgroup %in% groupNames)
+    groupNames <- benchmarkGroupWideSum$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(bmGroup)
+    bmedit <- benchmarkGroupDF$df %>% subset(bmGroup %in% groupNames)
     #print(groupNames)
     #print(bmedit)
     benchmarkValues(bmedit)
@@ -290,7 +290,7 @@ server <- function(input, output, session) {
     bmVars <- unique(benchmarkValues()$Indicator)
     
     # Unique benchmark group names (unique b/c it's pulling from long-form table)
-    bmGroups <- reactiveValuesToList(benchmarkGroupDF)[['df']] %>% pull(bmgroup) %>% unique()
+    bmGroups <- reactiveValuesToList(benchmarkGroupDF)[['df']] %>% pull(bmGroup) %>% unique()
     #print(bmGroups)
     
     # Strip indicator table to basic info and set benchmark group to "Default".
