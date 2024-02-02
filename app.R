@@ -181,6 +181,10 @@ ui <- page_navbar(
                       inputId = "bmSummaryBoxplotsSelect",
                       label = "Select Indicator to Plot",
                       choices = NULL),
+                    checkboxInput(
+                      inputId = "showDensity",
+                      label = "Include Density Plot", 
+                      value = TRUE),
                     width = "300px",
                     open = "always"),
                   girafeOutput("bmSummaryBoxplots")
@@ -535,7 +539,7 @@ server <- function(input, output, session) {
   
 # 5. Condition Summary ---------------------------------------------------------
   output$bmSummaryTable <- renderDT({
-    condition_summary_table(reachConditions(), definedBenchmarks()$Indicator)},
+    condition_summary_table(reachConditions(), benchmarkGroupDF$df$Indicator)},
     extensions = 'Buttons',
     options = list(
       paging =FALSE,
@@ -549,8 +553,8 @@ server <- function(input, output, session) {
   
   observe({
     updateSelectInput(session, "bmSummaryBoxplotsSelect",
-                      choices = definedBenchmarks()$Indicator,
-                      selected = definedBenchmarks()$Indicator[1]
+                      choices = benchmarkGroupDF$df$Indicator,
+                      selected = benchmarkGroupDF$df$Indicator[1]
     )
   })
   
@@ -560,7 +564,7 @@ server <- function(input, output, session) {
   # })
   
   output$bmSummaryBoxplots <- renderGirafe({
-    conditions_boxplot(reachConditions(), input$bmSummaryBoxplotsSelect)
+    conditions_boxplot(reachConditions(), input$bmSummaryBoxplotsSelect, input$showDensity)
   })
 }
 

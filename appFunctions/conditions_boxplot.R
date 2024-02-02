@@ -1,4 +1,5 @@
-conditions_boxplot <- function(reachCond, benchmark) {
+conditions_boxplot <- function(reachCond, benchmark, showDensity) {
+  
 selectedVars <- c(benchmark, paste0(benchmark, "Condition"),
                   "PointID", "StreamName")
 
@@ -14,20 +15,20 @@ plotdat <- reachCond %>%
                               "\n Value: ", value))
 
 p <- ggplot(plotdat, aes(x = indicator, y = value)) + 
-  ggdist::stat_slab(
-    adjust = .5,
-    width = .6,
-    justification = -.3,
-    slab_linewidth= 0.5,
-    color = "gray50",
-    fill = "gray85") +
+  # ggdist::stat_slab(
+  #   adjust = .5,
+  #   width = .6,
+  #   justification = -.3,
+  #   slab_linewidth= 0.5,
+  #   color = "gray50",
+  #   fill = "gray85") +
   geom_boxplot_interactive(
     width = .25, 
     outlier.shape = NA,
     show.legend = FALSE) +  # hide boxplot legend items
   geom_point_interactive(
     aes(tooltip = tooltiptext, data_id = PointID, fill = condition),
-    color = "black", # color = border (stroke), fill = inside of point
+    color = "black", # color = border (stroke), fill = inside of point when both are used.  
     shape = 21,
     stroke = 0.3,
     size = 3,
@@ -45,6 +46,16 @@ p <- ggplot(plotdat, aes(x = indicator, y = value)) +
   theme_minimal() +
   theme(legend.position = "right",
         legend.text.align = 0)  # left justified text
+
+if (showDensity == TRUE) {
+  p <- p + ggdist::stat_slab(
+    adjust = .5,
+    width = .6,
+    justification = -.3,
+    slab_linewidth= 0.5,
+    color = "gray50",
+    fill = "gray85") 
+}
 
 girafe(ggobj = p)
 }
