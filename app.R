@@ -323,9 +323,9 @@ server <- function(input, output, session) {
   
   # Editable benchmark table.  This is where users enter major/moderate thresholds
   output$defineBenchmark_hot <- renderRHandsontable({
-    # if (input$selectBenchmarks3 == "" & input$selectBenchmarks2 == ""){
-    #   return(NULL)
-    # }
+    
+    # Wait to display table until benchmark categories are selected.
+    req(isTruthy(input$selectBenchmarks3 != "") || isTruthy(input$selectBenchmarks2 != ""))
     
     # Filter to selected benchmarks
     cond2 <- dplyr::filter(defaultBenchmarkVals(), Indicator %in% input$selectBenchmarks3 & ConditionCategoryNum == 3)
@@ -444,6 +444,8 @@ server <- function(input, output, session) {
   
   # Selected which benchmark groups to apply to each pointID/indicator combo.
   output$applyBenchmarks_hot <- renderRHandsontable({
+    req(benchmarkGroupDF$df)
+    
     # Get the names of all possible benchmarks (will likley need to tweak this)
     bmVars <- unique(defaultBenchmarkVals()$Indicator)
     
