@@ -251,8 +251,8 @@ server <- function(input, output, session) {
   # Only once data is loaded (uploaded or local version of ALL), display the map
   # attribute selector.
   output[["indicatorMapSelect"]] <- renderUI({
+    req(indicatorData())
     
-    if(is.null(indicatorData()))return()
     selectInput(
       inputId = "indicatorMapSelect",
       label = "Select Indicator for Map",
