@@ -15,13 +15,6 @@ plotdat <- reachCond %>%
                               "\n Value: ", value))
 
 p <- ggplot(plotdat, aes(x = indicator, y = value)) + 
-  # ggdist::stat_slab(
-  #   adjust = .5,
-  #   width = .6,
-  #   justification = -.3,
-  #   slab_linewidth= 0.5,
-  #   color = "gray50",
-  #   fill = "gray85") +
   geom_boxplot_interactive(
     width = .25, 
     outlier.shape = NA,
@@ -40,7 +33,6 @@ p <- ggplot(plotdat, aes(x = indicator, y = value)) +
                                            Major = "red2"),
                                 data_id = c(Minimal = "Minimal", Moderate = "Moderate", Major = "Major"),
                                 name = "Condition") +
-  expand_limits(y=-1) +  # for more consistent y values. -1 is the min value of all indicators
   labs(x = "", y = "") +
   coord_cartesian(xlim = c(1.3, 1.35)) +
   theme_minimal() +
