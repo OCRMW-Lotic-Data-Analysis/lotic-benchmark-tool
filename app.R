@@ -118,7 +118,8 @@ ui <- page_navbar(
                   accept = c(".csv"))),
       # Main Panel
       rHandsontableOutput("defineBenchmark_hot"),
-      dataTableOutput("benchmarkGroupsTable"),
+      #dataTableOutput("benchmarkGroupsTable"),
+      reactableOutput("benchmarkGroupsTable")
       #verbatimTextOutput("value")
     )
   ),
@@ -399,9 +400,11 @@ server <- function(input, output, session) {
   # DELETE the benchmark group based on the selected row in table.
   observeEvent(input$deleteBMGroup,{
     
-    if (!is.null(input$benchmarkGroupsTable_rows_selected)) {
+    selected <- reactive(getReactableState("benchmarkGroupsTable", "selected"))
+    
+    if (!is.null(selected)) {
       # Get groupName(s) you want to delete into vector of strings
-      groupNames <- benchmarkGroupDF$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(bmGroup)
+      groupNames <- benchmarkGroupDF$df %>% slice(selected()) %>% pull(bmGroup)
 
   
       # Actually remove the data from benchmarkGroupDF reactive value
@@ -430,10 +433,20 @@ server <- function(input, output, session) {
   # })
   
   # Summary table of defined benchmark groups.  
-  output$benchmarkGroupsTable <- renderDataTable(
-    benchmarkGroupDF$df,
-    selection = "single"
-  )
+  # output$benchmarkGroupsTable <- renderDataTable(
+  #   benchmarkGroupDF$df,
+  #   selection = "single"
+  # )
+  output$benchmarkGroupsTable <- renderReactable({
+    req(benchmarkGroupDF$df)
+    reactable(benchmarkGroupDF$df,
+              pagination = FALSE,
+              groupBy = "bmGroup",
+              height = 300,
+              selection = "multiple",
+              onClick = "select",
+              defaultColDef = colDef(minWidth = 220))
+  })
   
 # 3. Apply Benchmarks --------------------------------------------------------
   
