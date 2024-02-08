@@ -569,6 +569,7 @@ server <- function(input, output, session) {
               pagination = FALSE, 
               showPageInfo = FALSE,
               highlight = TRUE,
+              rowStyle = list(cursor = "pointer"),
               columns = list(
                 Indicator = colDef(width = 220),
                 Minimal = colDef(na = "–", align = "center"),
