@@ -174,7 +174,8 @@ ui <- page_navbar(
   nav_panel(
     title = "5. Summary",
     navset_card_tab(
-      nav_panel(title = "Table", DTOutput("bmSummaryTable")),
+      nav_panel(title = "Table", #DTOutput("bmSummaryTable")
+                reactableOutput("bmSummaryTable")),
       nav_panel(title = "Box Plots", 
                 layout_sidebar(
                   sidebar = sidebar(
@@ -548,18 +549,27 @@ server <- function(input, output, session) {
   output$reachConditionTable <- renderDT({reachConditions()},)
   
 # 5. Condition Summary ---------------------------------------------------------
-  output$bmSummaryTable <- renderDT({
-    condition_summary_table(reachConditions(), benchmarkGroupDF$df$Indicator)},
-    extensions = 'Buttons',
-    options = list(
-      paging =FALSE,
-      searching = FALSE,
-      dom = 'tB',
-      buttons = list( 
-        list(extend = 'csv',   filename =  "benchmarkSummaryTable"),
-        list(extend = 'excel', filename =  "benchmarkSummaryTable"))
-    )
-  )
+  # output$bmSummaryTable <- renderDT({
+  #   condition_summary_table(reachConditions(), benchmarkGroupDF$df$Indicator)},
+  #   extensions = 'Buttons',
+  #   options = list(
+  #     paging =FALSE,
+  #     searching = FALSE,
+  #     dom = 'tB',
+  #     buttons = list( 
+  #       list(extend = 'csv',   filename =  "benchmarkSummaryTable"),
+  #       list(extend = 'excel', filename =  "benchmarkSummaryTable"))
+  #   )
+  # )
+  
+  output$bmSummaryTable <- renderReactable({
+    bmSummary <- condition_summary_table(reachConditions(), benchmarkGroupDF$df$Indicator)
+    reactable(bmSummary,
+              columnGroups = list(
+                colGroup(name = "Number of Reaches", columns = c("Minimal", "Moderate", "Major")),
+                colGroup(name = "Indicator Summary Statistics", columns = c("Min", "Max", "Mean"))
+              ))
+  })
   
   observe({
     updateSelectInput(session, "bmSummaryBoxplotsSelect",
