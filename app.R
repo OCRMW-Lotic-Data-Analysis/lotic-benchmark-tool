@@ -383,7 +383,7 @@ server <- function(input, output, session) {
   observeEvent(input$saveNewBMGroup,{
     req(input$bmGroupNameinput)
     # Get new benchmark group data into data frame
-    newGroupData <- definedBenchmarks() %>% tibble::add_column(bmGroup = input$bmGroupNameinput)
+    newGroupData <- definedBenchmarks() %>% tibble::add_column(bmGroup = input$bmGroupNameinput, .before = 1)
     
     # Merge previously saved groups with newly entered group (long form)
     benchmarkGroupDF$df <- bind_rows(benchmarkGroupDF$df, newGroupData)
@@ -450,15 +450,15 @@ server <- function(input, output, session) {
     
     # Strip indicator table to basic info and set benchmark group to "Default".
     # "Default" setting will be used to apply BLM's pre-defined, default conditions.
-    applyBechmarkDat <- indicatorData() %>% st_drop_geometry() %>% select(c(PointID, StreamName, EvaluationID))
+    applyBechmarkDat <- indicatorData() %>% st_drop_geometry() %>% select(c(PointID, EvaluationID))
     applyBechmarkDat[bmVars] <- "Default"
     
     # Actual table
     rhandsontable(applyBechmarkDat,
                   rowHeaders = FALSE) %>%
       hot_table(highlightRow = TRUE, contextMenu = FALSE) %>%
-      hot_cols(fixedColumnsLeft = 3) %>%
-      hot_col(1:3, readOnly = TRUE) %>%
+      hot_cols(fixedColumnsLeft = 2, colWidths = 200) %>%
+      hot_col(1:2, readOnly = TRUE) %>%
       hot_col(col = bmVars,
               type = "dropdown",
               # Including "Default" below is key. If 'bmGroups' only has 1 value, the dropdown doesn't work.
