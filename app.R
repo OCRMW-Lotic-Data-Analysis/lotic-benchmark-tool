@@ -378,7 +378,6 @@ server <- function(input, output, session) {
   
   # Initialize empty container for saved benchmark groups
   benchmarkGroupDF <- reactiveValues()
-  benchmarkGroupWideSum <- reactiveValues()
   
   # SAVE edited benchmark table.  Also resets text/picker inputs and clears table.
   observeEvent(input$saveNewBMGroup,{
@@ -388,11 +387,7 @@ server <- function(input, output, session) {
     
     # Merge previously saved groups with newly entered group (long form)
     benchmarkGroupDF$df <- bind_rows(benchmarkGroupDF$df, newGroupData)
-    
-    # Merge previously saved groups with newly entered group (wide form summary table)
-    benchmarkGroupWideSum$df <- benchmarkGroupDF$df %>% 
-      select(bmGroup, Indicator, ModerateBenchmark1, ConditionCategoryNum) %>% 
-      pivot_wider(names_from = Indicator, values_from = ModerateBenchmark1)
+
     
     # Reset all inputs to blank to prepare for next benchmark group
     updateTextInput(session, "bmGroupNameinput", value = "")
@@ -406,10 +401,10 @@ server <- function(input, output, session) {
     
     if (!is.null(input$benchmarkGroupsTable_rows_selected)) {
       # Get groupName(s) you want to delete into vector of strings
-      groupNames <- benchmarkGroupWideSum$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(bmGroup)
-      
-      # Actually remove the data from benchmarkGroupWideSum and benchmarkGroupDF reactive value
-      benchmarkGroupWideSum$df <- benchmarkGroupWideSum$df %>% subset(!(bmGroup %in% groupNames))
+      groupNames <- benchmarkGroupDF$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(bmGroup)
+
+  
+      # Actually remove the data from benchmarkGroupDF reactive value
       benchmarkGroupDF$df <- benchmarkGroupDF$df %>% subset(!(bmGroup %in% groupNames))
     }
   })
