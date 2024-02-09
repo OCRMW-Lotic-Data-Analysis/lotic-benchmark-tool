@@ -117,10 +117,14 @@ ui <- page_navbar(
                   "Upload Benchmark Config", 
                   accept = c(".csv"))),
       # Main Panel
-      rHandsontableOutput("defineBenchmark_hot"),
-      #dataTableOutput("benchmarkGroupsTable"),
-      reactableOutput("benchmarkGroupsTable")
-      #verbatimTextOutput("value")
+      layout_columns(
+        card(rHandsontableOutput("defineBenchmark_hot"),
+             class = "border-0 p-0"),
+        card(reactableOutput("benchmarkGroupsTable"),
+             class = "border-0 p-0"),
+        col_widths = c(12),
+        row_heights = c(2,1)
+      )
     )
   ),
   
@@ -443,7 +447,6 @@ server <- function(input, output, session) {
     reactable(benchmarkGroupDF$df,
               pagination = FALSE,
               groupBy = "bmGroup",
-              height = 300,
               selection = "multiple",
               onClick = "select",
               defaultColDef = colDef(minWidth = 220))
