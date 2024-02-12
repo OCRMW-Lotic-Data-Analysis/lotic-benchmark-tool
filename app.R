@@ -106,16 +106,17 @@ ui <- page_navbar(
         
         actionButton("saveNewBMGroup", label = "Save New Benchmark Group", style="color: #000000; background-color: #DEFFDE"),
         actionButton("deleteBMGroup", label = "Delete Selected Benchmark Group", style="color: #000000; background-color: #FFDEDE"),
-        hr(),
-        actionButton("editBMGroup", label = "Edit Selected Benchmark Group"),
+        #hr(),
+        #actionButton("editBMGroup", label = "Edit Selected Benchmark Group"),
         
-        downloadButton(
-          outputId = "benchmarkConfigDLcsv",
-          label = "Download Current Benchmark Configuration"
-        ),
-        fileInput("benchmarkUpload", 
-                  "Upload Benchmark Config", 
-                  accept = c(".csv"))),
+        #downloadButton(
+        #  outputId = "benchmarkConfigDLcsv",
+        #  label = "Download Current Benchmark Configuration"
+        #),
+        #fileInput("benchmarkUpload", 
+        #          "Upload Benchmark Config", 
+        #          accept = c(".csv"))
+      ),
       # Main Panel
       layout_columns(
         card(rHandsontableOutput("defineBenchmark_hot"),
@@ -482,16 +483,15 @@ server <- function(input, output, session) {
               source = c(bmGroups, "Default"),
               allowInvalid = FALSE,
               # Cells with "Default" selected are greyed out a bit.  Makes it easier to see where custom values are used.
-              renderer = "
-             function (instance, td, row, col, prop, value, cellProperties) {
-             Handsontable.renderers.TextRenderer.apply(this, arguments);
-             if (value == 'Default') {
-             td.style.color = 'lightgrey';
-             } else if (value != 'Default') {
-             td.style.background = '#C1FFC1';
-             }
-             Handsontable.renderers.DropdownRenderer.apply(this, arguments);
-             }"
+              renderer = "function (instance, td, row, col, prop, value, cellProperties) {
+                           Handsontable.renderers.TextRenderer.apply(this, arguments);
+                           if (value == 'Default') {
+                           td.style.color = 'lightgrey';
+                           } else if (value != 'Default') {
+                           td.style.background = '#C1FFC1';
+                           }
+                           Handsontable.renderers.DropdownRenderer.apply(this, arguments);
+                         }"
       )
   })
   

@@ -6,7 +6,10 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
     group_by(Indicator) %>%
     slice(1)
   
+  # Convert indicators to dataframe
   indicatorsdf <- as.data.frame(indicators)
+  
+  # Combine default and custom benchmark groups
   benchmarks <- bind_rows(definedBenchmarks, defaultBenchmarks)
   
   # Attribute and benchmarks for selecting and pivoting
@@ -17,25 +20,20 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
   indicatorSelect <- indicatorsdf %>% 
     select(all_of((c(indicAttrSelection, benchmarkNames))))
   
-  # Convert indicatorsdf to long format and join with benchmarks
+  # Convert indicatorSelect to long format to prep for joining 
   indicatorLong <- indicatorSelect %>% pivot_longer(-all_of(indicAttrSelection), 
                                                     names_to = "Indicator", 
                                                     values_to = "value")
   
-  
-  
-  
-  
-  
+  # Pivot values from "apply benchmark" table to long form.  This tells us which 
+  # benchmark group (NOT min/mod/maj values yet) should be applied to 
+  # the indicator of each point.
   assignmentsLong <- assignments %>% pivot_longer(-EvaluationID, names_to = "Indicator", values_to = "bmGroup")
+  
+  # Attach the actual numerical threshold values and operators (benchmarks) to assignmentsLong
   benchmarksAndAssignments <-  left_join(assignmentsLong, benchmarks, join_by("bmGroup", "Indicator"))
   
-  
-  
-  
-  
-  
-  
+  # Join indicators and benchmark assignments
   IndicatorValuesBenchmarks <- inner_join(indicatorLong, benchmarksAndAssignments, join_by("EvaluationID", "Indicator"))
   
   
