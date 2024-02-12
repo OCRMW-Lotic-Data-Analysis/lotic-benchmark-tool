@@ -1,5 +1,6 @@
 determine_reach_conditions <- function(indicators, definedBenchmarks, assignments, defaultBenchmarks) {
   
+### DATA PREP ------------------------------------------------------------------
   # Select single Indicator+ConditionCategoryNum combination for defaultBenchmarks.  
   # Code here prioritizes "3" categories when available.
   defaultBenchmarks <- defaultBenchmarks %>% arrange(Indicator, desc(ConditionCategoryNum)) %>%
@@ -26,7 +27,7 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
                                                     values_to = "value")
   
   # Pivot values from "apply benchmark" table to long form.  This tells us which 
-  # benchmark group (NOT min/mod/maj values yet) should be applied to 
+  # benchmark group (NOT actual mod/maj values yet) should be applied to 
   # the indicator of each point.
   assignmentsLong <- assignments %>% pivot_longer(-EvaluationID, names_to = "Indicator", values_to = "bmGroup")
   
@@ -36,7 +37,7 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
   # Join indicators and benchmark assignments
   IndicatorValuesBenchmarks <- inner_join(indicatorLong, benchmarksAndAssignments, join_by("EvaluationID", "Indicator"))
   
-  
+### CALCULATIONS ---------------------------------------------------------------
   # Code from BLM used to calculate default benchmarks
   IndicatorValuesBenchmarks$Condition <- NA
   
@@ -80,7 +81,8 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
       )
     
   }
-  
+
+### PREP FOR EXPORT ------------------------------------------------------------
   # Convert to wide format to join with original indicators input
   reachConditionsWide <- IndicatorValuesBenchmarks %>% 
     select(EvaluationID, Indicator, value, Condition) %>% 
