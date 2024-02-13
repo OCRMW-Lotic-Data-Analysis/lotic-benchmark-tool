@@ -19,7 +19,7 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
   
   # Simplify indicator table using above values
   indicatorSelect <- indicatorsdf %>% 
-    select(all_of((c(indicAttrSelection, benchmarkNames))))
+    select(all_of(c(indicAttrSelection, benchmarkNames)))
   
   # Convert indicatorSelect to long format to prep for joining 
   indicatorLong <- indicatorSelect %>% pivot_longer(-all_of(indicAttrSelection), 
@@ -29,7 +29,10 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
   # Pivot values from "apply benchmark" table to long form.  This tells us which 
   # benchmark group (NOT actual mod/maj values yet) should be applied to 
   # the indicator of each point.
-  assignmentsLong <- assignments %>% pivot_longer(-EvaluationID, names_to = "Indicator", values_to = "bmGroup")
+  assignmentsLong <- assignments %>% 
+    # clean up table to just evalID and benchmarks 
+    select(any_of(c(indicAttrSelection, benchmarkNames))) %>% 
+    pivot_longer(-all_of(indicAttrSelection), names_to = "Indicator", values_to = "bmGroup")
   
   # Attach the actual numerical threshold values and operators (benchmarks) to assignmentsLong
   benchmarksAndAssignments <-  left_join(assignmentsLong, benchmarks, join_by("bmGroup", "Indicator"))
