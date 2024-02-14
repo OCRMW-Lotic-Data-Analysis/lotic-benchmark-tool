@@ -24,6 +24,7 @@ source("./appFunctions/conditions_boxplot.R")
 source("./appFunctions/load_indicator_data.R")
 source("./appFunctions/leaflet_maps.R")
 source("./appFunctions/make_reach_cond_GDB.R")
+source("./appFunctions/apply_benchmarks_table.R")
 
 ### UI -------------------------------------------------------------------------
 ui <- page_navbar(
@@ -458,41 +459,7 @@ server <- function(input, output, session) {
   # Selected which benchmark groups to apply to each pointID/indicator combo.
   output$applyBenchmarks_hot <- renderRHandsontable({
     req(benchmarkGroupDF$df)
-    
-    # Get the names of all possible benchmarks (will likley need to tweak this)
-    bmVars <- unique(defaultBenchmarkVals()$Indicator)
-    
-    # Unique benchmark group names (unique b/c it's pulling from long-form table)
-    bmGroups <- reactiveValuesToList(benchmarkGroupDF)[['df']] %>% pull(bmGroup) %>% unique()
-    #print(bmGroups)
-    
-    # Strip indicator table to basic info and set benchmark group to "Default".
-    # "Default" setting will be used to apply BLM's pre-defined, default conditions.
-    applyBechmarkDat <- indicatorData() %>% st_drop_geometry() %>% select(c(PointID, EvaluationID))
-    applyBechmarkDat[bmVars] <- "Default"
-    
-    # Actual table
-    rhandsontable(applyBechmarkDat,
-                  rowHeaders = FALSE) %>%
-      hot_table(highlightRow = TRUE, contextMenu = FALSE) %>%
-      hot_cols(fixedColumnsLeft = 2, colWidths = 200) %>%
-      hot_col(1:2, readOnly = TRUE) %>%
-      hot_col(col = bmVars,
-              type = "dropdown",
-              # Including "Default" below is key. If 'bmGroups' only has 1 value, the dropdown doesn't work.
-              source = c(bmGroups, "Default"),
-              allowInvalid = FALSE,
-              # Cells with "Default" selected are greyed out a bit.  Makes it easier to see where custom values are used.
-              renderer = "function (instance, td, row, col, prop, value, cellProperties) {
-                           Handsontable.renderers.TextRenderer.apply(this, arguments);
-                           if (value == 'Default') {
-                           td.style.color = 'lightgrey';
-                           } else if (value != 'Default') {
-                           td.style.background = '#C1FFC1';
-                           }
-                           Handsontable.renderers.DropdownRenderer.apply(this, arguments);
-                         }"
-      )
+    apply_benchmarks_table(defaultBenchmarkVals(), benchmarkGroupDF, indicatorData())
   })
   
   assignedBenchmarks <- reactive({
