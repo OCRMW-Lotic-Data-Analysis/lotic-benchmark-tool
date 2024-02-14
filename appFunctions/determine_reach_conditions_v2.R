@@ -5,7 +5,7 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
   # Code here prioritizes "3" categories when available.
   defaultBenchmarks <- defaultBenchmarks %>% arrange(Indicator, desc(ConditionCategoryNum)) %>%
     group_by(Indicator) %>%
-    slice(1)
+    slice(1) %>% ungroup()
   
   # Convert indicators to dataframe
   indicatorsdf <- as.data.frame(indicators)
