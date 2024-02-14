@@ -26,16 +26,23 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
                                                     names_to = "Indicator", 
                                                     values_to = "value")
   
-  # Pivot values from "apply benchmark" table to long form.  This tells us which 
-  # benchmark group (NOT actual mod/maj values yet) should be applied to 
-  # the indicator of each point.
-  assignmentsLong <- assignments %>% 
+  # Pivot values from "apply benchmark" table to long form. Only custom
+  # benchmarks are induced here (no Defaults)
+  assignmentsCustomLong <- assignments %>% 
     # clean up table to just evalID and benchmarks 
     select(any_of(c(indicAttrSelection, benchmarkNames))) %>% 
     pivot_longer(-all_of(indicAttrSelection), names_to = "Indicator", values_to = "bmGroup")
   
-  # Attach the actual numerical threshold values and operators (benchmarks) to assignmentsLong
-  benchmarksAndAssignments <-  left_join(assignmentsLong, benchmarks, join_by("bmGroup", "Indicator"))
+  # Fill out the benchmark group assignments. This gives a table where each
+  # point+indicator combination has a bmGroup (either a custom one or Default)
+  # This tells us which benchmark group (NOT actual mod/maj values yet) should 
+  # be applied to the indicator of each point.
+  assignmentsCompleteLong <- assignmentsCustomLong %>% 
+    group_by(EvaluationID) %>%
+    complete(Indicator = defaultBenchmarks$Indicator, fill = list(bmGroup = "Default")) 
+  
+  # Attach the actual numerical threshold values and operators (benchmarks) to assignmentsCompleteLong
+  benchmarksAndAssignments <-  left_join(assignmentsCompleteLong, benchmarks, join_by("bmGroup", "Indicator"))
   
   # Join indicators and benchmark assignments
   IndicatorValuesBenchmarks <- inner_join(indicatorLong, benchmarksAndAssignments, join_by("EvaluationID", "Indicator"))
