@@ -17,14 +17,6 @@ library(reactable.extras)
 library(htmltools)
 library(zip)
 
-# Load appFunctions
-# source("./appFunctions/determine_reach_conditions_v2.R")
-# source("./appFunctions/condition_summary_table.R")
-# source("./appFunctions/conditions_boxplot.R")
-# source("./appFunctions/load_indicator_data.R")
-# source("./appFunctions/leaflet_maps.R")
-# source("./appFunctions/make_reach_cond_GDB.R")
-# source("./appFunctions/apply_benchmarks_table.R")
 
 ### UI -------------------------------------------------------------------------
 ui <- page_navbar(
@@ -473,7 +465,7 @@ server <- function(input, output, session) {
   
 # 4. Reach Conditions --------------------------------------------------------
   
-  # Reach conditions (Min, Mod, Max) for each indicator
+  # Calculate Reach conditions (Min, Mod, Max) for each indicator
   reachConditions <- reactive({determine_reach_conditions(indicators =  indicatorData(),
                                                           definedBenchmarks = benchmarkGroupDF$df,
                                                           defaultBenchmarks = defaultBenchmarkVals(),
