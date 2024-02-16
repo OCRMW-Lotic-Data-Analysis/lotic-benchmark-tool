@@ -18,13 +18,13 @@ library(htmltools)
 library(zip)
 
 # Load appFunctions
-source("./appFunctions/determine_reach_conditions_v2.R")
-source("./appFunctions/condition_summary_table.R")
-source("./appFunctions/conditions_boxplot.R")
-source("./appFunctions/load_indicator_data.R")
-source("./appFunctions/leaflet_maps.R")
-source("./appFunctions/make_reach_cond_GDB.R")
-source("./appFunctions/apply_benchmarks_table.R")
+# source("./appFunctions/determine_reach_conditions_v2.R")
+# source("./appFunctions/condition_summary_table.R")
+# source("./appFunctions/conditions_boxplot.R")
+# source("./appFunctions/load_indicator_data.R")
+# source("./appFunctions/leaflet_maps.R")
+# source("./appFunctions/make_reach_cond_GDB.R")
+# source("./appFunctions/apply_benchmarks_table.R")
 
 ### UI -------------------------------------------------------------------------
 ui <- page_navbar(
