@@ -33,7 +33,8 @@ ui <- page_navbar(
         selectInput("startingDataType", "Indicator Data Source",
                     choices = c("Upload" = "upload", 
                                 "Filter from all indicators" = "filter",
-                                "Lander Sample Data" = "sampleData")),
+                                "Lander Sample Data" = "sampleData"),
+                    selected = "filter"),
         
         conditionalPanel(
           condition = "input.startingDataType == 'upload'",
@@ -45,21 +46,51 @@ ui <- page_navbar(
         
         
         conditionalPanel(condition = "input.startingDataType == 'filter'",
-                         accordion_panel(
-                           "  Filters", icon = bsicons::bs_icon("sliders"),
-                           pickerInput(inputId = "adminState",
-                                       label = "Admin State",
-                                       choices = NULL,
-                                       options = list(
-                                         `actions-box` = TRUE),
-                                       multiple = TRUE
+                         accordion(
+                           accordion_panel(
+                             "Geographic Filters",
+                             icon = bsicons::bs_icon("globe-americas"),
+                             pickerInput(inputId = "adminState_filter",
+                                         label = "Admin State",
+                                         choices = NULL,
+                                         #selected = NULL,
+                                         multiple = TRUE,
+                                         options = pickerOptions(maxOptions = 1)),
+                             pickerInput(inputId = "project_filter",
+                                         label = "Project",
+                                         choices = c("test1", "test2"),
+                                         options = list(
+                                           `actions-box` = TRUE),
+                                         multiple = TRUE)
+                             ),
+                           accordion_panel(
+                             "Attribute Filters",
+                             icon = bsicons::bs_icon("list-nested"),
+                             pickerInput(inputId = "pointType_filter",
+                                         label = "Point Type",
+                                         choices = "",
+                                         options = list(
+                                           `actions-box` = TRUE),
+                                         multiple = TRUE),
+                             pickerInput(inputId = "protocol_filter",
+                                         label = "Protocol",
+                                         choices = "",
+                                         options = list(
+                                           `actions-box` = TRUE),
+                                         multiple = TRUE),
+                             dateRangeInput(inputId = 'dateRange_filter',
+                                            label = 'Date range',
+                                            start = NA, 
+                                            end = NA)
+                             )
                            )
-                         )),
-        width = "300px"
+                         ),
+        width = "320px"
       ),
       navset_card_tab(
         nav_panel("Map",
                   leafletOutput(outputId = "indicatorMap"),
+                  DTOutput("checker"),
                   top = 80, right = 300,
                   
         ),
@@ -216,36 +247,102 @@ server <- function(input, output, session) {
     }
   })
   
-  ### Experimental filtering 
+  # Update indicator selectors based on indicatorData().  This could come from
+  # manual entry or upload.
+  observe({
+    updatePickerInput(session, "pointType_filter",
+                      choices = unique(indicatorData()$PointSelectionType))
+    updatePickerInput(session, "protocol_filter",
+                      choices = unique(indicatorData()$ProtocolType))
+  })
+  
+ # Indicator Filtering
   observeEvent(
     input$startingDataType == "filter",
     {
       updatePickerInput(
         session = session,
-        inputId = "adminState",
-        choices = unique(indicatorData()$BLM_AdminState),
+        inputId = "adminState_filter",
+        choices = c("", unique(indicatorData()$BLM_AdminState)),
         selected = NULL
       )
     })
   
-  event_trigger <- reactive({
-    list(input$adminState)
-  })
-  
-  observeEvent(ignoreInit = TRUE, event_trigger(),
-               {
-                 asdf <- indicatorData() %>% filter(BLM_AdminState %in% input$adminState)
-                 updatePickerInput(
-                   session = session,
-                   inputId = "adminState",
-                   choices = unique(asdf$BLM_AdminState,
-                                    selected = unique(asdf$BLM_AdminState))
-                   
-                 )
-               })
-  ## End experimenting filters
+  observeEvent(
+    input$startingDataType == "filter",
+    {
+      updatePickerInput(
+        session = session,
+        inputId = "project_filter",
+        choices = unique(indicatorData()$Project),
+        selected = NULL
+      )
+    })
   
   
+  observeEvent(
+    input$adminState_filter, {
+      if (input$adminState_filter == "None") {
+        updatePickerInput(
+          session = session,
+          inputId = "project_filter",
+          choices = unique(indicatorData()$Project),
+          selected = NULL
+        )
+      } else {
+        
+        updatePickerInput(
+          session = session,
+          inputId = "project_filter",
+          choices = indicatorData() %>% filter(BLM_AdminState == input$adminState_filter) %>% pull(Project) %>% unique(),
+          selected = NULL
+        )
+      }
+    }
+  )
+  
+  
+  
+  
+  
+  
+  
+  indicatorData_filtered <- reactive({
+    filtered_data <- indicatorData()
+     if (input$adminState_filter != "") {
+       filtered_data <- filtered_data %>% filter(BLM_AdminState == input$adminState_filter)
+     }
+    
+  
+    if (!is.null(input$project_filter)) {
+      filtered_data <- filtered_data %>% filter(Project %in% input$project_filter)
+    }
+
+    if (!is.null(input$pointType_filter)) {
+      filtered_data <- filtered_data %>% filter(PointSelectionType %in% input$pointType_filter)
+    }
+    
+    if (!is.null(input$protocol_filter)) {
+      filtered_data <- filtered_data %>% filter(ProtocolType %in% input$protocol_filter)
+    }
+    
+    filtered_data
+    })
+  
+ 
+  
+
+   output$checker <- renderDT({
+     indicatorData_filtered()},)
+   
+   
+   
+   
+   
+   
+   
+   
+   
   # Map showing initial indicators loaded into app
   
   # Only once data is loaded (uploaded or local version of ALL), display the map
@@ -309,7 +406,6 @@ server <- function(input, output, session) {
   observeEvent(
     input$selectBenchmarks2,
     {
-      
       updatePickerInput(
         session = session,
         inputId = "selectBenchmarks3",
