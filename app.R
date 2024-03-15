@@ -53,7 +53,7 @@ ui <- page_navbar(
                              pickerInput(inputId = "adminState_filter",
                                          label = "Admin State",
                                          choices = NULL,
-                                         #selected = NULL,
+                                         selected = NULL,
                                          multiple = TRUE,
                                          options = pickerOptions(maxOptions = 1)),
                              pickerInput(inputId = "project_filter",
@@ -90,7 +90,6 @@ ui <- page_navbar(
       navset_card_tab(
         nav_panel("Map",
                   leafletOutput(outputId = "indicatorMap"),
-                  DTOutput("checker"),
                   top = 80, right = 300,
                   
         ),
@@ -234,7 +233,7 @@ server <- function(input, output, session) {
   
   #  Uploaded indicator data (pre-filtered by user) or filter from all available indicators
   
-  indicatorData <- reactive({
+  indicatorData_raw <- reactive({
     if (input$startingDataType == "upload") {
       req(input$indicatorUpload)
       #dat <- load_indicator_data(input$indicatorUpload$name, input$indicatorUpload$datapath)
@@ -247,23 +246,25 @@ server <- function(input, output, session) {
     }
   })
   
-  # Update indicator selectors based on indicatorData().  This could come from
+  # Update indicator selectors based on indicatorData_raw().  This could come from
   # manual entry or upload.
   observe({
     updatePickerInput(session, "pointType_filter",
-                      choices = unique(indicatorData()$PointSelectionType))
+                      choices = unique(indicatorData_raw()$PointSelectionType))
     updatePickerInput(session, "protocol_filter",
-                      choices = unique(indicatorData()$ProtocolType))
+                      choices = unique(indicatorData_raw()$ProtocolType))
   })
   
  # Indicator Filtering
+  
+  # Start by setting default pickerinput values
   observeEvent(
     input$startingDataType == "filter",
     {
       updatePickerInput(
         session = session,
         inputId = "adminState_filter",
-        choices = c("", unique(indicatorData()$BLM_AdminState)),
+        choices = c("", unique(indicatorData_raw()$BLM_AdminState)),
         selected = NULL
       )
     })
@@ -274,7 +275,7 @@ server <- function(input, output, session) {
       updatePickerInput(
         session = session,
         inputId = "project_filter",
-        choices = unique(indicatorData()$Project),
+        choices = unique(indicatorData_raw()$Project),
         selected = NULL
       )
     })
@@ -286,7 +287,7 @@ server <- function(input, output, session) {
         updatePickerInput(
           session = session,
           inputId = "project_filter",
-          choices = unique(indicatorData()$Project),
+          choices = unique(indicatorData_raw()$Project),
           selected = NULL
         )
       } else {
@@ -294,7 +295,7 @@ server <- function(input, output, session) {
         updatePickerInput(
           session = session,
           inputId = "project_filter",
-          choices = indicatorData() %>% filter(BLM_AdminState == input$adminState_filter) %>% pull(Project) %>% unique(),
+          choices = indicatorData_raw() %>% filter(BLM_AdminState == input$adminState_filter) %>% pull(Project) %>% unique(),
           selected = NULL
         )
       }
@@ -302,18 +303,16 @@ server <- function(input, output, session) {
   )
   
   
+  # Logic for applying all user-selected filters
   
-  
-  
-  
-  
-  indicatorData_filtered <- reactive({
-    filtered_data <- indicatorData()
-     if (input$adminState_filter != "") {
-       filtered_data <- filtered_data %>% filter(BLM_AdminState == input$adminState_filter)
-     }
+  indicatorData_active <- reactive({
+    filtered_data <- indicatorData_raw()
+    filtered_data
     
-  
+    if (input$adminState_filter != "") {
+       filtered_data <- filtered_data %>% filter(BLM_AdminState == input$adminState_filter)
+    }
+    
     if (!is.null(input$project_filter)) {
       filtered_data <- filtered_data %>% filter(Project %in% input$project_filter)
     }
@@ -329,26 +328,13 @@ server <- function(input, output, session) {
     filtered_data
     })
   
- 
-  
-
-   output$checker <- renderDT({
-     indicatorData_filtered()},)
-   
-   
-   
-   
-   
-   
-   
-   
    
   # Map showing initial indicators loaded into app
   
   # Only once data is loaded (uploaded or local version of ALL), display the map
   # attribute selector.
   output[["indicatorMapSelect"]] <- renderUI({
-    req(indicatorData())
+    req(indicatorData_active())
     
     selectInput(
       inputId = "indicatorMapSelect",
@@ -362,13 +348,13 @@ server <- function(input, output, session) {
   
   output$indicatorMap <- renderLeaflet({
     
-    indicator_leaflet_map(indicatorData(), input$indicatorMapSelect)
+    indicator_leaflet_map(indicatorData_active(), input$indicatorMapSelect)
     
   })
   
   #Simple table - doesnt autofit data though.  Above version does but isn't perfect.
   output$indicatorTable <- renderDT({
-    indicatorData()},)
+    indicatorData_active()},)
   
   
 # 2. Define Benchmarks -------------------------------------------------------
@@ -547,7 +533,7 @@ server <- function(input, output, session) {
   # Selected which benchmark groups to apply to each pointID/indicator combo.
   output$applyBenchmarks_hot <- renderRHandsontable({
     req(benchmarkGroupDF$df)
-    apply_benchmarks_table(defaultBenchmarkVals(), benchmarkGroupDF, indicatorData())
+    apply_benchmarks_table(defaultBenchmarkVals(), benchmarkGroupDF, indicatorData_active())
   })
   
   assignedBenchmarks <- reactive({
@@ -562,7 +548,7 @@ server <- function(input, output, session) {
 # 4. Reach Conditions --------------------------------------------------------
   
   # Calculate Reach conditions (Min, Mod, Max) for each indicator
-  reachConditions <- reactive({determine_reach_conditions(indicators =  indicatorData(),
+  reachConditions <- reactive({determine_reach_conditions(indicators =  indicatorData_active(),
                                                           definedBenchmarks = benchmarkGroupDF$df,
                                                           defaultBenchmarks = defaultBenchmarkVals(),
                                                           assignments = assignedBenchmarks())
