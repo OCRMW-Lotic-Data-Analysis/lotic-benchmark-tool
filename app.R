@@ -250,9 +250,9 @@ server <- function(input, output, session) {
   # manual entry or upload.
   observe({
     updatePickerInput(session, "pointType_filter",
-                      choices = unique(indicatorData_raw()$PointSelectionType))
+                      choices = na.omit(unique(indicatorData_raw()$PointSelectionType)))
     updatePickerInput(session, "protocol_filter",
-                      choices = unique(indicatorData_raw()$ProtocolType))
+                      choices = na.omit(unique(indicatorData_raw()$ProtocolType)))
   })
   
  # Indicator Filtering
@@ -309,20 +309,31 @@ server <- function(input, output, session) {
     filtered_data <- indicatorData_raw()
     filtered_data
     
-    if (input$adminState_filter != "") {
+    # Admin State
+    if (is.null(input$adminState_filter)){
+      filtered_data
+    } else if (input$adminState_filter != "") {
        filtered_data <- filtered_data %>% filter(BLM_AdminState == input$adminState_filter)
     }
     
+    # Project
     if (!is.null(input$project_filter)) {
       filtered_data <- filtered_data %>% filter(Project %in% input$project_filter)
     }
-
+    
+    # Point Type (targeted or random)
     if (!is.null(input$pointType_filter)) {
       filtered_data <- filtered_data %>% filter(PointSelectionType %in% input$pointType_filter)
     }
     
+    # Protocl (waderable or boatable)
     if (!is.null(input$protocol_filter)) {
       filtered_data <- filtered_data %>% filter(ProtocolType %in% input$protocol_filter)
+    }
+    
+    # Field Eval date range
+    if (all(!is.na(input$dateRange_filter))) {
+      filtered_data <- filtered_data %>% filter(as.Date(FieldEvalDate) >= input$dateRange_filter[1] & as.Date(FieldEvalDate) <= input$dateRange_filter[2]) 
     }
     
     filtered_data
