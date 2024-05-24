@@ -1,5 +1,5 @@
 # Map displaying loaded or filtered indicators at start of workflow.
-indicator_leaflet_map <- function(indicatorData, mappingVarInput) {
+indicator_leaflet_map <- function(indicatorData, mappingVarInput,...) {
 
 # Label to display when hovering over point
 labels <- paste(
