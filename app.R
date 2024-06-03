@@ -39,12 +39,6 @@ ui <- page_navbar(
         conditionalPanel(
           condition = "input.startingDataType == 'upload'",
           fileInput("indicatorUpload", "Upload Indicators", accept = c(".csv"))),
-        
-        
-        # Map indicator select that only displays when data is loaded.  Logic in server.
-        uiOutput("indicatorMapSelect"),
-        
-        
         conditionalPanel(condition = "input.startingDataType == 'filter'",
                          accordion(
                            accordion_panel(
@@ -341,25 +335,10 @@ server <- function(input, output, session) {
   
    
   # Map showing initial indicators loaded into app
-  
-  # Only once data is loaded (uploaded or local version of ALL), display the map
-  # attribute selector.
-  output[["indicatorMapSelect"]] <- renderUI({
-    req(indicatorData_active())
-    
-    selectInput(
-      inputId = "indicatorMapSelect",
-      label = "Select Indicator for Map",
-      choices = c("PointSelectionType", "EcoregionStreamSize","BeaverFlowMod",
-                  "BeaverSigns", "StreamOrder", "Project",
-                  "District", "FieldOffice")
-    )
-    
-  })
-  
   output$indicatorMap <- renderLeaflet({
     
-    indicator_leaflet_map(indicatorData_active(), input$indicatorMapSelect)
+    # Hardcoding of "PointSelectionType" here. indicator_leaflet_map function allows dynamic input though.
+    indicator_leaflet_map(indicatorData_active(), "PointSelectionType")
     
   })
   
