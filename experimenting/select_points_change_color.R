@@ -1,72 +1,79 @@
+# Load necessary libraries
 library(shiny)
-library(sf)
 library(leaflet)
-library(geojsonsf)
+library(dplyr)
 
-getData <- function(){
-  poly <- '{"type":"FeatureCollection","features":[{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[7.207031249999999,46.97463048970666],[7.18231201171875,46.89867745059795],[7.267456054687499,46.86864162233212],[7.392425537109376,46.85831292242506],[7.529754638671874,46.86864162233212],[7.678070068359375,46.9061837801476],[7.683563232421874,46.97556750833867],[7.592926025390624,47.03082254778662],[7.371826171874999,47.01584377790821],[7.207031249999999,46.97463048970666]]]}}]}'
-  
-  sf_poly <- geojson_sf(poly)
-  points <- st_as_sf(st_sample(sf_poly, 20))
-  points$id <- 1:nrow(points)
-  coords <- st_coordinates(points)
-  
-  df <- data.frame(st_drop_geometry(points), coords)
-  return(df)
-}
-
+# Define UI for the Shiny app
 ui <- fluidPage(
-  titlePanel("Leaflet Map"),
-  sidebarLayout(
-    sidebarPanel(
-      textInput(inputId="selected_photos", label="Selected images", value = "", placeholder = NULL)
-    ),
-    mainPanel(
-      leafletOutput("mymap")
-    )
-  )
+  leafletOutput("mymap")
 )
 
+# Define server logic for the Shiny app
 server <- function(input, output, session) {
-  #https://groups.google.com/g/shiny-discuss/c/LWk4ZYNhsSc
-  points <- getData()
-  points$clicked <- FALSE
-  RV <- reactiveValues(points = points)
   
-  icons <- awesomeIcons(
-    icon = 'ios-close',
-    iconColor = 'white',
-    library = 'ion',
-    markerColor = "blue"
+  # Sample data
+  points <- data.frame(
+    lat = c(37.7749, 34.0522, 40.7128),
+    lng = c(-122.4194, -118.2437, -74.0060),
+    label = c("San Francisco", "Los Angeles", "New York"),
+    category = c("A", "B", "C"),
+    stringsAsFactors = FALSE
   )
   
+  # Create a color palette based on categories
+  palette <- colorFactor(palette = c("blue", "green", "purple"), levels = points$category)
+  
+  # Reactive value to store selected points
+  selected_points <- reactiveVal(data.frame())
+  
+  # Render the initial Leaflet map
   output$mymap <- renderLeaflet({
-    leaflet() %>%
-      #addTiles() %>%
-      addProviderTiles("OpenStreetMap", group = "OSM") %>%
-      addAwesomeMarkers(data = points, lng = ~X, lat = ~Y, layerId = ~id, icon = icons)
+    leaflet(points) %>%
+      addTiles() %>%
+      addCircleMarkers(
+        ~lng, ~lat, 
+        color = ~palette(category),
+        layerId = ~label,
+        radius = 8,
+        stroke = FALSE,
+        fillOpacity = 0.8
+      ) %>%
+      addLegend(pal = palette, 
+                values = points$category, 
+                opacity = 1,
+                title = "mappingVarInput")
   })
   
-  myLeafletProxy <- leafletProxy(mapId = "mymap", session)
-  
-  observeEvent(input$mymap_marker_click,{
-    clicked_point <- input$mymap_marker_click
-    RV$points[points$id==clicked_point$id,]$clicked <- !(RV$points[points$id==clicked_point$id,]$clicked)
+  # Observe click events on the map
+  observeEvent(input$mymap_marker_click, {
+    click <- input$mymap_marker_click
+    selected <- selected_points()
     
-    updateTextInput(inputId = "selected_photos", value = paste(unlist(RV$points$id[which(RV$points$clicked)]), collapse = ", "))
+    # Check if the clicked point is already selected
+    if (click$id %in% selected$label) {
+      # Remove the point from selected points if it's already selected
+      selected <- selected %>% filter(label != click$id)
+    } else {
+      # Add the point to selected points if it's not already selected
+      selected <- rbind(selected, points %>% filter(label == click$id))
+    }
     
-    removeMarker(map = myLeafletProxy, layerId = clicked_point$id)
-    addAwesomeMarkers(map = myLeafletProxy,
-                      lng = clicked_point$lng,
-                      lat = clicked_point$lat,
-                      layerId = clicked_point$id,
-                      icon = awesomeIcons(
-                        icon = 'ios-close',
-                        iconColor = 'white',
-                        library = 'ion',
-                        markerColor = ifelse(RV$points[clicked_point$id,]$clicked, yes = "red", no = "blue")
-                      ))
+    # Update reactive value
+    selected_points(selected)
+    
+    # Update the map with the new selection
+    leafletProxy("mymap", data = points) %>%
+      clearMarkers() %>%
+      addCircleMarkers(
+        ~lng, ~lat, 
+        color = ~ifelse(label %in% selected$label, "red", palette(category)),
+        layerId = ~label,
+        radius = 8,
+        stroke = FALSE,
+        fillOpacity = 0.8
+      )
   })
 }
 
+# Run the Shiny app
 shinyApp(ui, server)
