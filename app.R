@@ -30,55 +30,46 @@ ui <- page_navbar(
     title = "1. Select Indicators",
     page_sidebar(
       sidebar = sidebar(
-        selectInput("startingDataType", "Indicator Data Source",
-                    choices = c("Upload" = "upload", 
-                                "Filter from all indicators" = "filter",
-                                "Lander Sample Data" = "sampleData"),
-                    selected = "filter"),
-        
-        conditionalPanel(
-          condition = "input.startingDataType == 'upload'",
-          fileInput("indicatorUpload", "Upload Indicators", accept = c(".csv"))),
-        conditionalPanel(condition = "input.startingDataType == 'filter'",
-                         accordion(
-                           accordion_panel(
-                             "Geographic Filters",
-                             icon = bsicons::bs_icon("globe-americas"),
-                             pickerInput(inputId = "adminState_filter",
-                                         label = "Admin State",
-                                         choices = NULL,
-                                         selected = NULL,
-                                         multiple = TRUE,
-                                         options = pickerOptions(maxOptions = 1)),
-                             pickerInput(inputId = "project_filter",
-                                         label = "Project",
-                                         choices = c("test1", "test2"),
-                                         options = list(
-                                           `actions-box` = TRUE),
-                                         multiple = TRUE)
-                             ),
-                           accordion_panel(
-                             "Attribute Filters",
-                             icon = bsicons::bs_icon("list-nested"),
-                             pickerInput(inputId = "pointType_filter",
-                                         label = "Point Type",
-                                         choices = "",
-                                         options = list(
-                                           `actions-box` = TRUE),
-                                         multiple = TRUE),
-                             pickerInput(inputId = "protocol_filter",
-                                         label = "Protocol",
-                                         choices = "",
-                                         options = list(
-                                           `actions-box` = TRUE),
-                                         multiple = TRUE),
-                             dateRangeInput(inputId = 'dateRange_filter',
-                                            label = 'Date range',
-                                            start = NA, 
-                                            end = NA)
-                             )
-                           )
-                         ),
+        h5("Filter and Select"),
+        accordion(
+           accordion_panel(
+             "Geographic Filters",
+             icon = bsicons::bs_icon("globe-americas"),
+             pickerInput(inputId = "adminState_filter",
+                         label = "Admin State",
+                         choices = NULL,
+                         selected = NULL,
+                         multiple = TRUE,
+                         options = pickerOptions(maxOptions = 1)),
+             pickerInput(inputId = "project_filter",
+                         label = "Project",
+                         choices = c("test1", "test2"),
+                         options = list(
+                           `actions-box` = TRUE),
+                         multiple = TRUE)
+             ),
+           accordion_panel(
+             "Attribute Filters",
+             icon = bsicons::bs_icon("list-nested"),
+             pickerInput(inputId = "pointType_filter",
+                         label = "Point Type",
+                         choices = "",
+                         options = list(
+                           `actions-box` = TRUE),
+                         multiple = TRUE),
+             pickerInput(inputId = "protocol_filter",
+                         label = "Protocol",
+                         choices = "",
+                         options = list(
+                           `actions-box` = TRUE),
+                         multiple = TRUE),
+             dateRangeInput(inputId = 'dateRange_filter',
+                            label = 'Date range',
+                            start = NA, 
+                            end = NA)
+             )
+           )
+         ,
         width = "320px"
       ),
       navset_card_tab(
@@ -225,20 +216,10 @@ server <- function(input, output, session) {
   
 # 1. Select Indicators -------------------------------------------------------
   
-  #  Uploaded indicator data (pre-filtered by user) or filter from all available indicators
-  
+  # filter from all available indicators
   indicatorData_raw <- reactive({
-    if (input$startingDataType == "upload") {
-      req(input$indicatorUpload)
-      #dat <- load_indicator_data(input$indicatorUpload$name, input$indicatorUpload$datapath)
-      load_indicator_data(input$indicatorUpload$name, input$indicatorUpload$datapath)
-    } else if (input$startingDataType == "filter") {
-      #dat <- load_indicator_data("BLM_Natl_AIM_Lotic_Indicators_Hub.csv", "./appData/BLM_Natl_AIM_Lotic_Indicators_Hub.csv")
-      load_indicator_data("BLM_Natl_AIM_Lotic_Indicators_Hub.csv", "./appData/BLM_Natl_AIM_Lotic_Indicators_Hub.csv")
-    } else if (input$startingDataType == "sampleData") {
-      load_indicator_data("wy_landerPts.csv", "./appData/wy_landerPts.csv")
-    }
-  })
+    load_indicator_data("BLM_Natl_AIM_Lotic_Indicators_Hub.csv", "./appData/BLM_Natl_AIM_Lotic_Indicators_Hub.csv")
+    })
   
   # Update indicator selectors based on indicatorData_raw().  This could come from
   # manual entry or upload.
