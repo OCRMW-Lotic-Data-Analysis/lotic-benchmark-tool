@@ -338,23 +338,25 @@ server <- function(input, output, session) {
       
       # Add the point to selected points if it's not already selected
       selected <- rbind(selected, indicatorData_active() %>% filter(EvaluationID == click$id))
-      print(4)
     }
     
     # Update reactive value
     selected_points(selected)
-    
-    # Update the map with the new selection
-    leafletProxy("indicatorMap", data = indicatorData_active()) %>%
+    print(selected_points)
+    #Update the map with the new selection
+    leafletProxy("indicatorMap", data = indicatorData_active() %>% st_transform(crs = 4326)) %>%
       clearMarkers() %>%
       addCircleMarkers(
-        #~longitude , ~latitude, 
-        color = ~ifelse(EvaluationID %in% selected$EvaluationID, "red", indicatorPalette(PointSelectionType)),
+        #~longitude , ~latitude,
+        fillColor = ~ifelse(EvaluationID %in% selected$EvaluationID, "red", indicatorPalette(PointSelectionType)),
         layerId = ~EvaluationID,
-        radius = 8,
-        stroke = FALSE,
-        fillOpacity = 0.8
+        radius = 3,
+        color = "black",  # point border/outline
+        stroke = TRUE,
+        weight = 1,
+        fillOpacity = 1
       )
+
   })
   
   #Simple table - doesnt autofit data though.  Above version does but isn't perfect.
