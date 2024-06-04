@@ -65,7 +65,6 @@ server <- function(input, output, session) {
     leafletProxy("mymap", data = points) %>%
       clearMarkers() %>%
       addCircleMarkers(
-        ~lng, ~lat, 
         color = ~ifelse(label %in% selected$label, "red", palette(category)),
         layerId = ~label,
         radius = 8,

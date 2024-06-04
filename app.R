@@ -314,13 +314,47 @@ server <- function(input, output, session) {
     filtered_data
     })
   
+  
+  # Reactive value to store selected points
+  selected_points <- reactiveVal(data.frame())
    
   # Map showing initial indicators loaded into app
   output$indicatorMap <- renderLeaflet({
+    indicator_leaflet_map(indicatorData_active())
+  })
+  
+  # Observe click events on the map
+  observeEvent(input$indicatorMap_marker_click, {
+    click <- input$indicatorMap_marker_click
+    selected <- selected_points()
     
-    # Hardcoding of "PointSelectionType" here. indicator_leaflet_map function allows dynamic input though.
-    indicator_leaflet_map(indicatorData_active(), "PointSelectionType")
+    # Check if the clicked point is already selected
+    if (click$id %in% selected$EvaluationID) {
+      # Remove the point from selected points if it's already selected
+      
+      selected <- selected %>% filter(EvaluationID != click$id)
+     
+    } else {
+      
+      # Add the point to selected points if it's not already selected
+      selected <- rbind(selected, indicatorData_active() %>% filter(EvaluationID == click$id))
+      print(4)
+    }
     
+    # Update reactive value
+    selected_points(selected)
+    
+    # Update the map with the new selection
+    leafletProxy("indicatorMap", data = indicatorData_active()) %>%
+      clearMarkers() %>%
+      addCircleMarkers(
+        #~longitude , ~latitude, 
+        color = ~ifelse(EvaluationID %in% selected$EvaluationID, "red", indicatorPalette(PointSelectionType)),
+        layerId = ~EvaluationID,
+        radius = 8,
+        stroke = FALSE,
+        fillOpacity = 0.8
+      )
   })
   
   #Simple table - doesnt autofit data though.  Above version does but isn't perfect.
