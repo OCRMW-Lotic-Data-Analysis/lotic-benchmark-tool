@@ -4,13 +4,16 @@ library(leaflet)
 # Set pallette.  Leaving outside of function to use in leafletproxy elsewhere.
 indicatorPalette <- colorFactor(palette = c("#1e4ca2", "#59c2fa", "#7bf8cf"), levels = c("RandomGRTS","Targeted","RandomSystematic"))
 
-# Map making function
-indicator_leaflet_map <- function(indicatorData) {
-  # Label to display when hovering over point
+# Label to display when hovering over point on idicator selection map
+indicator_labels <- function(indicatorData){
   labels <- paste(
     "<strong>", indicatorData$PointID,
     "</strong><br>", indicatorData$StreamName) %>%
     lapply(htmltools::HTML)
+}
+
+# Map making function
+indicator_leaflet_map <- function(indicatorData) {
   
   # Map
   indicatorData %>%
@@ -22,13 +25,13 @@ indicator_leaflet_map <- function(indicatorData) {
     addTiles() %>%
     addCircleMarkers(
       layerId = ~EvaluationID,
-      radius = 3,
-      color = "black",
+      radius = 4,
+      color = "white",
       fillColor = ~indicatorPalette(PointSelectionType),
       stroke = TRUE, 
       weight = 1,
       fillOpacity = 1,
-      label = ~labels) %>%
+      label = ~indicator_labels(indicatorData)) %>%
     addProviderTiles("Esri.WorldTopoMap",
                      group = "Esri.WorldTopoMap") %>%
     addProviderTiles("Esri.WorldImagery",
@@ -44,7 +47,23 @@ indicator_leaflet_map <- function(indicatorData) {
               title = "Point Selection Type")
 }
 
+indicator_leaflet_map_proxy <- function(mapId, data, selected){
 
+  # Map
+  leafletProxy(mapId, data = data %>% st_transform(crs = 4326)) %>%
+    clearMarkers() %>%
+    addCircleMarkers(
+      #~longitude , ~latitude,
+      fillColor = ~ifelse(EvaluationID %in% selected$EvaluationID, "red", indicatorPalette(PointSelectionType)),
+      layerId = ~EvaluationID,
+      radius = 4,
+      color = "white",  # point border/outline
+      stroke = TRUE,
+      weight = 1,
+      fillOpacity = 1,
+      label = ~indicator_labels(indicatorData)
+    )
+}
 # Map displaying reach conditions after benchmarks have been defined and applied
 reachCond_leaflet_map <- function(reachConditions, mappingVarInput) {
 # Pull variable to plot from input select.  Input just shows benchmark name
@@ -79,7 +98,7 @@ reachCond_leaflet_map <- function(reachConditions, mappingVarInput) {
       ) %>%
       addTiles() %>%
       addCircleMarkers(
-        radius = 7,
+        radius = 6,
         color = "black",
         fillColor = ~pal(reachConditions[[conditionVar]]),
         stroke = TRUE,

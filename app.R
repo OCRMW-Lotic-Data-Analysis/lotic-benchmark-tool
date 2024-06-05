@@ -342,19 +342,9 @@ server <- function(input, output, session) {
     
     # Update reactive value
     selected_points(selected)
-    #Update the map with the new selection
-    leafletProxy("indicatorMap", data = indicatorData_active() %>% st_transform(crs = 4326)) %>%
-      clearMarkers() %>%
-      addCircleMarkers(
-        #~longitude , ~latitude,
-        fillColor = ~ifelse(EvaluationID %in% selected$EvaluationID, "red", indicatorPalette(PointSelectionType)),
-        layerId = ~EvaluationID,
-        radius = 3,
-        color = "black",  # point border/outline
-        stroke = TRUE,
-        weight = 1,
-        fillOpacity = 1
-      )
+    
+    # Update the map with the new selection
+    indicator_leaflet_map_proxy(mapId = "indicatorMap", data = indicatorData_active(), selected = selected)
 
   })
   
