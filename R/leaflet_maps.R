@@ -1,3 +1,5 @@
+library(leaflet)
+
 # Map displaying loaded or filtered indicators at start of workflow.
 # Set pallette.  Leaving outside of function to use in leafletproxy elsewhere.
 indicatorPalette <- colorFactor(palette = c("#1e4ca2", "#59c2fa", "#7bf8cf"), levels = c("RandomGRTS","Targeted","RandomSystematic"))

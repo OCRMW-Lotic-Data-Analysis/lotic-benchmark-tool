@@ -325,7 +325,7 @@ server <- function(input, output, session) {
   
   # Observe click events on the map
   observeEvent(input$indicatorMap_marker_click, {
-    click <- input$indicatorMap_marker_click
+    click <- input$indicatorMap_marker_click  #assigns EvaluationID to click$id.  This is set from leaflet `layerId = ~EvaluationID`
     selected <- selected_points()
     
     # Check if the clicked point is already selected
@@ -342,7 +342,6 @@ server <- function(input, output, session) {
     
     # Update reactive value
     selected_points(selected)
-    print(selected_points)
     #Update the map with the new selection
     leafletProxy("indicatorMap", data = indicatorData_active() %>% st_transform(crs = 4326)) %>%
       clearMarkers() %>%
@@ -540,7 +539,7 @@ server <- function(input, output, session) {
   # Selected which benchmark groups to apply to each pointID/indicator combo.
   output$applyBenchmarks_hot <- renderRHandsontable({
     req(benchmarkGroupDF$df)
-    apply_benchmarks_table(defaultBenchmarkVals(), benchmarkGroupDF, indicatorData_active())
+    apply_benchmarks_table(defaultBenchmarkVals(), benchmarkGroupDF, selected_points())
   })
   
   assignedBenchmarks <- reactive({
@@ -555,7 +554,7 @@ server <- function(input, output, session) {
 # 4. Reach Conditions --------------------------------------------------------
   
   # Calculate Reach conditions (Min, Mod, Max) for each indicator
-  reachConditions <- reactive({determine_reach_conditions(indicators =  indicatorData_active(),
+  reachConditions <- reactive({determine_reach_conditions(indicators =  selected_points(),
                                                           definedBenchmarks = benchmarkGroupDF$df,
                                                           defaultBenchmarks = defaultBenchmarkVals(),
                                                           assignments = assignedBenchmarks())
