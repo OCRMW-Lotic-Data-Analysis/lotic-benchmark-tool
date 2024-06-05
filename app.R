@@ -348,9 +348,9 @@ server <- function(input, output, session) {
 
   })
   
-  #Simple table - doesnt autofit data though.  Above version does but isn't perfect.
+  #Simple table - doesnt autofit data though.
   output$indicatorTable <- renderDT({
-    indicatorData_active()},)
+    selected_points()},)
   
   
 # 2. Define Benchmarks -------------------------------------------------------

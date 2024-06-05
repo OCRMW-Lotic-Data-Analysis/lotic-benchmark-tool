@@ -32,15 +32,16 @@ indicator_leaflet_map <- function(indicatorData) {
       weight = 1,
       fillOpacity = 1,
       label = ~indicator_labels(indicatorData)) %>%
-    addProviderTiles("Esri.WorldTopoMap",
-                     group = "Esri.WorldTopoMap") %>%
-    addProviderTiles("Esri.WorldImagery",
-                     group = "Esri.WorldImagery") %>%
-    addLayersControl(
-      baseGroups = c("Esri.WorldTopoMap",
-                     "Esri.WorldImagery"),
-      # position it on the topleft
-      position = "topleft") %>%
+    addProviderTiles("Esri.NatGeoWorldMap", group = "Esri.NatGeoWorldMap") %>%
+    addProviderTiles("Esri.WorldImagery"  , group = "Esri.WorldImagery") %>%
+    addProviderTiles("Esri.WorldTopoMap"  , group = "Esri.WorldTopoMap") %>%
+    addProviderTiles("USGS.USTopo"        , group = "USGS.USTopo") %>%
+    addProviderTiles("USGS.USImagery"     , group = "USGS.USImagery") %>%
+    addProviderTiles("USGS.USImageryTopo" , group = "USGS.USImageryTopo") %>%
+    addLayersControl(baseGroups = c("Esri.NatGeoWorldMap", "Esri.WorldImagery",
+                                    "Esri.WorldTopoMap", "USGS.USTopo",
+                                    "USGS.USImagery", "USGS.USImageryTopo"), 
+                     position = "topleft") %>%
     addLegend(pal = indicatorPalette, 
               values = ~PointSelectionType, 
               opacity = 1,
@@ -61,7 +62,7 @@ indicator_leaflet_map_proxy <- function(mapId, data, selected){
       stroke = TRUE,
       weight = 1,
       fillOpacity = 1,
-      label = ~indicator_labels(indicatorData)
+      label = ~indicator_labels(data)
     )
 }
 # Map displaying reach conditions after benchmarks have been defined and applied

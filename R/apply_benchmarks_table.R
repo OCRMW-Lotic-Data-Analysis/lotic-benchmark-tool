@@ -15,7 +15,8 @@ applyBechmarkDat[bmVars] <- "Default"
 
 # Actual table
 rhot <- rhandsontable(applyBechmarkDat,
-              rowHeaders = FALSE) %>%
+                      overflow = "visible",
+                      rowHeaders = FALSE) %>%
   hot_table(highlightRow = TRUE, contextMenu = FALSE) %>%
   hot_cols(fixedColumnsLeft = 2, colWidths = 200) %>%
   hot_col(1:2, readOnly = TRUE) %>%
