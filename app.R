@@ -221,61 +221,54 @@ server <- function(input, output, session) {
     load_indicator_data("BLM_Natl_AIM_Lotic_Indicators_Hub.csv", "./appData/BLM_Natl_AIM_Lotic_Indicators_Hub.csv")
     })
   
+  # Indicator Filtering
+  
   # Update indicator selectors based on indicatorData_raw().  This could come from
   # manual entry or upload.
   observe({
-    updatePickerInput(session, "pointType_filter",
-                      choices = na.omit(unique(indicatorData_raw()$PointSelectionType)))
-    updatePickerInput(session, "protocol_filter",
-                      choices = na.omit(unique(indicatorData_raw()$ProtocolType)))
-  })
-  
- # Indicator Filtering
-  
-  # Start by setting default pickerinput values
-  observeEvent(
-    input$startingDataType == "filter",
-    {
-      updatePickerInput(
-        session = session,
-        inputId = "adminState_filter",
-        choices = c("", unique(indicatorData_raw()$BLM_AdminState)),
-        selected = NULL
-      )
+    updatePickerInput(
+      session = session, 
+      inputId = "pointType_filter",
+      choices = na.omit(unique(indicatorData_raw()$PointSelectionType)))
+    
+    updatePickerInput(
+      session = session, 
+      inputId = "protocol_filter",
+      choices = na.omit(unique(indicatorData_raw()$ProtocolType)))
+    
+    updatePickerInput(
+      session = session,
+      inputId = "adminState_filter",
+      choices = c("", unique(indicatorData_raw()$BLM_AdminState)), # "" to force blank entry in dropdown
+      selected = NULL)
+    
+    updatePickerInput(
+      session = session,
+      inputId = "project_filter",
+      choices = unique(indicatorData_raw()$Project),
+      selected = NULL)
     })
   
-  observeEvent(
-    input$startingDataType == "filter",
-    {
-      updatePickerInput(
-        session = session,
-        inputId = "project_filter",
-        choices = unique(indicatorData_raw()$Project),
-        selected = NULL
-      )
-    })
-  
-  
+  # If an admin state is selected, only show projects within that state.
   observeEvent(
     input$adminState_filter, {
-      if (input$adminState_filter == "None") {
+      if (input$adminState_filter == "") {
         updatePickerInput(
           session = session,
           inputId = "project_filter",
           choices = unique(indicatorData_raw()$Project),
           selected = NULL
-        )
-      } else {
-        
+          )
+        } else {
         updatePickerInput(
           session = session,
           inputId = "project_filter",
           choices = indicatorData_raw() %>% filter(BLM_AdminState == input$adminState_filter) %>% pull(Project) %>% unique(),
           selected = NULL
-        )
+          )
+        }
       }
-    }
-  )
+    )
   
   
   # Logic for applying all user-selected filters
