@@ -5,7 +5,7 @@ library(dplyr)
 library(tidyr)
 library(stringr)
 library(bslib)
-library(plotly)
+#library(plotly)
 library(ggiraph)
 library(DT)
 library(leaflet)
@@ -68,7 +68,8 @@ ui <- page_navbar(
                             start = NA, 
                             end = NA)
              )
-           )
+           ),
+        actionButton("clearSelection", label = "Clear Selection")
          ,
         width = "320px"
       ),
@@ -307,7 +308,12 @@ server <- function(input, output, session) {
     filtered_data
     })
   
- 
+  # Clear selection
+  observeEvent(input$clearSelection, {
+    selected_points(NULL)
+    leafletProxy("indicatorMap") %>%
+      clearGroup("selectedPts")
+  })
   
   # Reactive value to store selected points
   selected_points <- reactiveVal()
@@ -459,6 +465,7 @@ server <- function(input, output, session) {
   
   # Save the currently displayed values of the 'defineBenchmark_hot' table
   definedBenchmarks <- reactive({
+    req(input$bmGroupNameinput)
     hot_to_r(input$defineBenchmark_hot)
   })
   
@@ -467,7 +474,7 @@ server <- function(input, output, session) {
   
   # SAVE edited benchmark table.  Also resets text/picker inputs and clears table.
   observeEvent(input$saveNewBMGroup,{
-    req(input$bmGroupNameinput)
+    req(!is.null(input$bmGroupNameinput))
     # Get new benchmark group data into data frame
     newGroupData <- definedBenchmarks() %>% tibble::add_column(bmGroup = input$bmGroupNameinput, .before = 1)
     
