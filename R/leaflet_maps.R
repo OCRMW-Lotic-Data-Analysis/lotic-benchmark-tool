@@ -25,6 +25,7 @@ indicator_leaflet_map <- function(indicatorData) {
     addTiles() %>%
     addCircleMarkers(
       layerId = ~EvaluationID,
+      group = "allPts",
       radius = 4,
       color = "white",
       fillColor = ~indicatorPalette(PointSelectionType),
@@ -48,15 +49,26 @@ indicator_leaflet_map <- function(indicatorData) {
               title = "Point Selection Type")
 }
 
-indicator_leaflet_map_proxy <- function(mapId, data, selected){
-
+indicator_leaflet_map_proxy <- function(mapId, data){
+  
+  #######################    EXPERIMENTING
+  
+  data <- data %>% st_transform(crs = 4326)
+  
+  ##############################
+  
+  #print(data$newID)
+  #print(seldata$geometry)
+  #print(data$geometry)
   # Map
-  leafletProxy(mapId, data = data %>% st_transform(crs = 4326)) %>%
-    clearMarkers() %>%
+  leafletProxy(mapId) %>%
+    clearGroup("selectedPts") %>%
     addCircleMarkers(
-      #~longitude , ~latitude,
-      fillColor = ~ifelse(EvaluationID %in% selected$EvaluationID, "red", indicatorPalette(PointSelectionType)),
-      layerId = ~EvaluationID,
+      data = data,
+      #fillColor = ~ifelse(EvaluationID %in% selected$EvaluationID, "red", indicatorPalette(PointSelectionType)),
+      fillColor = "red",
+      group = "selectedPts",
+      layerId = ~selectionID,
       radius = 4,
       color = "white",  # point border/outline
       stroke = TRUE,

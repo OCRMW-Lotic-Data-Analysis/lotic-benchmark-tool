@@ -309,7 +309,7 @@ server <- function(input, output, session) {
   
   
   # Reactive value to store selected points
-  selected_points <- reactiveVal(data.frame())
+  selected_points <- reactiveVal()
    
   # Map showing initial indicators loaded into app
   output$indicatorMap <- renderLeaflet({
@@ -318,26 +318,33 @@ server <- function(input, output, session) {
   
   # Observe click events on the map
   observeEvent(input$indicatorMap_marker_click, {
-    click <- input$indicatorMap_marker_click  #assigns EvaluationID to click$id.  This is set from leaflet `layerId = ~EvaluationID`
-    selected <- selected_points()
+    # Retrieve click ID.  From an unselected point, this will return the 'EvalulationID'.
+    # From a selected point, this will return the 'selectionID' assignd a few lines below.
+    # Two different IDs are needed because if two points share the same 'layerId' in leaflet
+    # the second one will just replace the original.  Here, selected points are drawn "on top" of
+    # 'allPts'.
+    click <- input$indicatorMap_marker_click
     
-    # Check if the clicked point is already selected
-    if (click$id %in% selected$EvaluationID) {
-      # Remove the point from selected points if it's already selected
-      
-      selected <- selected %>% filter(EvaluationID != click$id)
-     
-    } else {
-      
-      # Add the point to selected points if it's not already selected
-      selected <- rbind(selected, indicatorData_active() %>% filter(EvaluationID == click$id))
+    selected <- selected_points()
+
+    # Logic to change selection status.  All original points are in the "allPts" 'group'.
+    # All selected points are in the "selectedPts" 'group'.  Groups are defined in the leaflet and 
+    # leaflet proxy 'addCircleMarkers' function.  
+    if (click$group == "allPts") {
+      selected <- bind_rows(selected, indicatorData_active() %>% filter(EvaluationID == click$id))
+    } else if (click$group == "selectedPts") {
+      selected <- selected %>% filter(selectionID != click$id)
     }
     
-    # Update reactive value
+    # Create unique IDs for the selected points.  This is used to differentiate 'layerIds' between
+    # 'seletcted' (selected_points()) and 'allPts' (indicatordData_active()).  
+    selected$selectionID <- seq_len(nrow(selected))
+ 
+    # Save new selected points to reactive value.
     selected_points(selected)
-    
-    # Update the map with the new selection
-    indicator_leaflet_map_proxy(mapId = "indicatorMap", data = indicatorData_active(), selected = selected)
+
+    # Update the map with the new selection.
+    indicator_leaflet_map_proxy(mapId = "indicatorMap", data = selected)
 
   })
   
