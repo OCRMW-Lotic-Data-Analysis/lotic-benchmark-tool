@@ -307,6 +307,7 @@ server <- function(input, output, session) {
     filtered_data
     })
   
+ 
   
   # Reactive value to store selected points
   selected_points <- reactiveVal()
@@ -314,6 +315,13 @@ server <- function(input, output, session) {
   # Map showing initial indicators loaded into app
   output$indicatorMap <- renderLeaflet({
     indicator_leaflet_map(indicatorData_active())
+  })
+  
+  # When indicatorData_active() changes via filters, selected points are preserved on map
+  observeEvent(indicatorData_active(), {
+    if (!is.null(selected_points())) {
+      indicator_leaflet_map_proxy(mapId = "indicatorMap", data = selected_points())
+    }
   })
   
   # Observe click events on the map
