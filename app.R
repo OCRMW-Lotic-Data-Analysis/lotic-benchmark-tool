@@ -344,7 +344,7 @@ server <- function(input, output, session) {
     selected_points(selected)
 
     # Update the map with the new selection.
-    indicator_leaflet_map_proxy(mapId = "indicatorMap", data = selected)
+    indicator_leaflet_map_proxy(mapId = "indicatorMap", data = selected_points())
 
   })
   
