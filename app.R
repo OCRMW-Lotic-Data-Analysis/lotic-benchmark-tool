@@ -66,7 +66,10 @@ ui <- page_navbar(
              dateRangeInput(inputId = 'dateRange_filter',
                             label = 'Date range',
                             start = NA, 
-                            end = NA)
+                            end = NA),
+             checkboxInput("onlyRecentVisits", 
+                           label = "Only include most recent visit", 
+                           value = FALSE),
              )
            ),
         actionButton("clearSelection", label = "Clear Selection")
@@ -303,6 +306,11 @@ server <- function(input, output, session) {
     # Field Eval date range
     if (all(!is.na(input$dateRange_filter))) {
       filtered_data <- filtered_data %>% filter(as.Date(FieldEvalDate) >= input$dateRange_filter[1] & as.Date(FieldEvalDate) <= input$dateRange_filter[2]) 
+    }
+    
+    # Include only most recent visits  onlyRecentVisits
+    if (input$onlyRecentVisits == TRUE){
+      filtered_data <- filtered_data %>% group_by(PointID) %>% filter(FieldEvalDate == max(as.Date(FieldEvalDate)))
     }
     
     filtered_data
