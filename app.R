@@ -325,20 +325,27 @@ server <- function(input, output, session) {
   
   # Reactive value to store selected points
   selected_points <- reactiveVal()
-   
-  # Map showing initial indicators loaded into app
+  
+  ### Leaflet map initialization and proxies
+  
+  # Initialized leaflet map.  No data added yet.
   output$indicatorMap <- renderLeaflet({
-    indicator_leaflet_map(indicatorData_active())
+    indicator_leaflet_map()
+  })
+  
+  # Add filtered data to map (i.e indicatorData_active() data)
+  observeEvent(indicatorData_active(), {
+    indicator_leaflet_activeData_proxy(mapId = "indicatorMap", data = indicatorData_active())
   })
   
   # When indicatorData_active() changes via filters, selected points are preserved on map
   observeEvent(indicatorData_active(), {
     if (!is.null(selected_points())) {
-      indicator_leaflet_map_proxy(mapId = "indicatorMap", data = selected_points())
+      indicator_leaflet_selection_proxy(mapId = "indicatorMap", data = selected_points())
     }
   })
   
-  # Observe click events on the map
+  # Observe click events on the map and save selected points for later calculations
   observeEvent(input$indicatorMap_marker_click, {
     # Retrieve click ID.  From an unselected point, this will return the 'EvalulationID'.
     # From a selected point, this will return the 'selectionID' assignd a few lines below.
@@ -346,6 +353,7 @@ server <- function(input, output, session) {
     # the second one will just replace the original.  Here, selected points are drawn "on top" of
     # 'allPts'.
     click <- input$indicatorMap_marker_click
+    print(click)
     
     selected <- selected_points()
 
@@ -353,7 +361,10 @@ server <- function(input, output, session) {
     # All selected points are in the "selectedPts" 'group'.  Groups are defined in the leaflet and 
     # leaflet proxy 'addCircleMarkers' function.  
     if (click$group == "allPts") {
-      selected <- bind_rows(selected, indicatorData_active() %>% filter(EvaluationID == click$id))
+      ptID <- str_split_i(click$id, "_", i = 1)
+      # select based on pointID.  This will select all field visits at a point.
+      selected <- bind_rows(selected, indicatorData_active() %>% filter(PointID == ptID))
+      
     } else if (click$group == "selectedPts") {
       selected <- selected %>% filter(selectionID != click$id)
     }
@@ -366,10 +377,11 @@ server <- function(input, output, session) {
     selected_points(selected)
 
     # Update the map with the new selection.
-    indicator_leaflet_map_proxy(mapId = "indicatorMap", data = selected_points())
+    indicator_leaflet_selection_proxy(mapId = "indicatorMap", data = selected_points())
 
   })
   
+  ### Table 
   #Simple table - doesnt autofit data though.
   output$indicatorTable <- renderDT({
     selected_points()},)

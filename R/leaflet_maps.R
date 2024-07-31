@@ -1,5 +1,6 @@
 library(leaflet)
 
+### Pallettes and Labels -------------------------------------------------------
 # Map displaying loaded or filtered indicators at start of workflow.
 # Set pallette.  Leaving outside of function to use in leafletproxy elsewhere.
 indicatorPalette <- colorFactor(palette = c("#1e4ca2", "#59c2fa", "#7bf8cf"), levels = c("RandomGRTS","Targeted","RandomSystematic"))
@@ -8,59 +9,63 @@ indicatorPalette <- colorFactor(palette = c("#1e4ca2", "#59c2fa", "#7bf8cf"), le
 indicator_labels <- function(indicatorData){
   labels <- paste(
     "<strong>", indicatorData$PointID,
-    "</strong><br>", indicatorData$StreamName) %>%
+    "</strong><br>", indicatorData$StreamName,
+    "<br>", as.Date(indicatorData$FieldEvalDate)) %>%
     lapply(htmltools::HTML)
 }
 
-# Map making function
-indicator_leaflet_map <- function(indicatorData) {
+### Maps -----------------------------------------------------------------------
+# Initial map with just basemaps and general settings.
+indicator_leaflet_map <- function() {
+
+  leaflet(
+    options = leafletOptions(
+      attributionControl=FALSE,
+      maxZoom = 16)
+  ) %>%
+  setView(-113, 41, zoom = 5) %>%
+  addTiles() %>%
+  addProviderTiles("Esri.NatGeoWorldMap", group = "Esri.NatGeoWorldMap") %>%
+  addProviderTiles("Esri.WorldImagery"  , group = "Esri.WorldImagery") %>%
+  addProviderTiles("Esri.WorldTopoMap"  , group = "Esri.WorldTopoMap") %>%
+  addProviderTiles("USGS.USTopo"        , group = "USGS.USTopo") %>%
+  addProviderTiles("USGS.USImagery"     , group = "USGS.USImagery") %>%
+  addProviderTiles("USGS.USImageryTopo" , group = "USGS.USImageryTopo") %>%
+  addLayersControl(baseGroups = c("Esri.NatGeoWorldMap", "Esri.WorldImagery",
+                                  "Esri.WorldTopoMap", "USGS.USTopo",
+                                  "USGS.USImagery", "USGS.USImageryTopo"), 
+                   position = "topleft")
+}
+
+# Proxy map to render initial data and subsequent filtered data.
+indicator_leaflet_activeData_proxy <- function(mapId, data){
   
-  # Map
-  indicatorData %>%
-    st_transform(crs = 4326) %>%
-    leaflet(
-      options = leafletOptions(
-        attributionControl=FALSE)
-    ) %>%
-    addTiles() %>%
+  data <- data %>% st_transform(crs = 4326)
+
+  leafletProxy(mapId, data = data) %>%
+    clearMarkers() %>%
+    clearControls() %>%  #removes any prior legend.  Allows addLegend below to work.
     addCircleMarkers(
       layerId = ~EvaluationID,
       group = "allPts",
       radius = 4,
       color = "white",
       fillColor = ~indicatorPalette(PointSelectionType),
-      stroke = TRUE, 
+      stroke = TRUE,
       weight = 1,
       fillOpacity = 1,
-      label = ~indicator_labels(indicatorData)) %>%
-    addProviderTiles("Esri.NatGeoWorldMap", group = "Esri.NatGeoWorldMap") %>%
-    addProviderTiles("Esri.WorldImagery"  , group = "Esri.WorldImagery") %>%
-    addProviderTiles("Esri.WorldTopoMap"  , group = "Esri.WorldTopoMap") %>%
-    addProviderTiles("USGS.USTopo"        , group = "USGS.USTopo") %>%
-    addProviderTiles("USGS.USImagery"     , group = "USGS.USImagery") %>%
-    addProviderTiles("USGS.USImageryTopo" , group = "USGS.USImageryTopo") %>%
-    addLayersControl(baseGroups = c("Esri.NatGeoWorldMap", "Esri.WorldImagery",
-                                    "Esri.WorldTopoMap", "USGS.USTopo",
-                                    "USGS.USImagery", "USGS.USImageryTopo"), 
-                     position = "topleft") %>%
-    addLegend(pal = indicatorPalette, 
-              values = ~PointSelectionType, 
-              opacity = 1,
-              title = "Point Selection Type")
+      label = ~indicator_labels(data)) %>%
+      addLegend(pal = indicatorPalette,
+                values = ~PointSelectionType,
+                opacity = 1,
+                title = "Point Selection Type")
 }
 
-indicator_leaflet_map_proxy <- function(mapId, data){
-  
-  #######################    EXPERIMENTING
+# Proxy map to display the selected points with new symbology.
+indicator_leaflet_selection_proxy <- function(mapId, data){
   
   data <- data %>% st_transform(crs = 4326)
-  
-  ##############################
-  
-  #print(data$newID)
-  #print(seldata$geometry)
-  #print(data$geometry)
-  # Map
+
   leafletProxy(mapId) %>%
     clearGroup("selectedPts") %>%
     addCircleMarkers(
@@ -77,6 +82,7 @@ indicator_leaflet_map_proxy <- function(mapId, data){
       label = ~indicator_labels(data)
     )
 }
+
 # Map displaying reach conditions after benchmarks have been defined and applied
 reachCond_leaflet_map <- function(reachConditions, mappingVarInput) {
 # Pull variable to plot from input select.  Input just shows benchmark name
@@ -107,7 +113,8 @@ reachCond_leaflet_map <- function(reachConditions, mappingVarInput) {
       st_transform(crs = 4326) %>%
       leaflet(
         options = leafletOptions(
-          attributionControl=FALSE)
+          attributionControl=FALSE,
+          maxZoom = 16)
       ) %>%
       addTiles() %>%
       addCircleMarkers(
