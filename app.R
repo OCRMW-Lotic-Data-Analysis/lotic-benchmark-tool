@@ -133,10 +133,17 @@ ui <- page_navbar(
       layout_columns(
         card(rHandsontableOutput("defineBenchmark_hot"),
              class = "border-0 p-0"),
-        card(reactableOutput("benchmarkGroupsTable"),
-             class = "border-0 p-0"),
+        navset_card_tab(
+          nav_panel("Benchmark Groups",
+                    card(reactableOutput("benchmarkGroupsTable") ,class = "border-0 p-0")
+                    ),
+          nav_panel("Default Conditions",
+                    card(reactableOutput("defaultConditionsTable") ,class = "border-0 p-0")
+                    )
+          )
+        ,
         col_widths = c(12),
-        row_heights = c(2,1)
+        row_heights = c(1,1)
       )
     )
   ),
@@ -220,10 +227,12 @@ server <- function(input, output, session) {
   
 # 1. Select Indicators -------------------------------------------------------
   
-  # filter from all available indicators
+  # Load app data
   indicatorData_raw <- reactive({
     load_indicator_data("BLM_Natl_AIM_Lotic_Indicators_Hub.csv", "./appData/BLM_Natl_AIM_Lotic_Indicators_Hub.csv")
     })
+  
+  defaultConditions <- read_csv("./appData/A_DefaultConditions.csv", show_col_types = FALSE)
   
   # Indicator Filtering
   
@@ -549,13 +558,15 @@ server <- function(input, output, session) {
   #   selection = "single"
   # )
   output$benchmarkGroupsTable <- renderReactable({
-    req(benchmarkGroupDF$df)
-    reactable(benchmarkGroupDF$df,
-              pagination = FALSE,
-              groupBy = "bmGroup",
-              selection = "multiple",
-              onClick = "select",
-              defaultColDef = colDef(minWidth = 220))
+    req(nrow(benchmarkGroupDF$df) > 0)
+    saved_benchmark_groups_table(benchmarkGroupDF$df)
+  })
+  
+  output$defaultConditionsTable <- renderReactable({
+    req(selected_points())
+    defCond <- defaultConditions %>% filter(EvaluationID %in% selected_points()$EvaluationID) %>%
+      arrange(EvaluationID)
+    default_conditions_table(selected_points())
   })
   
 # 3. Apply Benchmarks --------------------------------------------------------

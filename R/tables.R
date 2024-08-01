@@ -1,3 +1,26 @@
+### Display default conditions for selected points
+default_conditions_table <- function(defCond){
+reactable(defCond,
+          showPageSizeOptions = TRUE, 
+          showPageInfo = FALSE, 
+          highlight = TRUE, 
+          compact = TRUE,
+          groupBy = "EvaluationID",
+          defaultColDef = colDef(minWidth = 250))
+}
+
+### Show saved benchmark groups
+
+
+saved_benchmark_groups_table <- function(bmGroups) {
+reactable(bmGroups,
+          pagination = FALSE,
+          groupBy = "bmGroup",
+          selection = "multiple",
+          onClick = "select",
+          defaultColDef = colDef(minWidth = 220))
+}
+
 ### Editable table allowing user to select which benchmark group to use for point indicators (rhandsontable)
 apply_benchmarks_table <- function(defaultBenchmarkVals, benchmarkGroupDF, indicatorData) {
   
@@ -63,3 +86,4 @@ reactable(summaryData,
             colGroup(name = "Indicator Summary Statistics", columns = c("Min", "Max", "Mean"))
           ))
 }
+
