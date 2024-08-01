@@ -353,7 +353,6 @@ server <- function(input, output, session) {
     # the second one will just replace the original.  Here, selected points are drawn "on top" of
     # 'allPts'.
     click <- input$indicatorMap_marker_click
-    print(click)
     
     selected <- selected_points()
 
