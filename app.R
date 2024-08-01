@@ -624,7 +624,7 @@ server <- function(input, output, session) {
   
 # 5. Condition Summary ---------------------------------------------------------
   # output$bmSummaryTable <- renderDT({
-  #   condition_summary_table(reachConditions(), benchmarkGroupDF$df$Indicator)},
+  #   condition_summary_df(reachConditions(), benchmarkGroupDF$df$Indicator)},
   #   extensions = 'Buttons',
   #   options = list(
   #     paging =FALSE,
@@ -637,26 +637,10 @@ server <- function(input, output, session) {
   # )
   
   output$bmSummaryTable <- renderReactable({
-    bmSummary <- condition_summary_table(reachConditions(), benchmarkGroupDF$df$Indicator)
-    reactable(bmSummary,
-              fullWidth = FALSE,
-              pagination = FALSE, 
-              showPageInfo = FALSE,
-              highlight = TRUE,
-              rowStyle = list(cursor = "pointer"),
-              columns = list(
-                Indicator = colDef(width = 220),
-                Minimal = colDef(na = "–", align = "center"),
-                Moderate = colDef(na = "–", align = "center"),
-                Major = colDef(na = "–", align = "center"),
-                Min = colDef(na = "–", align = "center"),
-                Max = colDef(na = "–", align = "center"),
-                Mean = colDef(na = "–", align = "center")
-              ),
-              columnGroups = list(
-                colGroup(name = "Number of Reaches", columns = c("Minimal", "Moderate", "Major")),
-                colGroup(name = "Indicator Summary Statistics", columns = c("Min", "Max", "Mean"))
-              ))
+    # Calculate summary data
+    bmSummary <- condition_summary_df(reachConditions(), benchmarkGroupDF$df$Indicator)
+    # Render summary table
+    condition_summary_table(bmSummary)
   })
   
   observe({
