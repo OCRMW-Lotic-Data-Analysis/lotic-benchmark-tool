@@ -134,12 +134,10 @@ ui <- page_navbar(
         card(rHandsontableOutput("defineBenchmark_hot"),
              class = "border-0 p-0"),
         navset_card_tab(
-          nav_panel("Benchmark Groups",
-                    card(reactableOutput("benchmarkGroupsTable") ,class = "border-0 p-0")
-                    ),
           nav_panel("Default Conditions",
-                    card(reactableOutput("defaultConditionsTable") ,class = "border-0 p-0")
-                    )
+                    card(reactableOutput("defaultConditionsTable"), class = "border-0 p-0")),
+          nav_panel("Benchmark Groups",
+                    card(reactableOutput("benchmarkGroupsTable"), class = "border-0 p-0"))
           )
         ,
         col_widths = c(12),
@@ -226,14 +224,6 @@ server <- function(input, output, session) {
 # 0. Global Items ------------------------------------------------------------
   
 # 1. Select Indicators -------------------------------------------------------
-  
-  # Load app data
-  indicatorData_raw <- reactive({
-    load_indicator_data("BLM_Natl_AIM_Lotic_Indicators_Hub.csv", "./appData/BLM_Natl_AIM_Lotic_Indicators_Hub.csv")
-    })
-  
-  defaultConditions <- read_csv("./appData/A_DefaultConditions.csv", show_col_types = FALSE)
-  
   # Indicator Filtering
   
   # Update indicator selectors based on indicatorData_raw().  This could come from
@@ -566,7 +556,7 @@ server <- function(input, output, session) {
     req(selected_points())
     defCond <- defaultConditions %>% filter(EvaluationID %in% selected_points()$EvaluationID) %>%
       arrange(EvaluationID)
-    default_conditions_table(selected_points())
+    default_conditions_table(defCond)
   })
   
 # 3. Apply Benchmarks --------------------------------------------------------
