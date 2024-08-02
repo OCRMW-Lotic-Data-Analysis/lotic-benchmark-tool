@@ -6,13 +6,11 @@ reactable(defCond,
           highlight = TRUE, 
           compact = TRUE,
           groupBy = "EvaluationID",
-          defaultColDef = colDef(minWidth = 250)
+          defaultColDef = colDef(minWidth = 260)
           )
 }
 
 ### Show saved benchmark groups
-
-
 saved_benchmark_groups_table <- function(bmGroups) {
 reactable(bmGroups,
           pagination = FALSE,
