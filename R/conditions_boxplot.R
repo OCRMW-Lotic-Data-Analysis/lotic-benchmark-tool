@@ -1,3 +1,4 @@
+# Interactive boxplot for summary page
 conditions_boxplot <- function(reachCond, benchmark, showDensity) {
   
 selectedVars <- c(benchmark, paste0(benchmark, "Condition"),

@@ -1,3 +1,5 @@
+# Apply bench mark table.  Allows user to set which benchmark is used for each indicator/point combination
+
 apply_benchmarks_table <- function(defaultBenchmarkVals, benchmarkGroupDF, indicatorData) {
 
 # Get the names of all possible benchmarks (will likley need to tweak this)

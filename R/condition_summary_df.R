@@ -1,3 +1,4 @@
+# Function to make the condition summary dataframe.  This is the prep for the table.
 condition_summary_df <- function(reachConditions, selectedBenchmarks){
 
 # Blank template of bmCondSummary table.  Used to prevent errors when Min, Mod, or Maj is missing.
