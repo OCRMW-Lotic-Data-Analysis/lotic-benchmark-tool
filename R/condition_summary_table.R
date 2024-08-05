@@ -1,3 +1,4 @@
+# Condition summary table.  Some basic statistics about indicators and benchmarks.
 condition_summary_table <- function(reachConditions, selectedBenchmarks){
 
 # Blank template of bmCondSummary table.  Used to prevent errors when Min, Mod, or Maj is missing.
