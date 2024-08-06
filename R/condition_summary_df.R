@@ -14,6 +14,7 @@ selectedBenchmarkConditions <- selectedBenchmarks %>% paste0("Condition")
 bmCondSummary <- reachConditions %>% select(all_of(selectedBenchmarkConditions)) %>%
   pivot_longer(cols = everything(), names_to = "Indicator", values_to = "condition") %>%
   group_by(Indicator, condition) %>%
+  drop_na() %>% # removes indicators not available for each point
   summarise(count = n()) %>%
   pivot_wider(names_from = condition, values_from = count) %>%
   # Remove "Condition" suffix to get normal indicator name
@@ -26,12 +27,14 @@ bmCondSummary <- reachConditions %>% select(all_of(selectedBenchmarkConditions))
 bmStatSummary <- reachConditions %>% select(all_of(selectedBenchmarks)) %>%
   pivot_longer(cols = everything(), names_to = "Indicator", values_to = "value") %>%
   group_by(Indicator) %>%
-  summarise(Min = min(value, na.rm = TRUE),
+  drop_na() %>% # removes indicator values not available for each point
+  summarise(n = n(),
+            Min = min(value, na.rm = TRUE),
             Max = max(value, na.rm = TRUE),
             Mean = round(mean(value, na.rm = TRUE), digits = 2))
 
 
-bmSummary <- full_join(bmCondSummary, bmStatSummary, by = "Indicator")  
+bmSummary <- full_join(bmCondSummary, bmStatSummary, by = "Indicator") %>% relocate(n, .after = Indicator)  
   
 return(bmSummary)
 }
