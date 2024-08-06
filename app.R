@@ -571,11 +571,6 @@ server <- function(input, output, session) {
     hot_to_r(input$applyBenchmarks_hot)
   })
   
-  #output$groupnames <- renderText({ bmGroups })
-  #output$benchmarkGroupTEST <- renderRHandsontable({
-  #    rhandsontable(data = benchmarkGroupDF$df)
-  #})
-  
 # 4. Reach Conditions --------------------------------------------------------
   
   # Calculate Reach conditions (Min, Mod, Max) for each indicator

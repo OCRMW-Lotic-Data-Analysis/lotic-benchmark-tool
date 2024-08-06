@@ -1,8 +1,7 @@
 ### Display default conditions for selected points
 default_conditions_table <- function(defCond){
 reactable(defCond,
-          showPageSizeOptions = TRUE, 
-          showPageInfo = FALSE, 
+          pagination = FALSE, 
           highlight = TRUE, 
           compact = TRUE,
           groupBy = "EvaluationID",
@@ -36,11 +35,23 @@ apply_benchmarks_table <- function(defaultBenchmarkVals, benchmarkGroupDF, indic
   applyBechmarkDat <- indicatorData %>% st_drop_geometry() %>% select(c(PointID, EvaluationID))
   applyBechmarkDat[bmVars] <- "Default"
   
+  # Expand table to at least 5 rows.  This is a workaround to make the dropdowns work with 
+  # overflow = "hidden" in rhandsontable.  Without this, the table expands to the whole page
+  # and has extra scroll bars that mess the UI up.  
+  
+  extraRowNums <- NULL  # set to null so locked rows works in hot_row() works regardless of nrows.
+  
+  if (nrow(applyBechmarkDat) < 5) {
+    extraRowNums <- (nrow(applyBechmarkDat)+1):5
+    applyBechmarkDat[extraRowNums,] <- NA
+  }
+ 
   # Actual table
   rhot <- rhandsontable(applyBechmarkDat,
-                        overflow = "visible",
+                        overflow = "hidden",
                         rowHeaders = FALSE) %>%
     hot_table(highlightRow = TRUE, contextMenu = FALSE) %>%
+    hot_row(extraRowNums, readOnly = TRUE) %>%    # lock the blank rows
     hot_cols(fixedColumnsLeft = 2, colWidths = 200) %>%
     hot_col(1:2, readOnly = TRUE) %>%
     hot_col(col = bmVars,
@@ -53,7 +64,7 @@ apply_benchmarks_table <- function(defaultBenchmarkVals, benchmarkGroupDF, indic
                            Handsontable.renderers.TextRenderer.apply(this, arguments);
                            if (value == 'Default') {
                            td.style.color = 'lightgrey';
-                           } else if (value != 'Default') {
+                           } else if (isNaN(value)) {
                            td.style.background = '#C1FFC1';
                            }
                            Handsontable.renderers.DropdownRenderer.apply(this, arguments);

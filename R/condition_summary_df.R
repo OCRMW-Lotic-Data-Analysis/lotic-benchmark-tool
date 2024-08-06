@@ -28,13 +28,13 @@ bmStatSummary <- reachConditions %>% select(all_of(selectedBenchmarks)) %>%
   pivot_longer(cols = everything(), names_to = "Indicator", values_to = "value") %>%
   group_by(Indicator) %>%
   drop_na() %>% # removes indicator values not available for each point
-  summarise(n = n(),
+  summarise(N = n(),
             Min = min(value, na.rm = TRUE),
             Max = max(value, na.rm = TRUE),
             Mean = round(mean(value, na.rm = TRUE), digits = 2))
 
 
-bmSummary <- full_join(bmCondSummary, bmStatSummary, by = "Indicator") %>% relocate(n, .after = Indicator)  
+bmSummary <- full_join(bmCondSummary, bmStatSummary, by = "Indicator") %>% relocate(N, .after = Indicator)  
   
 return(bmSummary)
 }
