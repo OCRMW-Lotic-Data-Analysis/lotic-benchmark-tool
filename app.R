@@ -152,6 +152,7 @@ ui <- page_navbar(
     page_sidebar(
       #Sidebar
       sidebar = sidebar(
+        open = FALSE,
         width = "300px",
         h5("Apply Benchmarks")
       ),
@@ -211,7 +212,8 @@ ui <- page_navbar(
                       value = TRUE),
                     width = "300px",
                     open = "always"),
-                  girafeOutput("bmSummaryBoxplots")
+                  card(max_height = 500,
+                       girafeOutput("bmSummaryBoxplots"))
                 )
       )
     )

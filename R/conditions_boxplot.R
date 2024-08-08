@@ -2,7 +2,7 @@
 conditions_boxplot <- function(reachCond, benchmark, showDensity) {
   
 selectedVars <- c(benchmark, paste0(benchmark, "Condition"),
-                  "PointID", "StreamName")
+                  "EvaluationID", "StreamName")
 
 plotdat <- reachCond %>% 
   st_drop_geometry() %>% 
@@ -10,7 +10,7 @@ plotdat <- reachCond %>%
   pivot_longer(cols = -c(selectedVars[2:4]), names_to = "indicator", values_to = "value") %>%
   dplyr::rename(condition = selectedVars[2]) %>%
   mutate(condition = factor(condition, levels = c("Minimal", "Moderate", "Major")),
-         tooltiptext = paste0("PointID: ", PointID, 
+         tooltiptext = paste0("EvaluationID: ", EvaluationID, 
                               "\n Stream Name: ", StreamName, 
                               "\n Condition: ", condition, 
                               "\n Value: ", value))
@@ -21,7 +21,7 @@ p <- ggplot(plotdat, aes(x = indicator, y = value)) +
     outlier.shape = NA,
     show.legend = FALSE) +  # hide boxplot legend items
   geom_point_interactive(
-    aes(tooltip = tooltiptext, data_id = PointID, fill = condition),
+    aes(tooltip = tooltiptext, data_id = EvaluationID, fill = condition),
     color = "black", # color = border (stroke), fill = inside of point when both are used.  
     shape = 21,
     stroke = 0.3,
@@ -36,7 +36,7 @@ p <- ggplot(plotdat, aes(x = indicator, y = value)) +
                                 name = "Condition") +
   labs(x = "", y = "") +
   coord_cartesian(xlim = c(1.3, 1.35)) +
-  theme_minimal() +
+  theme_bw() +
   theme(legend.position = "right",
         legend.text.align = 0)  # left justified text
 
@@ -50,5 +50,8 @@ if (showDensity == TRUE) {
     fill = "gray85") 
 }
 
-girafe(ggobj = p)
+girplot <- girafe(ggobj = p)
+girafe_options(girplot, 
+               opts_toolbar(hidden = c("lasso_select", "lasso_deselect")),
+               opts_selection(type = "none"))
 }
