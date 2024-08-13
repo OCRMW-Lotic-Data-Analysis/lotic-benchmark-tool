@@ -93,14 +93,19 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
   }
 
 ### PREP FOR EXPORT ------------------------------------------------------------
+  
+  
   # Convert to wide format to join with original indicators input
   reachConditionsWide <- IndicatorValuesBenchmarks %>% 
     select(EvaluationID, Indicator, value, Condition) %>% 
     pivot_wider(id_cols = !value, names_from = Indicator, values_from = Condition, names_glue = "{Indicator}{'Condition'}")
   
   # Join reach conditions with indicators (the original, spatial object) and NOT indicatorsdf
-  reachConditions <- left_join(indicators, reachConditionsWide, by = "EvaluationID")
+  reachConditionsWide <- left_join(indicators, reachConditionsWide, by = "EvaluationID")
   
+  reachCondList <- list()
+  reachCondList[['reachConditionsLong']] <- IndicatorValuesBenchmarks
+  reachCondList[['reachConditionsWide']] <- reachConditionsWide
   
-  return(reachConditions)
+  return(reachCondList)
 }

@@ -186,9 +186,10 @@ ui <- page_navbar(
       navset_card_tab(
         nav_panel("Map", 
                   leafletOutput(outputId = "reachCondMap")),
-        nav_panel("Table",
-                  DTOutput(outputId = "reachConditionTable",height = "auto", fill = TRUE)
-        )
+        nav_panel("Full Output Table",
+                  DTOutput(outputId = "reachConditionTable",height = "auto", fill = TRUE)),
+        nav_panel("Review Applied Benchmarks",
+                  DTOutput(outputId = "reviewAppliedBenchmarks",height = "auto", fill = TRUE))
       )
     ),
   ),
@@ -576,11 +577,15 @@ server <- function(input, output, session) {
 # 4. Reach Conditions --------------------------------------------------------
   
   # Calculate Reach conditions (Min, Mod, Max) for each indicator
-  reachConditions <- reactive({determine_reach_conditions(indicators =  selected_points(),
+  reachConditionsdf <- reactive({determine_reach_conditions(indicators =  selected_points(),
                                                           definedBenchmarks = benchmarkGroupDF$df,
                                                           defaultBenchmarks = defaultBenchmarkVals(),
                                                           assignments = assignedBenchmarks())
+    
   })
+
+  reachConditionsWide <- reactive({reachConditionsdf()[['reachConditionsWide']]})
+  reachConditionsLong <- reactive({reachConditionsdf()[['reachConditionsLong']]})
   
   #Use selectedBenchmarks to update dropdown options for plotting reach conditions
   observe({
@@ -596,7 +601,7 @@ server <- function(input, output, session) {
   # Map showing indicators colored by selected reach condition variable
   output$reachCondMap <- renderLeaflet({
     
-    reachCond_leaflet_map(reachConditions(), input$reachCondMapSelect)
+    reachCond_leaflet_map(reachConditionsWide(), input$reachCondMapSelect)
     
   })
   
@@ -604,7 +609,7 @@ server <- function(input, output, session) {
   output$reachCondDLcsv <- downloadHandler(
     filename = "reachConditions.csv",
     content = function(file) {
-      write.csv(st_drop_geometry(reachConditions()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
+      write.csv(st_drop_geometry(reachConditionsWide()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
     }
   )
   
@@ -612,17 +617,18 @@ server <- function(input, output, session) {
   output$reachCondDLgdb <- downloadHandler(
     filename = "reachConditions.zip",
     content = function(file) {
-      make_reach_cond_GDB(reachConditions(), file)}
+      make_reach_cond_GDB(reachConditionsWide(), file)}
   )
   
   
   
   # Reach Conditions Table (mostly a placeholder for now)
-  output$reachConditionTable <- renderDT({reachConditions()},)
+  output$reachConditionTable <- renderDT({reachConditionsWide()},)
+  output$reviewAppliedBenchmarks <- renderDT({reachConditionsLong()},)
   
 # 5. Condition Summary ---------------------------------------------------------
   # output$bmSummaryTable <- renderDT({
-  #   condition_summary_df(reachConditions(), benchmarkGroupDF$df$Indicator)},
+  #   condition_summary_df(reachConditionsWide(), benchmarkGroupDF$df$Indicator)},
   #   extensions = 'Buttons',
   #   options = list(
   #     paging =FALSE,
@@ -636,7 +642,7 @@ server <- function(input, output, session) {
   
   output$bmSummaryTable <- renderReactable({
     # Calculate summary data
-    bmSummary <- condition_summary_df(reachConditions(), benchmarkGroupDF$df$Indicator)
+    bmSummary <- condition_summary_df(reachConditionsWide(), benchmarkGroupDF$df$Indicator)
     # Render summary table
     condition_summary_table(bmSummary)
   })
@@ -650,11 +656,11 @@ server <- function(input, output, session) {
   
   
   # output$bmSummaryBoxplots <- renderPlotly({
-  #   conditions_boxplot(reachConditions(), input$bmSummaryBoxplotsSelect)
+  #   conditions_boxplot(reachConditionsWide(), input$bmSummaryBoxplotsSelect)
   # })
   
   output$bmSummaryBoxplots <- renderGirafe({
-    conditions_boxplot(reachConditions(), input$bmSummaryBoxplotsSelect, input$showDensity)
+    conditions_boxplot(reachConditionsWide(), input$bmSummaryBoxplotsSelect, input$showDensity)
   })
 }
 

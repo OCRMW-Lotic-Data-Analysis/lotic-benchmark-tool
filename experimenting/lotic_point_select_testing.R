@@ -7,7 +7,7 @@ pts <- vroom::vroom("C:/Users/ianhe/OneDrive - The University of Montana/EMMA/an
 
 pts$id <- seq_len(nrow(pts))
 
-indicator_leaflet_map(pts, "PointSelectionType")
+#indicator_leaflet_map(pts, "PointSelectionType")
 
 
 indicator_leaflet_map(pts, "PointSelectionType") %>%
