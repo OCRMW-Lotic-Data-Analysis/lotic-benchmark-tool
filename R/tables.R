@@ -74,6 +74,46 @@ apply_benchmarks_table <- function(defaultBenchmarkVals, benchmarkGroupDF, indic
   return(rhot)
 }
 
+### Display default conditions for selected points
+review_applied_benchmarks_table <- function(reachCondLong){
+  
+  # Make column widths that forces all data on single line.  This is somehow
+  # not built into the reactable package.
+  getColWidths <- function(colName){
+    # Width of column name
+    ncharColName <- nchar(colName)
+    
+    # Width of data
+    ncharVals <- reachCondLong %>% pull(colName) %>% nchar() %>% max(na.rm = TRUE)
+    
+    # When grouping rows, add a few characters for the EvaluationID appended row count (e.g. "XE-SS-5141_2013-08-23 (10)")
+    if (colName == "EvaluationID"){
+      ncharVals <- ncharVals + 3
+    }
+    
+    maxLength <- max(ncharColName, ncharVals, na.rm = TRUE) * 12 # 10 = pixels per character (font size?)
+    
+    reactable::colDef(minWidth = maxLength)
+  }
+  
+  # Make list of column widths
+  singleLineColWidths <- set_names(names(reachCondLong)) %>% purrr::map(getColWidths)
+  print(singleLineColWidths)
+  print(reachCondLong)
+  # Make the table
+  reactable(reachCondLong,
+            pagination = FALSE, 
+            highlight = TRUE, 
+            compact = TRUE,
+            groupBy = "EvaluationID",
+            #defaultColDef = colDef(minWidth = 260),
+            #style = list(maxWidth = 10000),
+            columns = singleLineColWidths
+            )
+}
+
+
+
 ### Final reach conditions summary table (reactable).  Expects condition_summary_df() output.
 condition_summary_table <- function(summaryData){
 reactable(summaryData,

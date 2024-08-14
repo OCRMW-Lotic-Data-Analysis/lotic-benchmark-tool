@@ -3,9 +3,9 @@ library(readr)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(purrr)
 library(stringr)
 library(bslib)
-#library(plotly)
 library(ggiraph)
 library(DT)
 library(leaflet)
@@ -189,7 +189,7 @@ ui <- page_navbar(
         nav_panel("Full Output Table",
                   DTOutput(outputId = "reachConditionTable",height = "auto", fill = TRUE)),
         nav_panel("Review Applied Benchmarks",
-                  DTOutput(outputId = "reviewAppliedBenchmarks",height = "auto", fill = TRUE))
+                  reactableOutput(outputId = "reviewAppliedBenchmarks"))
       )
     ),
   ),
@@ -624,12 +624,10 @@ server <- function(input, output, session) {
   
   # Reach Conditions Table (mostly a placeholder for now)
   output$reachConditionTable <- renderDT({reachConditionsWide()},)
-  output$reviewAppliedBenchmarks <- renderDT(reachConditionsLong(),
-                                             extensions = 'Buttons', options = list(
-                                                 dom = 'Bfrtip',
-                                                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
-                                               )
-                                             )
+  output$reviewAppliedBenchmarks <- renderReactable({
+    req(selected_points())
+    review_applied_benchmarks_table(reachConditionsLong())
+  })
   
 # 5. Condition Summary ---------------------------------------------------------
   # output$bmSummaryTable <- renderDT({
