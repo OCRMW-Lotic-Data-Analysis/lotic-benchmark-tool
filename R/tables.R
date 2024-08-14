@@ -13,7 +13,7 @@ reactable(defCond,
 saved_benchmark_groups_table <- function(bmGroups) {
 reactable(bmGroups,
           pagination = FALSE,
-          groupBy = "bmGroup",
+          groupBy = "BenchmarkGroup",
           selection = "multiple",
           onClick = "select",
           defaultColDef = colDef(minWidth = 220))
@@ -27,7 +27,7 @@ apply_benchmarks_table <- function(defaultBenchmarkVals, benchmarkGroupDF, indic
   bmVars <- benchmarkGroupDF[['df']] %>% pull(Indicator) %>% unique()
   
   # Unique benchmark group names (unique b/c it's pulling from long-form table)
-  bmGroups <- benchmarkGroupDF[['df']] %>% pull(bmGroup) %>% unique()
+  bmGroups <- benchmarkGroupDF[['df']] %>% pull(BenchmarkGroup) %>% unique()
   #print(bmGroups)
   
   # Strip indicator table to basic info and set benchmark group to "Default".
