@@ -31,18 +31,18 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
   assignmentsCustomLong <- assignments %>% 
     # clean up table to just evalID and benchmarks 
     select(any_of(c(indicAttrSelection, benchmarkNames))) %>% 
-    pivot_longer(-all_of(indicAttrSelection), names_to = "Indicator", values_to = "bmGroup")
+    pivot_longer(-all_of(indicAttrSelection), names_to = "Indicator", values_to = "BenchmarkGroup")
   
   # Fill out the benchmark group assignments. This gives a table where each
-  # point+indicator combination has a bmGroup (either a custom one or Default)
+  # point+indicator combination has a BenchmarkGroup (either a custom one or Default)
   # This tells us which benchmark group (NOT actual mod/maj values yet) should 
   # be applied to the indicator of each point.
   assignmentsCompleteLong <- assignmentsCustomLong %>% 
     group_by(EvaluationID) %>%
-    complete(Indicator = defaultBenchmarks$Indicator, fill = list(bmGroup = "Default")) 
+    complete(Indicator = defaultBenchmarks$Indicator, fill = list(BenchmarkGroup = "Default")) 
   
   # Attach the actual numerical threshold values and operators (benchmarks) to assignmentsCompleteLong
-  benchmarksAndAssignments <-  left_join(assignmentsCompleteLong, benchmarks, join_by("bmGroup", "Indicator"))
+  benchmarksAndAssignments <-  left_join(assignmentsCompleteLong, benchmarks, join_by("BenchmarkGroup", "Indicator"))
   
   # Join indicators and benchmark assignments
   IndicatorValuesBenchmarks <- inner_join(indicatorLong, benchmarksAndAssignments, join_by("EvaluationID", "Indicator"))
@@ -93,7 +93,13 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
   }
 
 ### PREP FOR EXPORT ------------------------------------------------------------
-  
+  IndicatorValuesBenchmarksDetailed <- left_join(IndicatorValuesBenchmarks, indicators, by = "EvaluationID") %>%
+    select(PointID, EvaluationID, Indicator, value, BenchmarkGroup,
+           ModerateBenchmark1, MajorBenchmark1, ModerateBenchmark2, MajorBenchmark2,
+           Condition, BLM_AdminState, District, FieldOffice, Project,
+           FieldEvalDate, ProtocolType, FieldStatus, PointSelectionType,
+           OriginalDesign, OriginalStratum, HumanInfluence, BeaverFlowMod, BeaverSigns,
+           WaterWithdrawals, SideChannels)
   
   # Convert to wide format to join with original indicators input
   reachConditionsWide <- IndicatorValuesBenchmarks %>% 
@@ -104,7 +110,7 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
   reachConditionsWide <- left_join(indicators, reachConditionsWide, by = "EvaluationID")
   
   reachCondList <- list()
-  reachCondList[['reachConditionsLong']] <- IndicatorValuesBenchmarks
+  reachCondList[['reachConditionsLong']] <- IndicatorValuesBenchmarksDetailed
   reachCondList[['reachConditionsWide']] <- reachConditionsWide
   
   return(reachCondList)

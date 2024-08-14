@@ -392,7 +392,7 @@ server <- function(input, output, session) {
   
   # Load default benchmarks
   defaultBenchmarkVals <-reactiveVal(read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character") %>% 
-                                       mutate(bmGroup = "Default"))
+                                       mutate(BenchmarkGroup = "Default"))
   
   # Update benchmark selectors based on defaultBenchmarkVals().  This could come from
   # manual entry or upload.
@@ -447,7 +447,7 @@ server <- function(input, output, session) {
     # Merge above filtered data.  Since this is no longer the defaultBenchmarkVal, remove column with "Default" group.
     # Column removed as opposed to just removing values bc column is added later.
     dat <- bind_rows(cond2, cond3) %>% arrange(Indicator) %>%
-      select(-bmGroup)
+      select(-BenchmarkGroup)
     
     rhandsontable(data = dat) %>%
       hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE) %>%
@@ -497,7 +497,7 @@ server <- function(input, output, session) {
   observeEvent(input$saveNewBMGroup,{
     req(!is.null(input$bmGroupNameinput))
     # Get new benchmark group data into data frame
-    newGroupData <- definedBenchmarks() %>% tibble::add_column(bmGroup = input$bmGroupNameinput, .before = 1)
+    newGroupData <- definedBenchmarks() %>% tibble::add_column(BenchmarkGroup = input$bmGroupNameinput, .before = 1)
     
     # Merge previously saved groups with newly entered group (long form)
     benchmarkGroupDF$df <- bind_rows(benchmarkGroupDF$df, newGroupData)
@@ -517,19 +517,19 @@ server <- function(input, output, session) {
     
     if (!is.null(selected)) {
       # Get groupName(s) you want to delete into vector of strings
-      groupNames <- benchmarkGroupDF$df %>% slice(selected()) %>% pull(bmGroup)
+      groupNames <- benchmarkGroupDF$df %>% slice(selected()) %>% pull(BenchmarkGroup)
 
   
       # Actually remove the data from benchmarkGroupDF reactive value
-      benchmarkGroupDF$df <- benchmarkGroupDF$df %>% subset(!(bmGroup %in% groupNames))
+      benchmarkGroupDF$df <- benchmarkGroupDF$df %>% subset(!(BenchmarkGroup %in% groupNames))
     }
   })
   
   # EDIT previously saved benchmark group. 
   # almost works. opens table to edit but doesnt allow for saving and selectInputs are not correct. 
   # observeEvent(input$editBMGroup,{
-  #   groupNames <- benchmarkGroupWideSum$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(bmGroup)
-  #   bmedit <- benchmarkGroupDF$df %>% subset(bmGroup %in% groupNames)
+  #   groupNames <- benchmarkGroupWideSum$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(BenchmarkGroup)
+  #   bmedit <- benchmarkGroupDF$df %>% subset(BenchmarkGroup %in% groupNames)
   #   #print(groupNames)
   #   #print(bmedit)
   #   defaultBenchmarkVals(bmedit)
@@ -624,7 +624,12 @@ server <- function(input, output, session) {
   
   # Reach Conditions Table (mostly a placeholder for now)
   output$reachConditionTable <- renderDT({reachConditionsWide()},)
-  output$reviewAppliedBenchmarks <- renderDT({reachConditionsLong()},)
+  output$reviewAppliedBenchmarks <- renderDT(reachConditionsLong(),
+                                             extensions = 'Buttons', options = list(
+                                                 dom = 'Bfrtip',
+                                                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+                                               )
+                                             )
   
 # 5. Condition Summary ---------------------------------------------------------
   # output$bmSummaryTable <- renderDT({
