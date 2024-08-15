@@ -1,8 +1,8 @@
 library(leaflet)
 
-### Pallettes and Labels -------------------------------------------------------
-# Map displaying loaded or filtered indicators at start of workflow.
-# Set pallette.  Leaving outside of function to use in leafletproxy elsewhere.
+### Palettes and Labels -------------------------------------------------------
+
+## Initial view of all indicators palette
 indicatorPalette <- colorFactor(palette = c("#1e4ca2", "#59c2fa", "#7bf8cf"), levels = c("RandomGRTS","Targeted","RandomSystematic"))
 
 # Label to display when hovering over point on idicator selection map
@@ -13,6 +13,13 @@ indicator_labels <- function(indicatorData){
     "<br>", as.Date(indicatorData$FieldEvalDate)) %>%
     lapply(htmltools::HTML)
 }
+
+## Reach Conditions (Min, Mod, Maj) palette
+# Factors/levels - used in both legend and map symbology. Leaflet needs these both defined. 
+reachCondFactors <- factor(c("Major", "Moderate", "Minimal"), levels = c("Major", "Moderate", "Minimal"))
+reachCondPalette <- colorFactor(c("#895a44", "#e6e600", "#00a9e6"), 
+                    levels = reachCondFactors,
+                    ordered = TRUE)
 
 ### Maps -----------------------------------------------------------------------
 # Initial map with just basemaps and general settings.
@@ -99,14 +106,6 @@ reachCond_leaflet_map <- function(reachConditions, mappingVarInput) {
       "Condition: ", reachConditions[[conditionVar]]) %>%
       lapply(htmltools::HTML)
     
-    # Create a new grouping variable.  Ensures legend item order is correct.
-    ord <- factor(c("Major", "Moderate", "Minimal"), levels = c("Major", "Moderate", "Minimal"))
-    
-    
-    # Palet
-    pal <- colorFactor(c("#f03b20", "#feb24c", "#ffeda0"), 
-                       levels = ord,
-                       ordered = TRUE)
     
     # Map
     reachConditions %>%
@@ -120,7 +119,7 @@ reachCond_leaflet_map <- function(reachConditions, mappingVarInput) {
       addCircleMarkers(
         radius = 6,
         color = "black",
-        fillColor = ~pal(reachConditions[[conditionVar]]),
+        fillColor = ~reachCondPalette(reachConditions[[conditionVar]]),
         stroke = TRUE,
         weight = 1,
         fillOpacity = 1,
@@ -135,8 +134,8 @@ reachCond_leaflet_map <- function(reachConditions, mappingVarInput) {
                        "Esri.WorldImagery"),
         # position it on the topleft
         position = "topleft") %>%
-      addLegend(pal = pal, 
-                values = ord,
+      addLegend(pal = reachCondPalette, 
+                values = reachCondFactors,
                 opacity = 1, 
                 title = conditionVar)
 }

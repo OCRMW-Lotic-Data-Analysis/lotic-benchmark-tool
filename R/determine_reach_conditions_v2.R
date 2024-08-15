@@ -94,9 +94,9 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
 
 ### PREP FOR EXPORT ------------------------------------------------------------
   IndicatorValuesBenchmarksDetailed <- left_join(IndicatorValuesBenchmarks, indicators, by = "EvaluationID") %>%
-    select(PointID, EvaluationID, Indicator, value, BenchmarkGroup,
+    select(PointID, EvaluationID, Indicator, value, Condition, BenchmarkGroup,
            ModerateBenchmark1, MajorBenchmark1, ModerateBenchmark2, MajorBenchmark2,
-           Condition, BLM_AdminState, District, FieldOffice, Project,
+           BLM_AdminState, District, FieldOffice, Project,
            FieldEvalDate, ProtocolType, FieldStatus, PointSelectionType,
            OriginalDesign, OriginalStratum, HumanInfluence, BeaverFlowMod, BeaverSigns,
            WaterWithdrawals, SideChannels)

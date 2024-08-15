@@ -13,10 +13,8 @@ library(sf)
 library(shinyWidgets)
 library(rhandsontable)
 library(reactable)
-library(reactable.extras)
 library(htmltools)
 library(zip)
-
 
 ### UI -------------------------------------------------------------------------
 ui <- page_navbar(
@@ -609,7 +607,8 @@ server <- function(input, output, session) {
   output$reachCondDLcsv <- downloadHandler(
     filename = "reachConditions.csv",
     content = function(file) {
-      write.csv(st_drop_geometry(reachConditionsWide()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
+      #write.csv(st_drop_geometry(reachConditionsWide()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
+      write.csv(st_drop_geometry(reachConditionsLong()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
     }
   )
   
