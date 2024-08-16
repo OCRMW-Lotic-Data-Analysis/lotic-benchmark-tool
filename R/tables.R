@@ -54,23 +54,32 @@ dynamicColWidths <- function(reachCondLong, otherColDefs = NULL){
 
 ### Display default conditions for selected points
 default_conditions_table <- function(defCond){
-reactable(defCond,
-          pagination = FALSE, 
-          highlight = TRUE, 
-          compact = TRUE,
-          groupBy = "EvaluationID",
-          defaultColDef = colDef(minWidth = 260)
-          )
+  reactable(defCond,
+            pagination = FALSE, 
+            highlight = TRUE, 
+            compact = TRUE,
+            groupBy = "EvaluationID",
+            columns = dynamicColWidths(defCond,
+                                       otherColDefs = list(
+                                         Condition = colDef(
+                                           style = function(value) {
+                                             color <- reachCondPalette(value)
+                                             list(background = color)
+                                           }
+                                         )
+                                       ))
+            )
 }
 
 ### Show saved benchmark groups
 saved_benchmark_groups_table <- function(bmGroups) {
-reactable(bmGroups,
-          pagination = FALSE,
-          groupBy = "BenchmarkGroup",
-          selection = "multiple",
-          onClick = "select",
-          defaultColDef = colDef(minWidth = 220))
+  reactable(bmGroups,
+            pagination = FALSE,
+            groupBy = "BenchmarkGroup",
+            selection = "multiple",
+            onClick = "select",
+            columns = dynamicColWidths(bmGroups)
+            )
 }
 
 ### Editable table allowing user to select which benchmark group to use for point indicators (rhandsontable)
@@ -147,13 +156,6 @@ review_applied_benchmarks_table <- function(reachCondLong){
                                          )
                                        ))
             )
-  
-  # reactable(reachCondLong,
-  #           pagination = FALSE, 
-  #           highlight = TRUE, 
-  #           compact = TRUE,
-  #           groupBy = "EvaluationID",
-  #           columns = dynamicColWidths(reachCondLong))
   
 }
 
