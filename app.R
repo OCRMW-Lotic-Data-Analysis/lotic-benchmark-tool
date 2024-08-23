@@ -345,40 +345,130 @@ server <- function(input, output, session) {
     }
   })
   
-  # Observe click events on the map and save selected points for later calculations
+  
+  # observeEvent(input$indicatorMap_marker_click, {
+  #   # Retrieve click ID.  From an unselected point, this will return the 'EvalulationID'.
+  #   # From a selected point, this will return the 'selectionID'. Two different IDs are needed because 
+  #   # if two points share the same 'layerId' in leaflet the second one will just replace the original.  
+  #   # Here, selected points are drawn "on top" of 'allPts'.
+  
+  #   click <- input$indicatorMap_marker_click
+  #   
+  #   selected <- selected_points()
+  # 
+  #   # Logic to change selection status.  All original points are in the "allPts" 'group'.
+  #   # All selected points are in the "selectedPts" 'group'.  Groups are defined in the leaflet and 
+  #   # leaflet proxy 'addCircleMarkers' function.  
+  #   if (click$group == "allPts") {
+  #     # click$id is the 'layerId' defined in leaflet function.  This must be a unique value in leaflet 
+  #     # and therefore is the 'EvaluationID'.  Here, we pull the 'PointID'.
+  #     ptID <- str_split_i(click$id, "_", i = 1)
+  #     # select based on pointID.  This will select all field visits at a point.
+  #     selected <- bind_rows(selected, indicatorData_active() %>% filter(PointID == ptID))
+  #     
+  #   } else if (click$group == "selectedPts") {
+  #     selected <- selected %>% filter(selectionID != click$id)
+  #   }
+  #   
+  #   # Create unique IDs for the selected points.  This is used to differentiate 'layerIds' between
+  #   # 'seletcted' (selected_points()) and 'allPts' (indicatordData_active()).  
+  #   selected$selectionID <- seq_len(nrow(selected))
+  # 
+  #   # Save new selected points to reactive value.
+  #   selected_points(selected)
+  # 
+  #   # Update the map with the new selection.
+  #   indicator_leaflet_selection_proxy(mapId = "indicatorMap", data = selected_points())
+  # 
+  # })
+  
+  
+  
+  
+  # When point is clicked, select/unselect it
   observeEvent(input$indicatorMap_marker_click, {
     # Retrieve click ID.  From an unselected point, this will return the 'EvalulationID'.
-    # From a selected point, this will return the 'selectionID' assignd a few lines below.
-    # Two different IDs are needed because if two points share the same 'layerId' in leaflet
-    # the second one will just replace the original.  Here, selected points are drawn "on top" of
-    # 'allPts'.
-    click <- input$indicatorMap_marker_click
-    
-    selected <- selected_points()
+    # From a selected point, this will return the 'selectionID'. Two different IDs are needed because
+    # if two points share the same 'layerId' in leaflet the second one will just replace the original.
+    # Here, selected points are drawn "on top" of 'allPts'.
+    clickID <- input$indicatorMap_marker_click$id
+    clickGroup <- input$indicatorMap_marker_click$group
 
+    selected <- selected_points()
+    
     # Logic to change selection status.  All original points are in the "allPts" 'group'.
-    # All selected points are in the "selectedPts" 'group'.  Groups are defined in the leaflet and 
-    # leaflet proxy 'addCircleMarkers' function.  
-    if (click$group == "allPts") {
-      ptID <- str_split_i(click$id, "_", i = 1)
-      # select based on pointID.  This will select all field visits at a point.
-      selected <- bind_rows(selected, indicatorData_active() %>% filter(PointID == ptID))
-      
-    } else if (click$group == "selectedPts") {
-      selected <- selected %>% filter(selectionID != click$id)
+    # All selected points are in the "selectedPts" 'group'.  Groups are defined in the leaflet and
+    # leaflet proxy 'addCircleMarkers' function.
+    
+    # Get EvaluationID from point.
+    if (clickGroup == "allPts") {
+      clickEvalID <- clickID
+    } else if (clickGroup == "selectedPts") {
+      clickEvalID <- selected %>% filter(selectionID == clickID) %>% pull(EvaluationID)
     }
     
-    # Create unique IDs for the selected points.  This is used to differentiate 'layerIds' between
-    # 'seletcted' (selected_points()) and 'allPts' (indicatordData_active()).  
-    selected$selectionID <- seq_len(nrow(selected))
- 
-    # Save new selected points to reactive value.
-    selected_points(selected)
-
-    # Update the map with the new selection.
+    # Check if the point is already selected.  If selected, unselect it. If not selected, select it.
+    if (clickEvalID %in% selected$EvaluationID) {
+      # Remove the point from selected_points
+      new_selection <- selected %>% filter(EvaluationID != clickEvalID)
+    } else {
+      # Add the point to selected_points
+      new_selection <- bind_rows(selected, indicatorData_active() %>% filter(EvaluationID == clickEvalID))
+    }
+    
+    # Make new selectionID to act as layerId for selected points.
+    new_selection$selectionID <- seq_len(nrow(new_selection))
+    
+    # Save the updated selection
+    selected_points(new_selection) 
+    
+    # Update map with new selection
     indicator_leaflet_selection_proxy(mapId = "indicatorMap", data = selected_points())
-
   })
+  
+  # Select all points within a drawn polygon
+  observeEvent(input$indicatorMap_draw_new_feature, {
+    selected <- selected_points()
+    
+    # Extract polygon feature 
+    feature <- input$indicatorMap_draw_new_feature
+    coords <- feature$geometry$coordinates[[1]]
+    selectionPoly <- st_polygon(list(matrix(unlist(coords), ncol = 2, byrow = TRUE)))
+    
+    # Find points within the polygon
+    pointsInPoly <- st_filter(indicatorData_active(), selectionPoly)
+    
+    # Identify only the new points.  Do not include points already selected.
+    new_points <- pointsInPoly %>% filter(!(EvaluationID %in% selected$EvaluationID))
+    
+    # Combined previous and new selection
+    new_selection <- bind_rows(selected, indicatorData_active() %>% filter(EvaluationID %in% new_points$EvaluationID))
+    
+    # Make new selectionID to act as layerId for selected points.
+    new_selection$selectionID <- seq_len(nrow(new_selection))
+    
+    # Save the updated selection
+    selected_points(new_selection)
+    
+    # Update map with new selection
+    indicator_leaflet_selection_proxy(mapId = "indicatorMap", data = selected_points())  # Update the map to reflect the color change
+    
+    # # Optional workaround to immediately remove the drawn feature once completed.  Toolbar may quickly flash.
+    # leafletProxy(indicatorMap) %>%
+    #   removeDrawToolbar(clearFeatures = TRUE) %>%
+    #   addDrawToolbar(
+    #     polylineOptions = FALSE,
+    #     polygonOptions = drawPolygonOptions(shapeOptions = drawShapeOptions(color = 'red')),
+    #     rectangleOptions = drawRectangleOptions(shapeOptions = drawShapeOptions(color = 'red')),
+    #     circleOptions = FALSE,
+    #     markerOptions = FALSE,
+    #     editOptions = editToolbarOptions(edit = FALSE)
+    #   )
+    
+  })
+  
+  
+  
   
   ### Table 
   #Simple table - doesnt autofit data though.

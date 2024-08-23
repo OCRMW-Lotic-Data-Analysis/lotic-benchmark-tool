@@ -30,19 +30,35 @@ indicator_leaflet_map <- function() {
     options = leafletOptions(
       attributionControl=FALSE,
       maxZoom = 16)
-  ) %>%
-  setView(-113, 41, zoom = 5) %>%
-  addTiles() %>%
-  addProviderTiles("Esri.NatGeoWorldMap", group = "Esri.NatGeoWorldMap") %>%
-  addProviderTiles("Esri.WorldImagery"  , group = "Esri.WorldImagery") %>%
-  addProviderTiles("Esri.WorldTopoMap"  , group = "Esri.WorldTopoMap") %>%
-  addProviderTiles("USGS.USTopo"        , group = "USGS.USTopo") %>%
-  addProviderTiles("USGS.USImagery"     , group = "USGS.USImagery") %>%
-  addProviderTiles("USGS.USImageryTopo" , group = "USGS.USImageryTopo") %>%
-  addLayersControl(baseGroups = c("Esri.NatGeoWorldMap", "Esri.WorldImagery",
-                                  "Esri.WorldTopoMap", "USGS.USTopo",
+    ) %>%
+    setView(-113, 41, zoom = 5) %>%
+    addTiles() %>%
+    addProviderTiles("Esri.NatGeoWorldMap", group = "Esri.NatGeoWorldMap") %>%
+    addProviderTiles("Esri.WorldImagery"  , group = "Esri.WorldImagery") %>%
+    addProviderTiles("Esri.WorldTopoMap"  , group = "Esri.WorldTopoMap") %>%
+    addProviderTiles("USGS.USTopo"        , group = "USGS.USTopo") %>%
+    addProviderTiles("USGS.USImagery"     , group = "USGS.USImagery") %>%
+    addProviderTiles("USGS.USImageryTopo" , group = "USGS.USImageryTopo") %>%
+    addLayersControl(baseGroups = c("Esri.NatGeoWorldMap", "Esri.WorldImagery",
+                                    "Esri.WorldTopoMap", "USGS.USTopo",
                                   "USGS.USImagery", "USGS.USImageryTopo"), 
-                   position = "topleft")
+                   position = "topleft") %>%
+    addDrawToolbar(
+      singleFeature = TRUE,
+      toolbar = toolbarOptions(
+        actions = list(title = "Cancel", text = "Cancel"),
+        finish = list(title = "Done", text = "Done"),
+        undo = list(title = "Delete last vertex", text = "Undo"),
+        buttons = list(polygon      = "Select by polygon",
+                       rectangle    = "Select by rectangle",
+                       circle       = "Select by circle")
+      ),
+      handlers =  handlersOptions(
+        polygon = list(tooltipStart  = "Start drawing.  Click first point to complete shape")
+      ),
+      editOptions = editToolbarOptions(),
+      polylineOptions = F, rectangleOptions = T, circleOptions = T,
+      polygonOptions = T, markerOptions = F, circleMarkerOptions = F)
 }
 
 # Proxy map to render initial data and subsequent filtered data.
