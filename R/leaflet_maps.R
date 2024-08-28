@@ -50,14 +50,13 @@ indicator_leaflet_map <- function() {
         finish = list(title = "Done", text = "Done"),
         undo = list(title = "Delete last vertex", text = "Undo"),
         buttons = list(polygon      = "Select by polygon",
-                       rectangle    = "Select by rectangle",
-                       circle       = "Select by circle")
+                       rectangle    = "Select by rectangle")
       ),
       handlers =  handlersOptions(
         polygon = list(tooltipStart  = "Start drawing.  Click first point to complete shape")
       ),
       editOptions = editToolbarOptions(),
-      polylineOptions = F, rectangleOptions = T, circleOptions = T,
+      polylineOptions = F, rectangleOptions = T, circleOptions = F,
       polygonOptions = T, markerOptions = F, circleMarkerOptions = F)
 }
 

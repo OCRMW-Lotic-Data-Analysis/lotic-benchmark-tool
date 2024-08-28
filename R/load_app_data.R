@@ -14,8 +14,4 @@ indicatorData_raw <- reactive({
 })
 
 # Load default conditions
-defaultConditions <- readr::read_csv("./appData/A_DefaultConditions.csv", show_col_types = FALSE) %>% 
-  dplyr::select(PointID, EvaluationID, Indicator, 
-         Value, BenchmarkGroup, ModerateBenchmark1, 
-         MajorBenchmark1, ModerateBenchmark2, MajorBenchmark2, 
-         Condition, BLM_AdminState)
+defaultConditions <- readr::read_csv("./appData/A_DefaultConditions.csv", show_col_types = FALSE)

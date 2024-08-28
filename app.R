@@ -9,6 +9,7 @@ library(bslib)
 library(ggiraph)
 library(DT)
 library(leaflet)
+library(leaflet.extras)
 library(sf)
 library(shinyWidgets)
 library(rhandsontable)
@@ -583,7 +584,7 @@ server <- function(input, output, session) {
   
   # SAVE edited benchmark table.  Also resets text/picker inputs and clears table.
   observeEvent(input$saveNewBMGroup,{
-    req(!is.null(input$bmGroupNameinput))
+    req(!is.null(input$bmGroupNameinput) & !is.null(input$defineBenchmark_hot))
     # Get new benchmark group data into data frame
     newGroupData <- definedBenchmarks() %>% tibble::add_column(BenchmarkGroup = input$bmGroupNameinput, .before = 1)
     
@@ -645,7 +646,11 @@ server <- function(input, output, session) {
   
   output$defaultConditionsTable <- renderReactable({
     req(selected_points())
-    defCond <- defaultConditions %>% filter(EvaluationID %in% selected_points()$EvaluationID) %>%
+    defCond <- defaultConditions %>% dplyr::select(
+        PointID, EvaluationID, Indicator, Value, BenchmarkGroup, ModerateBenchmark1,
+        MajorBenchmark1, ModerateBenchmark2, MajorBenchmark2,Condition, BLM_AdminState
+        ) %>%
+      filter(EvaluationID %in% selected_points()$EvaluationID) %>%
       arrange(EvaluationID)
     default_conditions_table(defCond)
   })
@@ -664,10 +669,10 @@ server <- function(input, output, session) {
   
 # 4. Reach Conditions --------------------------------------------------------
   
-  # Calculate Reach conditions (Min, Mod, Max) for each indicator
+  # Calculate Reach conditions (Min, Mod, Maj) for each indicator
   reachConditionsdf <- reactive({determine_reach_conditions(indicators =  selected_points(),
                                                           definedBenchmarks = benchmarkGroupDF$df,
-                                                          defaultBenchmarks = defaultBenchmarkVals(),
+                                                          #defaultBenchmarks = defaultBenchmarkVals(),
                                                           assignments = assignedBenchmarks())
     
   })
@@ -719,22 +724,11 @@ server <- function(input, output, session) {
   })
   
 # 5. Condition Summary ---------------------------------------------------------
-  # output$bmSummaryTable <- renderDT({
-  #   condition_summary_df(reachConditionsWide(), benchmarkGroupDF$df$Indicator)},
-  #   extensions = 'Buttons',
-  #   options = list(
-  #     paging =FALSE,
-  #     searching = FALSE,
-  #     dom = 'tB',
-  #     buttons = list( 
-  #       list(extend = 'csv',   filename =  "benchmarkSummaryTable"),
-  #       list(extend = 'excel', filename =  "benchmarkSummaryTable"))
-  #   )
-  # )
-  
   output$bmSummaryTable <- renderReactable({
     # Calculate summary data
-    bmSummary <- condition_summary_df(reachConditionsWide(), benchmarkGroupDF$df$Indicator)
+    #bmSummary <- condition_summary_df(reachConditionsWide(), benchmarkGroupDF$df$Indicator)
+    bmSummary <- condition_summary_df(reachConditionsWide(), unique(reachConditionsLong()$Indicator))
+
     # Render summary table
     condition_summary_table(bmSummary)
   })
