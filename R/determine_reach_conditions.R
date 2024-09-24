@@ -28,7 +28,7 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
                                                     values_to = "value")
 
   # Pivot values from "apply benchmark" table to long form. Only custom
-  # benchmarks are induced here (no Defaults)
+  # benchmarks are included here (no Defaults)
   assignmentsCompleteLong <- assignments %>% 
     # clean up table to just evalID and benchmarks 
     select(any_of(c(indicAttrSelection, benchmarkNames))) %>% 
@@ -98,7 +98,8 @@ determine_reach_conditions <- function(indicators, definedBenchmarks, assignment
 
 ### PREP FOR EXPORT ------------------------------------------------------------
 
-  # Filter the defaultConditions to the points selected by the user.
+  # Filter the defaultConditions to the points selected by the user. 
+  # defaultConditions is loaded when app is started.
   defaultCondSel <- defaultConditions %>% filter(EvaluationID %in% indicators$EvaluationID) %>%
     select(EvaluationID, Indicator, Value, Condition, BenchmarkGroup,
            ModerateBenchmark1, MajorBenchmark1, ModerateBenchmark2, MajorBenchmark2) %>% rename(value = Value)

@@ -388,7 +388,7 @@ server <- function(input, output, session) {
   
   # When point is clicked, select/unselect it
   observeEvent(input$indicatorMap_marker_click, {
-    # Retrieve click ID.  From an unselected point, this will return the 'EvalulationID'.
+    # Retrieve click ID.  From an unselected point, this will return the 'PointID'.
     # From a selected point, this will return the 'selectionID'. Two different IDs are needed because
     # if two points share the same 'layerId' in leaflet the second one will just replace the original.
     # Here, selected points are drawn "on top" of 'allPts'.
@@ -400,22 +400,27 @@ server <- function(input, output, session) {
     # Logic to change selection status.  All original points are in the "allPts" 'group'.
     # All selected points are in the "selectedPts" 'group'.  Groups are defined in the leaflet and
     # leaflet proxy 'addCircleMarkers' function.
-    
-    # Get EvaluationID from point.
-    if (clickGroup == "allPts") {
-      clickEvalID <- clickID
+
+    # Get PointID from point.
+    if (clickGroup == "allPts") {  # allPts = unselected
+      clickPtID <- str_split_i(clickID, "_", i = 1) 
     } else if (clickGroup == "selectedPts") {
-      clickEvalID <- selected %>% filter(selectionID == clickID) %>% pull(EvaluationID)
+      clickPtID <- selected %>% filter(selectionID == clickID) %>% pull(PointID)
     }
     
     # Check if the point is already selected.  If selected, unselect it. If not selected, select it.
-    if (clickEvalID %in% selected$EvaluationID) {
+    if (clickPtID %in% selected$PointID) {
       # Remove the point from selected_points
-      new_selection <- selected %>% filter(EvaluationID != clickEvalID)
+      new_selection <- selected %>% filter(PointID != clickPtID)
     } else {
       # Add the point to selected_points
-      new_selection <- bind_rows(selected, indicatorData_active() %>% filter(EvaluationID == clickEvalID))
+      new_selection <- bind_rows(selected, indicatorData_active() %>% filter(PointID == clickPtID))
     }
+    
+    
+    
+    
+    
     
     # Make new selectionID to act as layerId for selected points.
     new_selection$selectionID <- seq_len(nrow(new_selection))
@@ -480,8 +485,9 @@ server <- function(input, output, session) {
 # 2. Define Benchmarks -------------------------------------------------------
   
   # Load default benchmarks
-  defaultBenchmarkVals <-reactiveVal(read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character") %>% 
-                                       mutate(BenchmarkGroup = "Default"))
+  defaultBenchmarkVals <-reactiveVal(read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character") 
+                                     #%>% mutate(BenchmarkGroup = "Default")
+                                     )
   
   # Update benchmark selectors based on defaultBenchmarkVals().  This could come from
   # manual entry or upload.
@@ -535,8 +541,8 @@ server <- function(input, output, session) {
     
     # Merge above filtered data.  Since this is no longer the defaultBenchmarkVal, remove column with "Default" group.
     # Column removed as opposed to just removing values bc column is added later.
-    dat <- bind_rows(cond2, cond3) %>% arrange(Indicator) %>%
-      select(-BenchmarkGroup)
+    dat <- bind_rows(cond2, cond3) %>% arrange(Indicator) 
+    #%>%select(-BenchmarkGroup)
     
     rhandsontable(data = dat) %>%
       hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE) %>%
