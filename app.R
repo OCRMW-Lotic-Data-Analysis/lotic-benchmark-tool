@@ -485,9 +485,7 @@ server <- function(input, output, session) {
 # 2. Define Benchmarks -------------------------------------------------------
   
   # Load default benchmarks
-  defaultBenchmarkVals <-reactiveVal(read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character") 
-                                     #%>% mutate(BenchmarkGroup = "Default")
-                                     )
+  defaultBenchmarkVals <-reactiveVal(read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character"))
   
   # Update benchmark selectors based on defaultBenchmarkVals().  This could come from
   # manual entry or upload.
@@ -542,7 +540,6 @@ server <- function(input, output, session) {
     # Merge above filtered data.  Since this is no longer the defaultBenchmarkVal, remove column with "Default" group.
     # Column removed as opposed to just removing values bc column is added later.
     dat <- bind_rows(cond2, cond3) %>% arrange(Indicator) 
-    #%>%select(-BenchmarkGroup)
     
     rhandsontable(data = dat) %>%
       hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE) %>%
@@ -678,7 +675,6 @@ server <- function(input, output, session) {
   # Calculate Reach conditions (Min, Mod, Maj) for each indicator
   reachConditionsdf <- reactive({determine_reach_conditions(indicators =  selected_points(),
                                                           definedBenchmarks = benchmarkGroupDF$df,
-                                                          #defaultBenchmarks = defaultBenchmarkVals(),
                                                           assignments = assignedBenchmarks())
     
   })
@@ -689,8 +685,6 @@ server <- function(input, output, session) {
   #Use selectedBenchmarks to update dropdown options for plotting reach conditions
   observe({
     updateSelectInput(session, "reachCondMapSelect",
-                      #choices = definedBenchmarks()$Indicator,
-                      #selected = definedBenchmarks()$Indicator[1]
                       choices = benchmarkGroupDF$df$Indicator,
                       selected = benchmarkGroupDF$df$Indicator[1]
     )
