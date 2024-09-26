@@ -591,7 +591,7 @@ server <- function(input, output, session) {
   
   # Load sample benchmark group
   observeEvent(input$loadSampleBMGroup,{
-    newGroupData <- read_csv("./appData/sample_benchmark_group.csv", show_col_types = FALSE) %>% 
+    newGroupData <- read_csv("./appData/sample_benchmark_group.csv", col_types = cols(.default = col_character()), show_col_types = FALSE) %>% 
       tibble::add_column(BenchmarkGroup = "example", .before = 1)
     # Merge previously saved groups with newly entered group (long form)
     benchmarkGroupDF$df <- bind_rows(benchmarkGroupDF$df, newGroupData)
