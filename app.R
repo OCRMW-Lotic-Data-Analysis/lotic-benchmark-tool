@@ -101,14 +101,14 @@ ui <- page_navbar(
         textInput("bmGroupNameinput", label = "Group Name"),
         pickerInput(inputId = "selectBenchmarks3",
                     label = "Three Condition Categories",
-                    choices = "",    # choices are updated based on input of defaultBenchmarkVals()
+                    choices = "",    # choices are updated based on input of indicatorList()
                     options = list(
                       `actions-box` = TRUE),
                     multiple = TRUE
         ),
         pickerInput(inputId = "selectBenchmarks2",
                     label = "Two Condition Categories",
-                    choices = "",    # choices are updated based on input of defaultBenchmarkVals()
+                    choices = "",    # choices are updated based on input of indicatorList()
                     options = list(
                       `actions-box` = TRUE),
                     multiple = TRUE
@@ -117,6 +117,7 @@ ui <- page_navbar(
         
         actionButton("saveNewBMGroup", label = "Save New Benchmark Group", style="color: #000000; background-color: #DEFFDE"),
         actionButton("deleteBMGroup", label = "Delete Selected Benchmark Group", style="color: #000000; background-color: #FFDEDE"),
+        actionButton("loadSampleBMGroup", label = "Load Sample Benchmark Group"),
         #hr(),
         #actionButton("editBMGroup", label = "Edit Selected Benchmark Group"),
         
@@ -172,6 +173,8 @@ ui <- page_navbar(
           label = "Select Indicator for Map",
           choices = NULL
         ),
+        hr(),
+        p("Download 'Full Output Table'"),
         downloadButton(
           outputId = "reachCondDLcsv",
           label = "Download CSV"
@@ -485,16 +488,17 @@ server <- function(input, output, session) {
 # 2. Define Benchmarks -------------------------------------------------------
   
   # Load default benchmarks
-  defaultBenchmarkVals <-reactiveVal(read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character"))
+  #indicatorList <-reactiveVal(read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character"))
+  indicatorList <-reactiveVal(read.csv("./appData/custom_indicator_list.csv", colClasses = "character"))
   
-  # Update benchmark selectors based on defaultBenchmarkVals().  This could come from
+  # Update benchmark selectors based on indicatorList().  This could come from
   # manual entry or upload.
   observe({
-    updateSelectInput(session, "selectBenchmarks3",
-                      choices = filter(defaultBenchmarkVals(), ConditionCategoryNum == 3) %>% pull(Indicator))
+    updatePickerInput(session, "selectBenchmarks3",
+                      choices = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator))
     
-    updateSelectInput(session, "selectBenchmarks2",
-                      choices = filter(defaultBenchmarkVals(), ConditionCategoryNum == 2) %>% pull(Indicator))
+    updatePickerInput(session, "selectBenchmarks2",
+                      choices = filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator))
   })
   
   # Create mutually exclusive selectors for 2 and 3 category benchmarks.
@@ -506,7 +510,7 @@ server <- function(input, output, session) {
       updatePickerInput(
         session = session,
         inputId = "selectBenchmarks2",
-        choices = setdiff(filter(defaultBenchmarkVals(), ConditionCategoryNum == 2) %>% pull(Indicator), 
+        choices = setdiff(filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator), 
                           input$selectBenchmarks3),
         selected = input$selectBenchmarks2
       )
@@ -519,7 +523,7 @@ server <- function(input, output, session) {
       updatePickerInput(
         session = session,
         inputId = "selectBenchmarks3",
-        choices = setdiff(filter(defaultBenchmarkVals(), ConditionCategoryNum == 3) %>% pull(Indicator), 
+        choices = setdiff(filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator), 
                           input$selectBenchmarks2),
         selected = input$selectBenchmarks3
       )
@@ -534,10 +538,10 @@ server <- function(input, output, session) {
     req(isTruthy(input$selectBenchmarks3 != "") || isTruthy(input$selectBenchmarks2 != ""))
     
     # Filter to selected benchmarks
-    cond2 <- dplyr::filter(defaultBenchmarkVals(), Indicator %in% input$selectBenchmarks3 & ConditionCategoryNum == 3)
-    cond3 <- dplyr::filter(defaultBenchmarkVals(), Indicator %in% input$selectBenchmarks2 & ConditionCategoryNum == 2)
+    cond2 <- dplyr::filter(indicatorList(), Indicator %in% input$selectBenchmarks3 & ConditionCategoryNum == 3)
+    cond3 <- dplyr::filter(indicatorList(), Indicator %in% input$selectBenchmarks2 & ConditionCategoryNum == 2)
     
-    # Merge above filtered data.  Since this is no longer the defaultBenchmarkVal, remove column with "Default" group.
+    # Merge above filtered data.  Since this is no longer the indicatorList, remove column with "Default" group.
     # Column removed as opposed to just removing values bc column is added later.
     dat <- bind_rows(cond2, cond3) %>% arrange(Indicator) 
     
@@ -563,17 +567,17 @@ server <- function(input, output, session) {
   #                  csv = vroom::vroom(input$benchmarkUpload$datapath, delim = ",", col_types = cols(.default = "c"), show_col_types = FALSE),
   #                  validate("Invalid file; Please upload a .csv")
   #   )
-  #   defaultBenchmarkVals(bmul)
+  #   indicatorList(bmul)
   #   
   #   updateSelectInput(session, "selectBenchmarks3",
-  #                     choices = filter(defaultBenchmarkVals(), ConditionCategoryNum == 3) %>% pull(Indicator),
-  #                     selected = filter(defaultBenchmarkVals(), ConditionCategoryNum == 3) %>% pull(Indicator))
+  #                     choices = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator),
+  #                     selected = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator))
   #   
   #   updateSelectInput(session, "selectBenchmarks2",
-  #                     choices = filter(defaultBenchmarkVals(), ConditionCategoryNum == 2) %>% pull(Indicator),
-  #                     selected = filter(defaultBenchmarkVals(), ConditionCategoryNum == 2) %>% pull(Indicator))
+  #                     choices = filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator),
+  #                     selected = filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator))
   #   
-  #   #print(defaultBenchmarkVals()) 
+  #   #print(indicatorList()) 
   # })
   
   # Save the currently displayed values of the 'defineBenchmark_hot' table
@@ -584,6 +588,16 @@ server <- function(input, output, session) {
   
   # Initialize empty container for saved benchmark groups
   benchmarkGroupDF <- reactiveValues()
+  
+  # Load sample benchmark group
+  observeEvent(input$loadSampleBMGroup,{
+    newGroupData <- read_csv("./appData/sample_benchmark_group.csv", show_col_types = FALSE) %>% 
+      tibble::add_column(BenchmarkGroup = "example", .before = 1)
+    # Merge previously saved groups with newly entered group (long form)
+    benchmarkGroupDF$df <- bind_rows(benchmarkGroupDF$df, newGroupData)
+  })
+  
+  
   
   # SAVE edited benchmark table.  Also resets text/picker inputs and clears table.
   observeEvent(input$saveNewBMGroup,{
@@ -610,38 +624,46 @@ server <- function(input, output, session) {
     if (!is.null(selected)) {
       # Get groupName(s) you want to delete into vector of strings
       groupNames <- benchmarkGroupDF$df %>% slice(selected()) %>% pull(BenchmarkGroup)
-
+      print(groupNames)
   
       # Actually remove the data from benchmarkGroupDF reactive value
       benchmarkGroupDF$df <- benchmarkGroupDF$df %>% subset(!(BenchmarkGroup %in% groupNames))
     }
   })
   
-  # EDIT previously saved benchmark group. 
-  # almost works. opens table to edit but doesnt allow for saving and selectInputs are not correct. 
-  # observeEvent(input$editBMGroup,{
-  #   groupNames <- benchmarkGroupWideSum$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(BenchmarkGroup)
-  #   bmedit <- benchmarkGroupDF$df %>% subset(BenchmarkGroup %in% groupNames)
-  #   #print(groupNames)
-  #   #print(bmedit)
-  #   defaultBenchmarkVals(bmedit)
-  #   
-  #   updateSelectInput(session, "selectBenchmarks3",
-  #                     choices = filter(defaultBenchmarkVals(), ConditionCategoryNum == 3) %>% pull(Indicator),
-  #                     selected = filter(defaultBenchmarkVals(), ConditionCategoryNum == 3) %>% pull(Indicator))
-  #   
-  #   updateSelectInput(session, "selectBenchmarks2",
-  #                     choices = filter(defaultBenchmarkVals(), ConditionCategoryNum == 2) %>% pull(Indicator),
-  #                     selected = filter(defaultBenchmarkVals(), ConditionCategoryNum == 2) %>% pull(Indicator))
-  #   
-  #   #print(defaultBenchmarkVals()) 
-  # })
   
-  # Summary table of defined benchmark groups.  
-  # output$benchmarkGroupsTable <- renderDataTable(
-  #   benchmarkGroupDF$df,
-  #   selection = "single"
-  # )
+  # # EDIT previously saved benchmark group. 
+  # # almost works. opens table to edit but doesnt allow for saving and selectInputs are not correct. 
+  #  observeEvent(input$editBMGroup,{
+  #    selected <- reactive(getReactableState("benchmarkGroupsTable", "selected"))
+  #    groupNames <- benchmarkGroupDF$df %>% slice(selected()) %>% pull(BenchmarkGroup)
+  #    #groupNames <- benchmarkGroupDF$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(BenchmarkGroup)
+  #    bmedit <- benchmarkGroupDF$df %>% subset(BenchmarkGroup %in% groupNames)
+  #    print(groupNames)
+  #    print(bmedit)
+  #    #indicatorList(bmedit)
+  #    output$defineBenchmark_hot <- bmedit
+  #    updateSelectInput(session, "selectBenchmarks3",
+  #                      choices = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator),
+  #                      selected = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator))
+  #    
+  #    updateSelectInput(session, "selectBenchmarks2",
+  #                      choices = filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator),
+  #                      selected = filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator))
+  #    
+  #    #print(indicatorList()) 
+  #  })
+
+   #Summary table of defined benchmark groups.  
+   output$benchmarkGroupsTable <- renderDataTable(
+     benchmarkGroupDF$df,
+     selection = "single"
+   )
+
+  
+  
+  
+  
   output$benchmarkGroupsTable <- renderReactable({
     req(nrow(benchmarkGroupDF$df) > 0)
     saved_benchmark_groups_table(benchmarkGroupDF$df)
@@ -651,10 +673,11 @@ server <- function(input, output, session) {
     req(selected_points())
     defCond <- defaultConditions %>% dplyr::select(
         PointID, EvaluationID, Indicator, Value, BenchmarkGroup, ModerateBenchmark1,
-        MajorBenchmark1, ModerateBenchmark2, MajorBenchmark2,Condition, BLM_AdminState
+        MajorBenchmark1, ModerateBenchmark2, MajorBenchmark2 ,Condition, BLM_AdminState
         ) %>%
       filter(EvaluationID %in% selected_points()$EvaluationID) %>%
-      arrange(EvaluationID)
+      arrange(EvaluationID) %>%
+      relocate(Condition, .after = Value)
     default_conditions_table(defCond)
   })
   
@@ -663,7 +686,7 @@ server <- function(input, output, session) {
   # Selected which benchmark groups to apply to each pointID/indicator combo.
   output$applyBenchmarks_hot <- renderRHandsontable({
     req(benchmarkGroupDF$df)
-    apply_benchmarks_table(defaultBenchmarkVals(), benchmarkGroupDF, selected_points())
+    apply_benchmarks_table(benchmarkGroupDF, selected_points())
   })
   
   assignedBenchmarks <- reactive({
@@ -702,8 +725,8 @@ server <- function(input, output, session) {
   output$reachCondDLcsv <- downloadHandler(
     filename = "reachConditions.csv",
     content = function(file) {
-      #write.csv(st_drop_geometry(reachConditionsWide()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
-      write.csv(st_drop_geometry(reachConditionsLong()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
+      write.csv(st_drop_geometry(reachConditionsWide()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
+      #write.csv(st_drop_geometry(reachConditionsLong()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
     }
   )
   

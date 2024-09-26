@@ -83,10 +83,10 @@ saved_benchmark_groups_table <- function(bmGroups) {
 }
 
 ### Editable table allowing user to select which benchmark group to use for point indicators (rhandsontable)
-apply_benchmarks_table <- function(defaultBenchmarkVals, benchmarkGroupDF, indicatorData) {
+apply_benchmarks_table <- function(benchmarkGroupDF, indicatorData) {
+  #function(indicatorList, benchmarkGroupDF, indicatorData) {
   
   # Get the names of all possible benchmarks (will likley need to tweak this)
-  #bmVars <- unique(defaultBenchmarkVals$Indicator)
   bmVars <- benchmarkGroupDF[['df']] %>% pull(Indicator) %>% unique()
   
   # Unique benchmark group names (unique b/c it's pulling from long-form table)

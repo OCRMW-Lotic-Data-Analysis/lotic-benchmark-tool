@@ -1,0 +1,135 @@
+Indicator,ModerateBenchmark1,MajorBenchmark1,ModerateBenchmark2,MajorBenchmark2,IncreaserDecreaser,MajorToModerateRel1,MinimalToModerateRel1,MinimalToModerateRel2,MajorToModerateRel2,MajorToMinimalRel1,MajorToMinimalRel2,ConditionCategoryNum
+PctBankCoveredStableOld,,,,,Decreases with stress,,,,,,,3
+pH,,,,,Decreases and increases with stress,,,,,,,3
+InstantTemp,,,,,Increases with stress,,,,,,,3
+PctFinesLessThan2mm,,,,,Increases with stress,,,,,,,3
+FloodplainConnectivity,,,,,Increases with stress,,,,,,,3
+PctBankCoveredStableMIM,,,,,Decreases with stress,,,,,,,3
+MMI_Macroinvertebrate,,,,,Decreases with stress,,,,,,,3
+PctNoxiousWoodySpecies,,,,,Increases with stress,,,,,,,3
+TotalNitrogen,,,,,Increases with stress,,,,,,,3
+TotalPhosphorous,,,,,Increases with stress,,,,,,,3
+TotalNitrogen_Modeled,,,,,,,,,,,,3
+TotalPhosphorous_Modeled,,,,,,,,,,,,3
+SpecificConductance_Modeled,,,,,,,,,,,,3
+PctBankOverheadCover,,,,,Decreases with stress,,,,,,,3
+PctNativeWoodySpecies,,,,,Decreases with stress,,,,,,,3
+OE_Macroinvertebrate,,,,,Decreases with stress,,,,,,,3
+PctBankCoveredMIM,,,,,Decreases with stress,,,,,,,3
+PctBankCoveredOld,,,,,Decreases with stress,,,,,,,3
+PctBankStable,,,,,Decreases with stress,,,,,,,3
+LgWoodInChanFreq,,,,,Decreases with stress,,,,,,,3
+PctOverheadCover,,,,,,,,,,,,3
+VegComplexity,,,,,,,,,,,,3
+VegComplexityWoody,,,,,,,,,,,,3
+VegComplexityUnderstoryGround,,,,,,,,,,,,3
+PctNoxiousHerbSpecies,,,,,,,,,,,,3
+PctSedgeRushSpecies,,,,,,,,,,,,3
+PctEquisetumSpecies,,,,,,,,,,,,3
+ObservedInvertRichness,,,,,,,,,,,,3
+ExpectedInvertRichness,,,,,,,,,,,,3
+MacroinvertebrateCount,,,,,,,,,,,,3
+SpecificConductance,,,,,,,,,,,,3
+AugTempAvg,,,,,,,,,,,,3
+TurbidityAvg,,,,,,,,,,,,3
+PoolCount,,,,,,,,,,,,3
+PctPools,,,,,,,,,,,,3
+PoolFreq,,,,,,,,,,,,3
+ResPoolDepthAvg,,,,,,,,,,,,3
+LgWoodInChanCount,,,,,,,,,,,,3
+LgWoodInChanVol,,,,,,,,,,,,3
+LgWoodAboveChanCount,,,,,,,,,,,,3
+LgWoodAboveChanFreq,,,,,,,,,,,,3
+LgWoodAboveChanVol,,,,,,,,,,,,3
+PctFinesLessThan6mm,,,,,,,,,,,,3
+D16,,,,,,,,,,,,3
+D84,,,,,,,,,,,,3
+D50,,,,,,,,,,,,3
+GeometricMeanParticleDiam,,,,,,,,,,,,3
+PctPoolTailFinesLessThan2mm,,,,,,,,,,,,3
+PctPoolTailFinesLessThan6mm,,,,,,,,,,,,3
+BankfullHeightAvg,,,,,,,,,,,,3
+BenchHeightAvg,,,,,,,,,,,,3
+BankfullDepthAvg,,,,,,,,,,,,3
+BenchDepthAvg,,,,,,,,,,,,3
+ChannelIncision,,,,,,,,,,,,3
+InstreamHabitatComplexity,,,,,,,,,,,,3
+BankAngleAvg,,,,,,,,,,,,3
+PctBanksUndercut,,,,,,,,,,,,3
+ThalwegDepthCV,,,,,,,,,,,,3
+ThalwegDepthAvg,,,,,,,,,,,,3
+PctDry,,,,,,,,,,,,3
+BankfullWidthAvg,,,,,,,,,,,,3
+WettedWidthAvg,,,,,,,,,,,,3
+WettedWidthWithBarAvg,,,,,,,,,,,,3
+EntrenchmentRiffle1,,,,,,,,,,,,3
+EntrenchmentRiffle2,,,,,,,,,,,,3
+PctSlope,,,,,,,,,,,,3
+Sinuosity,,,,,,,,,,,,3
+PctBankCoveredStableOld,,,,,Decreases with stress,,,,,,,2
+pH,,,,,Decreases and increases with stress,,,,,,,2
+InstantTemp,,,,,Increases with stress,,,,,,,2
+PctFinesLessThan2mm,,,,,Increases with stress,,,,,,,2
+FloodplainConnectivity,,,,,Increases with stress,,,,,,,2
+PctBankCoveredStableMIM,,,,,Decreases with stress,,,,,,,2
+MMI_Macroinvertebrate,,,,,Decreases with stress,,,,,,,2
+PctNoxiousWoodySpecies,,,,,Increases with stress,,,,,,,2
+TotalNitrogen,,,,,Increases with stress,,,,,,,2
+TotalPhosphorous,,,,,Increases with stress,,,,,,,2
+TotalNitrogen_Modeled,,,,,,,,,,,,2
+TotalPhosphorous_Modeled,,,,,,,,,,,,2
+SpecificConductance_Modeled,,,,,,,,,,,,2
+PctBankOverheadCover,,,,,Decreases with stress,,,,,,,2
+PctNativeWoodySpecies,,,,,Decreases with stress,,,,,,,2
+OE_Macroinvertebrate,,,,,Decreases with stress,,,,,,,2
+PctBankCoveredMIM,,,,,Decreases with stress,,,,,,,2
+PctBankCoveredOld,,,,,Decreases with stress,,,,,,,2
+PctBankStable,,,,,Decreases with stress,,,,,,,2
+LgWoodInChanFreq,,,,,Decreases with stress,,,,,,,2
+PctOverheadCover,,,,,,,,,,,,2
+VegComplexity,,,,,,,,,,,,2
+VegComplexityWoody,,,,,,,,,,,,2
+VegComplexityUnderstoryGround,,,,,,,,,,,,2
+PctNoxiousHerbSpecies,,,,,,,,,,,,2
+PctSedgeRushSpecies,,,,,,,,,,,,2
+PctEquisetumSpecies,,,,,,,,,,,,2
+ObservedInvertRichness,,,,,,,,,,,,2
+ExpectedInvertRichness,,,,,,,,,,,,2
+MacroinvertebrateCount,,,,,,,,,,,,2
+SpecificConductance,,,,,,,,,,,,2
+AugTempAvg,,,,,,,,,,,,2
+TurbidityAvg,,,,,,,,,,,,2
+PoolCount,,,,,,,,,,,,2
+PctPools,,,,,,,,,,,,2
+PoolFreq,,,,,,,,,,,,2
+ResPoolDepthAvg,,,,,,,,,,,,2
+LgWoodInChanCount,,,,,,,,,,,,2
+LgWoodInChanVol,,,,,,,,,,,,2
+LgWoodAboveChanCount,,,,,,,,,,,,2
+LgWoodAboveChanFreq,,,,,,,,,,,,2
+LgWoodAboveChanVol,,,,,,,,,,,,2
+PctFinesLessThan6mm,,,,,,,,,,,,2
+D16,,,,,,,,,,,,2
+D84,,,,,,,,,,,,2
+D50,,,,,,,,,,,,2
+GeometricMeanParticleDiam,,,,,,,,,,,,2
+PctPoolTailFinesLessThan2mm,,,,,,,,,,,,2
+PctPoolTailFinesLessThan6mm,,,,,,,,,,,,2
+BankfullHeightAvg,,,,,,,,,,,,2
+BenchHeightAvg,,,,,,,,,,,,2
+BankfullDepthAvg,,,,,,,,,,,,2
+BenchDepthAvg,,,,,,,,,,,,2
+ChannelIncision,,,,,,,,,,,,2
+InstreamHabitatComplexity,,,,,,,,,,,,2
+BankAngleAvg,,,,,,,,,,,,2
+PctBanksUndercut,,,,,,,,,,,,2
+ThalwegDepthCV,,,,,,,,,,,,2
+ThalwegDepthAvg,,,,,,,,,,,,2
+PctDry,,,,,,,,,,,,2
+BankfullWidthAvg,,,,,,,,,,,,2
+WettedWidthAvg,,,,,,,,,,,,2
+WettedWidthWithBarAvg,,,,,,,,,,,,2
+EntrenchmentRiffle1,,,,,,,,,,,,2
+EntrenchmentRiffle2,,,,,,,,,,,,2
+PctSlope,,,,,,,,,,,,2
+Sinuosity,,,,,,,,,,,,2
