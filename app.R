@@ -624,7 +624,6 @@ server <- function(input, output, session) {
     if (!is.null(selected)) {
       # Get groupName(s) you want to delete into vector of strings
       groupNames <- benchmarkGroupDF$df %>% slice(selected()) %>% pull(BenchmarkGroup)
-      print(groupNames)
   
       # Actually remove the data from benchmarkGroupDF reactive value
       benchmarkGroupDF$df <- benchmarkGroupDF$df %>% subset(!(BenchmarkGroup %in% groupNames))
