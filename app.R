@@ -115,19 +115,22 @@ ui <- page_navbar(
         ),
         br(),
         
-        actionButton("saveNewBMGroup", label = "Save New Benchmark Group", style="color: #000000; background-color: #DEFFDE"),
-        actionButton("deleteBMGroup", label = "Delete Selected Benchmark Group", style="color: #000000; background-color: #FFDEDE"),
-        actionButton("loadSampleBMGroup", label = "Load Sample Benchmark Group"),
+        actionButton("saveNewBMGroup", 
+                     label = shiny::tagList(bsicons::bs_icon("floppy"),"Save New Group"), 
+                     style="color: #000000; background-color: #DEFFDE"),
+        actionButton("deleteBMGroup", 
+                     label = shiny::tagList(bsicons::bs_icon("trash"),"Delete Selected Group"), 
+                     style="color: #000000; background-color: #FFDEDE"),
+        hr(),
+        downloadButton(outputId = "exportBMGroupsCSV", 
+                       label = "Export Saved Groups"),
+        fileInput("uploadBMGroup", 
+                     label = "Upload Benchmark Groups"),
+        actionButton("loadSampleBMGroup", label = shiny::tagList(
+          bsicons::bs_icon("arrow-counterclockwise"),
+          "Load Sample Benchmark Group")),
         #hr(),
         #actionButton("editBMGroup", label = "Edit Selected Benchmark Group"),
-        
-        #downloadButton(
-        #  outputId = "benchmarkConfigDLcsv",
-        #  label = "Download Current Benchmark Configuration"
-        #),
-        #fileInput("benchmarkUpload", 
-        #          "Upload Benchmark Config", 
-        #          accept = c(".csv"))
       ),
       # Main Panel
       layout_columns(
@@ -489,10 +492,9 @@ server <- function(input, output, session) {
   
   # Load default benchmarks
   #indicatorList <-reactiveVal(read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character"))
-  indicatorList <-reactiveVal(read.csv("./appData/custom_indicator_list.csv", colClasses = "character"))
+  indicatorList <- reactiveVal(read.csv("./appData/custom_indicator_list.csv", colClasses = "character") %>% arrange(Indicator))
   
-  # Update benchmark selectors based on indicatorList().  This could come from
-  # manual entry or upload.
+  # Update benchmark selectors based on indicatorList().
   observe({
     updatePickerInput(session, "selectBenchmarks3",
                       choices = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator))
@@ -552,34 +554,6 @@ server <- function(input, output, session) {
     
   })
   
-  # Download benchmarks as currently displayed in 'defineBenchmark_hot' table 
-  output$benchmarkConfigDLcsv <- downloadHandler(
-    filename = "benchmarkConfig.csv",
-    content = function(file) {
-      write.csv(definedBenchmarks(), file, na = "", row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
-    }
-  )
-  
-  # Upload benchmarks (NOT CURRENTLY WORKING)
-  # observeEvent(input$benchmarkUpload,{
-  #   ext <- tools::file_ext(input$benchmarkUpload$name)
-  #   bmul <- switch(ext,
-  #                  csv = vroom::vroom(input$benchmarkUpload$datapath, delim = ",", col_types = cols(.default = "c"), show_col_types = FALSE),
-  #                  validate("Invalid file; Please upload a .csv")
-  #   )
-  #   indicatorList(bmul)
-  #   
-  #   updateSelectInput(session, "selectBenchmarks3",
-  #                     choices = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator),
-  #                     selected = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator))
-  #   
-  #   updateSelectInput(session, "selectBenchmarks2",
-  #                     choices = filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator),
-  #                     selected = filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator))
-  #   
-  #   #print(indicatorList()) 
-  # })
-  
   # Save the currently displayed values of the 'defineBenchmark_hot' table
   definedBenchmarks <- reactive({
     req(input$bmGroupNameinput)
@@ -630,7 +604,24 @@ server <- function(input, output, session) {
     }
   })
   
+  # EXPORT all currently saved benchmark groups
+  output$exportBMGroupsCSV <- downloadHandler(
+    filename = "savedBenchmarkGroups.csv",
+    content = function(file) {
+      write.csv(st_drop_geometry(benchmarkGroupDF$df), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
+      #write.csv(st_drop_geometry(reachConditionsLong()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
+    }
+  )
   
+  # UPLOAD benchmarks groups(s)
+  observeEvent(input$uploadBMGroup,{
+    ext <- tools::file_ext(input$uploadBMGroup$name)
+    newGroupData <- switch(ext,
+                   csv = vroom::vroom(input$uploadBMGroup$datapath, delim = ",", col_types = cols(.default = "c"), show_col_types = FALSE),
+                   validate("Invalid file; Please upload a .csv")
+    )
+    benchmarkGroupDF$df <- bind_rows(benchmarkGroupDF$df, newGroupData)
+  })
   # # EDIT previously saved benchmark group. 
   # # almost works. opens table to edit but doesnt allow for saving and selectInputs are not correct. 
   #  observeEvent(input$editBMGroup,{
@@ -653,6 +644,8 @@ server <- function(input, output, session) {
   #    #print(indicatorList()) 
   #  })
 
+  
+  
    #Summary table of defined benchmark groups.  
    output$benchmarkGroupsTable <- renderDataTable(
      benchmarkGroupDF$df,
