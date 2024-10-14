@@ -19,7 +19,7 @@ library(zip)
 
 ### UI -------------------------------------------------------------------------
 ui <- page_navbar(
-  title = "Lotic AIM Indicator Benchmark Tool",
+  title = "Lotic AIM Custom Benchmark Tool",
   selected = "1. Select Indicators",
   collapsible = TRUE,
   theme = bslib::bs_theme(font_scale = NULL, preset = "yeti"),
