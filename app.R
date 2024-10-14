@@ -250,13 +250,13 @@ server <- function(input, output, session) {
     updatePickerInput(
       session = session,
       inputId = "adminState_filter",
-      choices = c("", unique(indicatorData_raw()$BLM_AdminState)), # "" to force blank entry in dropdown
+      choices = c("", unique(indicatorData_raw()$BLM_AdminState) %>% sort()), # "" to force blank entry in dropdown
       selected = NULL)
     
     updatePickerInput(
       session = session,
       inputId = "project_filter",
-      choices = unique(indicatorData_raw()$Project),
+      choices = unique(indicatorData_raw()$Project) %>% sort(),
       selected = NULL)
     })
   
@@ -274,7 +274,7 @@ server <- function(input, output, session) {
         updatePickerInput(
           session = session,
           inputId = "project_filter",
-          choices = indicatorData_raw() %>% filter(BLM_AdminState == input$adminState_filter) %>% pull(Project) %>% unique(),
+          choices = indicatorData_raw() %>% filter(BLM_AdminState == input$adminState_filter) %>% pull(Project) %>% unique() %>% sort(),
           selected = NULL
           )
         }
@@ -550,7 +550,8 @@ server <- function(input, output, session) {
     rhandsontable(data = dat) %>%
       hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE) %>%
       hot_table(highlightRow = TRUE) %>%
-      hot_cols(fixedColumnsLeft = 1) 
+      hot_cols(fixedColumnsLeft = 1) %>%
+      hot_col(1, width = 200)
     
   })
   
