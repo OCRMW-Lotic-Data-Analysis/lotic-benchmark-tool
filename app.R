@@ -640,7 +640,11 @@ server <- function(input, output, session) {
 # 4. Reach Conditions --------------------------------------------------------
   
   # Calculate Reach conditions (Min, Mod, Maj) for each indicator
-  reachConditionsdf <- reactive({determine_reach_conditions(indicators =  selected_points(),
+  reachConditionsdf <- reactive({
+    req(selected_points())
+    req(benchmarkGroupDF$df)
+    req(assignedBenchmarks())
+    determine_reach_conditions(indicators =  selected_points(),
                                                           definedBenchmarks = benchmarkGroupDF$df,
                                                           assignments = assignedBenchmarks())
     
@@ -654,16 +658,14 @@ server <- function(input, output, session) {
     updateSelectInput(session, "reachCondMapSelect",
                       choices = benchmarkGroupDF$df$Indicator,
                       selected = benchmarkGroupDF$df$Indicator[1]
-    )
-  })
+                      )
+    })
   
-  
-  # Map showing indicators colored by selected reach condition variable
+  # MAP showing indicators colored by selected reach condition variable
   output$reachCondMap <- renderLeaflet({
-    
+    req(reachConditionsWide(), input$reachCondMapSelect)
     reachCond_leaflet_map(reachConditionsWide(), input$reachCondMapSelect)
-    
-  })
+    })
   
   # Download CSV button 
   output$reachCondDLcsv <- downloadHandler(
@@ -679,16 +681,20 @@ server <- function(input, output, session) {
     filename = "reachConditions.zip",
     content = function(file) {
       make_reach_cond_GDB(reachConditionsWide(), file)}
-  )
+    )
   
+  # TABLE - 'Full Ouput Table' 
+  #output$reachConditionTable <- renderDT({reachConditionsWide()},)
+  output$reachConditionTable <- renderDT({
+    req(reachConditionsWide())
+    reachConditionsWide()
+    })
   
-  
-  # Reach Conditions Table (mostly a placeholder for now)
-  output$reachConditionTable <- renderDT({reachConditionsWide()},)
+  # TABLE - review applied benchmarks
   output$reviewAppliedBenchmarks <- renderReactable({
     req(selected_points())
     review_applied_benchmarks_table(reachConditionsLong())
-  })
+    })
   
 # 5. Condition Summary ---------------------------------------------------------
   output$bmSummaryTable <- renderReactable({
