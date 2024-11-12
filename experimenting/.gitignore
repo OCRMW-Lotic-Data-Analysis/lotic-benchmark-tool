@@ -1,3 +1,9 @@
 A_DefaultConditions.csv
 A_DefaultConditions.csv.xml
 schema.ini
+select by point and poly.R
+select by point and poly 2.R
+leafletextras_select_w_polygon_testing.R
+determine_reach_conditions_v3_testing.R
+determine conditions update.R
+colwidth.R
