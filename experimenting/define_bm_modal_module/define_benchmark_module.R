@@ -12,6 +12,15 @@ library(purrr)
 defineBenchmarkMod_UI <- function(id){
   ns <- NS(id)
   fluidPage(
+    # CSS for aligning Min/Mod/Maj labels with operator and value input boxes
+    tags$style(
+     ".min-p {
+        text-align: right;
+      }
+      .modmax-p {
+        text-align: right; 
+        padding-top: 15px
+      }"),
     selectInput(ns("Indicator"), "Select Indicator", choices = NULL),
     textOutput(ns("indic_units")),
     textOutput(ns("indic_range")),
@@ -24,7 +33,7 @@ defineBenchmarkMod_UI <- function(id){
     ),
     
     actionButton(ns("saveSingleBM"), "Save"),
-    verbatimTextOutput(ns("majorOutTest"))
+    dataTableOutput(ns("tableOut"))
   )
 }
 
@@ -90,7 +99,8 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
         }
         
         return(operators)
-      }
+      } # end setOperators()
+    
       
       # Huge logic test that decided which of 4 layouts to use.
       # Option 1) 3 Categories, not pH
@@ -100,23 +110,23 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
             tagList(
               fluidRow(
                 column(width = 2,
-                       h4("Minimal")),
-                column(width = 1,
+                       h4("Minimal", class = "min-p")),
+                column(width = 2,
                        h4("<")),
                 column(width = 2,
                        h4("10"))
                 ),
               fluidRow(
                 column(width = 2,
-                       h4("Moderate")),
-                column(width = 1,
+                       h4("Moderate", class = "modmax-p")),
+                column(width = 2,
                        selectInput(ns("MinimalToModerateRel1"), "", choices = setOperators())),
                 column(width = 2,
                        textInput(ns("ModerateBenchmark1"), ""))),
               fluidRow(
                 column(width = 2,
-                       h4("Major")),
-                column(width = 1,
+                       h4("Major", class = "modmax-p")),
+                column(width = 2,
                        selectInput(ns("MajorToModerateRel1"), "", choices = setOperators())),
                 column(width = 2,
                        textInput(ns("MajorBenchmark1"), ""))
@@ -130,7 +140,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
               h4("Acidic Conditions:"),
               fluidRow(
                 column(width = 2,
-                       h3("Minimal")),
+                       h4("Minimal")),
                 column(width = 1,
                        selectInput(ns("MinimalToModerateRel1"), "", choices = setOperators(pHtype = "acidic"))),
                 column(width = 2,
@@ -143,7 +153,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
               h4(" Alkaline Conditions:"),
               fluidRow(
                 column(width = 2,
-                       h3("Minimal")),
+                       h4("Minimal")),
                 column(width = 1,
                        selectInput(ns("MinimalToModerateRel2"), "", choices = setOperators(pHtype = "alkaline"))),
                 column(width = 2,
@@ -162,7 +172,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
             tagList(
               fluidRow(
                 column(width = 2,
-                       h3("Minimal")),
+                       h4("Minimal")),
                 column(width = 1,
                        selectInput(ns("MajorToMinimalRel1"), "", choices = setOperators())),
                 column(width = 2,
@@ -177,7 +187,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
               h4("Acidic Conditions:"),
               fluidRow(
                 column(width = 2,
-                       h3("Minimal")),
+                       h4("Minimal")),
                 column(width = 1,
                        selectInput(ns("MajorToMinimalRel1"), "", choices = setOperators(pHtype = "acidic"))),
                 column(width = 2,
@@ -186,7 +196,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
               h4(" Alkaline Conditions:"),
               fluidRow(
                 column(width = 2,
-                       h3("Minimal")),
+                       h4("Minimal")),
                 column(width = 1,
                        selectInput(ns("MajorToMinimalRel2"), "", choices = setOperators(pHtype = "alkaline"))),
                 column(width = 2,
@@ -215,7 +225,8 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
       return(uiOut)
       
       
-    } # END MAKE NEW UI FUNCTION 
+    } # end of makeUI() 
+    
     # Run makeUI() when Indicator or # of Condition Categories changes.
     # Returns:  newUI()[["visibleRenderUIInputVals"]] and newUI()[["uiLayout"]]
     newUI <- reactive(makeUI(input$ConditionCategoryNum, input$Indicator, metadata))
@@ -229,34 +240,9 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
     )
     
     
-
-    
-    
-    
-    
-    ########################
-    #
-    # Trying to get table of all values that updates any time a text input is changed.
-    # It currently works if you switch indicator/category first but will not work on load.
-    #
-    # a verbatim textoutput DOES display the major value changing when you type it in though.wtf
-    #
-    # maybe 
-    #########
-    
-    
-    
-    # Create reactiveVal for module return()
-    newInidicatorOutput <- reactiveVal()
-    
-    # # Save new benchmark for single indicator
-    observeEvent(
-      {
-        input$ModerateBenchmark1
-        input$MajorBenchmark1
-        input$ModerateBenchmark2
-        input$MajorBenchmark2
-      },
+    # Save currently entered benchmark values.  Used for module return and possibly
+    # graphical representation of values.
+    currentlyEnteredValues <- reactive(
       {
         # Flip the operator for MajorToModerateRel1 and MajorToModerateRel2.  The
         # operature required in the table is oppisite from what make sense in the UI
@@ -292,91 +278,22 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
         newDat <- newDat_allVals %>%
           .[c("Indicator","ConditionCategoryNum","IncreaserDecreaser", newUI()[["visibleRenderUIInputVals"]])] %>%
           bind_cols()
-
-        print(newDat)
+        
+        newDat
         #print(newUI()[["visibleRenderUIInputVals"]])
-
-        # Save new indicator data to output reactiveVal
-        #newInidicatorOutput(newDat)
-
       }
     )
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    # Save new benchmark for single indicator
+
+   
+  # Create reactiveVal for module return()
+    newInidicatorOutput <- reactiveVal()
+  
+  # Save new benchmark for single indicator
     observeEvent(
       input$saveSingleBM,
-      { 
-
-        # Flip the operator for MajorToModerateRel1 and MajorToModerateRel2.  The 
-        # operature required in the table is oppisite from what make sense in the UI
-        flipSymbol <- function(operator){
-          if (!is.null(operator)) {
-            switch(operator,
-                   "<" = ">",
-                   ">" = "<",
-                   ">=" = "<=",
-                   "<=" = ">=")
-            }
-          }
-        
-        # Pull all input$ values into list.  Using list because it handles NULL inputs better.
-        newDat_allVals <- list(
-          Indicator = input$Indicator,
-          ConditionCategoryNum = input$ConditionCategoryNum,
-          ModerateBenchmark1 = input$ModerateBenchmark1,
-          MajorBenchmark1 = input$MajorBenchmark1,
-          ModerateBenchmark2 = input$ModerateBenchmark2,
-          MajorBenchmark2 = input$MajorBenchmark2,
-          IncreaserDecreaser = metadata %>% filter(Indicator == input$Indicator & ConditionCategoryNum == input$ConditionCategoryNum) %>% pull(IncreaserDecreaser),
-          MajorToModerateRel1 = flipSymbol(input$MajorToModerateRel1),  # flip the operator
-          MajorToModerateRel2 = flipSymbol(input$MajorToModerateRel2),  # flip the operator
-          MinimalToModerateRel1 = input$MinimalToModerateRel1,  
-          MinimalToModerateRel2 = input$MinimalToModerateRel2, 
-          MajorToMinimalRel1 = input$MajorToMinimalRel1,   
-          MajorToMinimalRel2 = input$MajorToMinimalRel2    
-          )
-        
-        # List to dataframe
-        newDat <- newDat_allVals %>% 
-          .[c("Indicator","ConditionCategoryNum","IncreaserDecreaser", newUI()[["visibleRenderUIInputVals"]])] %>% 
-          bind_cols()
-        
-        #print(newUI()[["visibleRenderUIInputVals"]])
-        
-        # Save new indicator data to output reactiveVal
-        newInidicatorOutput(newDat)
- 
-      }
+      {newInidicatorOutput(currentlyEnteredValues())}
       )
-    
-    
-    
-    # verbatim output for testing
-    output$majorOutTest <- renderPrint({input$MajorBenchmark1})
+
     return(newInidicatorOutput)
     
     }) # end moduleServer
@@ -390,7 +307,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
 ui <- fluidPage(
   fluidRow(
     defineBenchmarkMod_UI(id = "defBM"),
-    verbatimTextOutput("text")
+    verbatimTextOutput("newIndicOut")
   )
 )
 
@@ -400,9 +317,8 @@ server <- function(input, output, session) {
   blankCustomBMForm <- read.csv("./custom_indicator_blank.csv", colClasses = "character")
 
   newInidicator <- defineBenchmarkMod_server(id = "defBM", metadata = indicatorMetadata, blankForm = blankCustomBMForm)
-  newInidicator
-  output$text <- renderPrint({newInidicator()})
-  
+  #newInidicator
+  output$newIndicOut <- renderPrint({newInidicator()})
 
 }
 
