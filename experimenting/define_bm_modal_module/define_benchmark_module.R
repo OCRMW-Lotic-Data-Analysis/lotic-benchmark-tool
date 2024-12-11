@@ -25,13 +25,9 @@ defineBenchmarkMod_UI <- function(id){
     textOutput(ns("indic_units")),
     textOutput(ns("indic_range")),
     textOutput(ns("indic_increaseDecrease")),
+    br(),
     radioButtons(ns("ConditionCategoryNum"), "Number of Condition Categories", choices = list("3" = 3, "2" = 2), selected = 3, inline = TRUE),
-    
-    
-    fluidRow(
-      uiOutput(ns("valuesAndOperators"))
-    ),
-    
+    uiOutput(ns("valuesAndOperators")),
     actionButton(ns("saveSingleBM"), "Save"),
     dataTableOutput(ns("tableOut"))
   )
@@ -63,7 +59,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
         selIndicator <- metadata %>% filter(Indicator == input$Indicator) %>% slice_head(n = 1)
         
         output$indic_units <- renderText({ paste("Units: ", selIndicator$Units) })
-        output$indic_range <- renderText({ paste("Range: ", selIndicator$ValueRange) })
+        output$indic_range <- renderText({ paste("Range: ", selIndicator$RangeLower, " - ", selIndicator$RangeUpper) })
         output$indic_increaseDecrease <- renderText({ paste(selIndicator$IncreaserDecreaser) })
         
       }, ignoreInit = TRUE)
@@ -110,14 +106,6 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
             tagList(
               fluidRow(
                 column(width = 2,
-                       h4("Minimal", class = "min-p")),
-                column(width = 2,
-                       h4("<")),
-                column(width = 2,
-                       h4("10"))
-                ),
-              fluidRow(
-                column(width = 2,
                        h4("Moderate", class = "modmax-p")),
                 column(width = 2,
                        selectInput(ns("MinimalToModerateRel1"), "", choices = setOperators())),
@@ -140,28 +128,34 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
               h4("Acidic Conditions:"),
               fluidRow(
                 column(width = 2,
-                       h4("Minimal")),
-                column(width = 1,
+                       h4("Moderate", class = "modmax-p")),
+                column(width = 2,
                        selectInput(ns("MinimalToModerateRel1"), "", choices = setOperators(pHtype = "acidic"))),
                 column(width = 2,
-                       textInput(ns("ModerateBenchmark1"), "Moderate")),
-                column(width = 1,
+                       textInput(ns("ModerateBenchmark1"), ""))),
+              fluidRow(
+                column(width = 2,
+                       h4("Major", class = "modmax-p")),
+                column(width = 2,
                        selectInput(ns("MajorToModerateRel1"), "", choices = setOperators(pHtype = "acidic"))),
                 column(width = 2,
-                       textInput(ns("MajorBenchmark1"), "Major"))
+                       textInput(ns("MajorBenchmark1"), ""))
               ),
               h4(" Alkaline Conditions:"),
               fluidRow(
                 column(width = 2,
-                       h4("Minimal")),
-                column(width = 1,
+                       h4("Moderate", class = "modmax-p")),
+                column(width = 2,
                        selectInput(ns("MinimalToModerateRel2"), "", choices = setOperators(pHtype = "alkaline"))),
                 column(width = 2,
-                       textInput(ns("ModerateBenchmark2"), "Moderate")),
-                column(width = 1,
+                       textInput(ns("ModerateBenchmark2"), ""))),
+              fluidRow(
+                column(width = 2,
+                       h4("Major", class = "modmax-p")),
+                column(width = 2,
                        selectInput(ns("MajorToModerateRel2"), "", choices = setOperators(pHtype = "alkaline"))),
                 column(width = 2,
-                       textInput(ns("MajorBenchmark2"), "Major"))
+                       textInput(ns("MajorBenchmark2"), ""))
               )
             )
         }
@@ -172,11 +166,11 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
             tagList(
               fluidRow(
                 column(width = 2,
-                       h4("Minimal")),
-                column(width = 1,
+                       h4("Major", class = "modmax-p")),
+                column(width = 2,
                        selectInput(ns("MajorToMinimalRel1"), "", choices = setOperators())),
                 column(width = 2,
-                       textInput(ns("MajorBenchmark1"), "Major"))
+                       textInput(ns("MajorBenchmark1"), ""))
               )
             )
           # Option 4) 2 Categories, is pH
@@ -187,20 +181,20 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
               h4("Acidic Conditions:"),
               fluidRow(
                 column(width = 2,
-                       h4("Minimal")),
-                column(width = 1,
+                       h4("Major", class = "modmax-p")),
+                column(width = 2,
                        selectInput(ns("MajorToMinimalRel1"), "", choices = setOperators(pHtype = "acidic"))),
                 column(width = 2,
-                       textInput(ns("MajorBenchmark1"), "Major"))
+                       textInput(ns("MajorBenchmark1"), ""))
               ),
               h4(" Alkaline Conditions:"),
               fluidRow(
                 column(width = 2,
-                       h4("Minimal")),
-                column(width = 1,
+                       h4("Major", class = "modmax-p")),
+                column(width = 2,
                        selectInput(ns("MajorToMinimalRel2"), "", choices = setOperators(pHtype = "alkaline"))),
                 column(width = 2,
-                       textInput(ns("MajorBenchmark2"), "Major"))
+                       textInput(ns("MajorBenchmark2"), ""))
               )
             )
         }
