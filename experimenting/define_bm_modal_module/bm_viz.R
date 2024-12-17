@@ -233,19 +233,68 @@ if (indic == "pH"){
   p <- p_acid / p_alk
 }
 
-# Return plot
-p
 
+# legend <- ggplot() +
+#   coord_cartesian(
+#     ylim=c(0,1),
+#     clip = "off",
+#     expand = FALSE) +
+#   theme_void() +
+#   annotate("rect", xmin = 0, xmax = 6, ymin = 0, ymax = 0.5, fill = "#00a9e6", color = "black") +
+#   annotate("text", x = 3, y = 0.25, label = "Minimal") +
+#   annotate("rect", xmin = 8, xmax = 14, ymin = 0, ymax = 0.5, fill = "#e6e600", color = "black") +
+#   annotate("text", x = 11, y = 0.25, label = "Moderate") +
+#   annotate("rect", xmin = 16, xmax = 22, ymin = 0, ymax = 0.5, fill = "#895a44", color = "black") +
+#   annotate("text", x = 19, y = 0.25, label = "Major") 
+if (numCats == 3){
+legend <- ggplot() +
+  coord_cartesian(
+    ylim=c(0,1),
+    xlim=c(0,120),
+    clip = "off",
+    expand = FALSE) +
+  theme_void() +
+  annotate("rect", xmin = 12, xmax = 22, ymin = 0, ymax = 0.5, fill = "#00a9e6", color = "black") +
+  annotate("text", x = 23, y = 0.25, label = "Minimal", hjust = 0) +
+  annotate("rect", xmin = 50, xmax = 60, ymin = 0, ymax = 0.5, fill = "#e6e600", color = "black") +
+  annotate("text", x = 61, y = 0.25, label = "Moderate", hjust = 0) +
+  annotate("rect", xmin = 90, xmax = 100, ymin = 0, ymax = 0.5, fill = "#895a44", color = "black") +
+  annotate("text", x = 101, y = 0.25, label = "Major", hjust = 0)  
+} else if (numCats == 2){
+  legend <- ggplot() +
+    coord_cartesian(
+      ylim=c(0,1),
+      xlim=c(0,120),
+      clip = "off",
+      expand = FALSE) +
+    theme_void() +
+    annotate("rect", xmin = 30, xmax = 40, ymin = 0, ymax = 0.5, fill = "#00a9e6", color = "black") +
+    annotate("text", x = 41, y = 0.25, label = "Minimal", hjust = 0) +
+    annotate("rect", xmin = 70, xmax = 80, ymin = 0, ymax = 0.5, fill = "#895a44", color = "black") +
+    annotate("text", x = 81, y = 0.25, label = "Major", hjust = 0)  
 }
 
 
 
 
+#p <- p/legend
+
+# p <- p +
+#   theme(plot.margin = unit(c(0, 0, 50, 0), "points")) +
+#   annotation_custom(
+#     ggplotGrob(legend),
+#     xmin = rangeLow,
+#     xmax = rangeUp,
+#     ymin = -0.2,
+#     ymax = -0.1
+#   )
 
 
+# Return plot
+p <- p / legend
+p
 
-
-
+}
 
 
 bmDefVisual(indicatorMetadata, smpl[7,])

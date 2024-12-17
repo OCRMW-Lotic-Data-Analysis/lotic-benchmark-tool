@@ -298,6 +298,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
   ## BM Visual Plot ------------------------------------------------------------
     bmDefVisual <- function(metadata, custBM){
       
+      # ININTIAL VALUES --------------------------------------------------------
       # Simplify value names from input custBM dataframe
       indic <- custBM$Indicator
       incOrDec <- custBM$IncreaserDecreaser
@@ -328,6 +329,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
         rangeLow <- mod1 * 0.8 # add 20% to create some padding
       }
       
+      # ASSIGN GLOBAL MIN/MAX --------------------------------------------------
       ### Assign xmin and xmax values for Minimal, Moderate, and Major boxes to
       # be used in ggplot annotate() boxes.
       # 3 categorries
@@ -411,6 +413,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
         }
       }
       
+      # PLOT BUILDING ----------------------------------------------------------
       # Set up blank plot framework
       p <- ggplot() +
         coord_cartesian(
@@ -512,6 +515,39 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
         p <- p_acid / p_alk
       }
       
+      # A "legend" for the plots.  Just another blank ggplot with annotations.
+      if (numCats == 3){
+        legend <- ggplot() +
+          coord_cartesian(
+            ylim=c(0,1),
+            xlim=c(0,120),
+            clip = "off",
+            expand = FALSE) +
+          theme_void() +
+          annotate("rect", xmin = 12, xmax = 22, ymin = 0, ymax = 0.5, fill = "#00a9e6", color = "black") +
+          annotate("text", x = 23, y = 0.25, label = "Minimal", hjust = 0) +
+          annotate("rect", xmin = 50, xmax = 60, ymin = 0, ymax = 0.5, fill = "#e6e600", color = "black") +
+          annotate("text", x = 61, y = 0.25, label = "Moderate", hjust = 0) +
+          annotate("rect", xmin = 90, xmax = 100, ymin = 0, ymax = 0.5, fill = "#895a44", color = "black") +
+          annotate("text", x = 101, y = 0.25, label = "Major", hjust = 0)  
+      } else if (numCats == 2){
+        legend <- ggplot() +
+          coord_cartesian(
+            ylim=c(0,1),
+            xlim=c(0,120),
+            clip = "off",
+            expand = FALSE) +
+          theme_void() +
+          annotate("rect", xmin = 30, xmax = 40, ymin = 0, ymax = 0.5, fill = "#00a9e6", color = "black") +
+          annotate("text", x = 41, y = 0.25, label = "Minimal", hjust = 0) +
+          annotate("rect", xmin = 70, xmax = 80, ymin = 0, ymax = 0.5, fill = "#895a44", color = "black") +
+          annotate("text", x = 81, y = 0.25, label = "Major", hjust = 0)  
+      }  
+      
+      # Add legend with patchwork
+      p <- p/legend
+      
+      
       # Return plot
       p
       
@@ -528,7 +564,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
      }, width = 500, 
         height = function(){
          if (input$Indicator != "pH") {
-           return(75)
+           return(125)
            }
          if (input$Indicator == "pH") {
            return(200)
@@ -561,8 +597,9 @@ server <- function(input, output, session) {
   blankCustomBMForm <- read.csv("./custom_indicator_blank.csv", colClasses = "character")
 
   newInidicator <- defineBenchmarkMod_server(id = "defBM", metadata = indicatorMetadata, blankForm = blankCustomBMForm)
+  
   #newInidicator
-  output$newIndicOut <- renderPrint({newInidicator()})
+  #output$newIndicOut <- renderPrint({newInidicator()})
 
 }
 
