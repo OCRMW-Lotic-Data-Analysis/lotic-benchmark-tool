@@ -8,6 +8,7 @@ library(stringr)
 library(purrr)
 library(ggplot2)
 library(scales)
+library(patchwork)
 
 
 # UI
@@ -67,6 +68,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
         
       }, ignoreInit = TRUE)
     
+    # MAKE OPERATOR/VALUE UI ---------------------------------------------------
     # FUNCTION - MAKE NEW UI
     # Make UI for benchmark value and operator inputs.  This is greatly
     # complicated because of pH which allows two separate benchmarks to be set simultaneously.
@@ -220,7 +222,6 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
       uiOut <- list(visibleRenderUIInputVals = visibleRenderUIInputVals,
                     uiLayout = uiLayout)
     
-      #print(uiOut$visibleRenderUIInputVals)
       return(uiOut)
       
       
@@ -233,8 +234,6 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
       makeUI(input$ConditionCategoryNum, input$Indicator, metadata)
       })
     
-    
-    
     # Render Custom BM UI  
     output$valuesAndOperators <- renderUI({
       req(input$Indicator)
@@ -242,6 +241,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
     }
     )
     
+  # REALTIME SAVING OF ENTERED VALUES ------------------------------------------  
     # Save currently entered benchmark values.  Used for module return and possibly
     # graphical representation of values.
     currentlyEnteredValues <- reactive(
@@ -282,15 +282,9 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
           .[c("Indicator","ConditionCategoryNum","IncreaserDecreaser", newUI()[["visibleRenderUIInputVals"]] )] %>%
           bind_cols()
         newDat
-        #print(newUI()[["visibleRenderUIInputVals"]])
       }
     )
     
-
-    
-
-    
-   
   # Create reactiveVal for module return()
     newInidicatorOutput <- reactiveVal()
   
@@ -301,19 +295,25 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
         print(currentlyEnteredValues())}
       )
   
-
-    ## BM VISUAL
+  ## BM Visual Plot ------------------------------------------------------------
     bmDefVisual <- function(metadata, custBM){
-  
       
       # Simplify value names from input custBM dataframe
       indic <- custBM$Indicator
       incOrDec <- custBM$IncreaserDecreaser
       numCats <- custBM$ConditionCategoryNum
-      mod1 <- custBM$ModerateBenchmark1
-      mod2 <- custBM$ModerateBenchmark2
       maj1 <- custBM$MajorBenchmark1
-      maj2 <- custBM$MajorBenchmark2
+      # Only assign value if needed.  Prevents warnings.
+      if ("ModerateBenchmark1" %in% colnames(custBM)){
+        mod1 <- custBM$ModerateBenchmark1
+      }
+      # Only assign values if they are needed for pH.  Prevents warnings.
+      if ("ModerateBenchmark2" %in% colnames(custBM)){
+        mod2 <- custBM$ModerateBenchmark2
+      }
+      if ("MajorBenchmark2" %in% colnames(custBM)){
+        maj2 <- custBM$MajorBenchmark2
+      }
       
       # Lower and Upper ranges for the plot
       rangeLow <- metadata %>% filter(Indicator == indic) %>% pull(RangeLower) %>% first() %>% as.numeric()
@@ -439,17 +439,24 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
             annotate("rect", xmin = min_xmin, xmax = min_xmax, ymin = 0, ymax = 1, fill = "#00a9e6", color = "black") +
             annotate("rect", xmin = maj_xmin, xmax = maj_xmax, ymin = 0, ymax = 1, fill = "#895a44", color = "black") 
           
+          p <- p + scale_x_continuous(limits = c(rangeLow,rangeUp), 
+                                      breaks = breaks_pretty(n = 10),  # helps with arbitrary input ranges
+                                      expand = c(0,0),
+                                      sec.axis = dup_axis(breaks = c(mod1,maj1)))
+          
         } 
         if (numCats == 2){
           p <- p  +
             annotate("rect", xmin = min_xmin, xmax = min_xmax, ymin = 0, ymax = 1, fill = "#00a9e6", color = "black") +
             annotate("rect", xmin = maj_xmin, xmax = maj_xmax, ymin = 0, ymax = 1, fill = "#895a44", color = "black") 
+          
+          p <- p + scale_x_continuous(limits = c(rangeLow,rangeUp), 
+                                      breaks = breaks_pretty(n = 10),  # helps with arbitrary input ranges
+                                      expand = c(0,0),
+                                      sec.axis = dup_axis(breaks = c(maj1)))
         }
         
-        p <- p + scale_x_continuous(limits = c(rangeLow,rangeUp), 
-                                    breaks = breaks_pretty(n = 10),  # helps with arbitrary input ranges
-                                    expand = c(0,0),
-                                    sec.axis = dup_axis(breaks = c(mod1,maj1)))
+
       }
       # pH
       if (indic == "pH"){
@@ -462,7 +469,21 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
           p_alk <- p  +
             annotate("rect", xmin = mod_xmin_alk, xmax = mod_xmax_alk, ymin = 0, ymax = 1, fill = "#e6e600", color = "black") +
             annotate("rect", xmin = min_xmin_alk, xmax = min_xmax_alk, ymin = 0, ymax = 1, fill = "#00a9e6", color = "black") +
-            annotate("rect", xmin = maj_xmin_alk, xmax = maj_xmax_alk, ymin = 0, ymax = 1, fill = "#895a44", color = "black") 
+            annotate("rect", xmin = maj_xmin_alk, xmax = maj_xmax_alk, ymin = 0, ymax = 1, fill = "#895a44", color = "black")
+         
+          # Need 2 plots for pH fork acid and alkaline
+          p_acid <- p_acid + scale_x_continuous(limits = c(rangeLow,rangeUp), 
+                                                breaks = breaks_pretty(n = 10),  # helps with arbitrary input ranges
+                                                expand = c(0,0),
+                                                sec.axis = dup_axis(breaks = c(mod1,maj1))) +
+            labs(title = "Acidic")
+          
+          p_alk <- p_alk + scale_x_continuous(limits = c(rangeLow,rangeUp), 
+                                              breaks = breaks_pretty(n = 10),  # helps with arbitrary input ranges
+                                              expand = c(0,0),
+                                              sec.axis = dup_axis(breaks = c(mod2,maj2))) +
+            labs(title = "Alkaline") 
+          
         } 
         if (numCats == 2){
           p_acid <- p  +
@@ -471,21 +492,21 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
           
           p_alk <- p  +
             annotate("rect", xmin = min_xmin_alk, xmax = min_xmax_alk, ymin = 0, ymax = 1, fill = "#00a9e6", color = "black") +
-            annotate("rect", xmin = maj_xmin_alk, xmax = maj_xmax_alk, ymin = 0, ymax = 1, fill = "#895a44", color = "black") 
-        }
-        
-        # Need 2 plots for pH fork acid and alkaline
-        p_acid <- p_acid + scale_x_continuous(limits = c(rangeLow,rangeUp), 
+            annotate("rect", xmin = maj_xmin_alk, xmax = maj_xmax_alk, ymin = 0, ymax = 1, fill = "#895a44", color = "black")
+          
+          # Need 2 plots for pH fork acid and alkaline
+          p_acid <- p_acid + scale_x_continuous(limits = c(rangeLow,rangeUp), 
+                                                breaks = breaks_pretty(n = 10),  # helps with arbitrary input ranges
+                                                expand = c(0,0),
+                                                sec.axis = dup_axis(breaks = c(maj1))) +
+            labs(title = "Acidic")
+          
+          p_alk <- p_alk + scale_x_continuous(limits = c(rangeLow,rangeUp), 
                                               breaks = breaks_pretty(n = 10),  # helps with arbitrary input ranges
                                               expand = c(0,0),
-                                              sec.axis = dup_axis(breaks = c(mod1,maj1))) +
-          labs(title = "Acidic")
-        
-        p_alk <- p_alk + scale_x_continuous(limits = c(rangeLow,rangeUp), 
-                                            breaks = breaks_pretty(n = 10),  # helps with arbitrary input ranges
-                                            expand = c(0,0),
-                                            sec.axis = dup_axis(breaks = c(mod2,maj2))) +
-          labs(title = "Alkaline")
+                                              sec.axis = dup_axis(breaks = c(maj2))) +
+            labs(title = "Alkaline")
+        }
         
         # patchwork package used for stacked plots
         p <- p_acid / p_alk
@@ -496,33 +517,25 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
       
     } 
   
+    # Visualization of currently entered benchmark. Updates in realtime as values change.
+    output$bmVisualPlot <- renderPlot({
+     # Only plot if currentlyEnteredValues() has data and is COMPLETELY filled out
+     if (nrow(currentlyEnteredValues()) > 0 & sum(is.na(currentlyEnteredValues())) == 0){
+       
+       bmDefVisual(metadata = metadata, custBM = currentlyEnteredValues())
+       
+       } 
+     }, width = 500, 
+        height = function(){
+         if (input$Indicator != "pH") {
+           return(75)
+           }
+         if (input$Indicator == "pH") {
+           return(200)
+           }
+        }
+     ) 
 
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-   output$bmVisualPlot <- renderPlot({
-     print(sum(is.na(isolate(currentlyEnteredValues()))) == 0)
-     req(sum(is.na(currentlyEnteredValues())) == 0)
-     bmDefVisual(metadata = metadata, custBM = currentlyEnteredValues())
-     })
-
-   
-   
-   
-   
-   
-   
-   
-   
-   
 
     return(newInidicatorOutput)
     
@@ -537,7 +550,8 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
 ui <- fluidPage(
   fluidRow(
     defineBenchmarkMod_UI(id = "defBM"),
-    verbatimTextOutput("newIndicOut")
+    actionButton("newData","New Data")
+    #verbatimTextOutput("newIndicOut")
   )
 )
 

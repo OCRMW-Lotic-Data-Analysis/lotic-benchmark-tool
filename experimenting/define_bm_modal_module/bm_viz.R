@@ -237,4 +237,15 @@ if (indic == "pH"){
 p
 
 }
-  
+
+
+
+
+
+
+
+
+
+
+
+bmDefVisual(indicatorMetadata, smpl[7,])
