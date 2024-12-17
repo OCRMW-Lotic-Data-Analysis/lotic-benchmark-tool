@@ -6,6 +6,8 @@ library(bslib)
 library(dplyr)
 library(stringr)
 library(purrr)
+library(ggplot2)
+library(scales)
 
 
 # UI
@@ -28,8 +30,9 @@ defineBenchmarkMod_UI <- function(id){
     br(),
     radioButtons(ns("ConditionCategoryNum"), "Number of Condition Categories", choices = list("3" = 3, "2" = 2), selected = 3, inline = TRUE),
     uiOutput(ns("valuesAndOperators")),
-    actionButton(ns("saveSingleBM"), "Save"),
-    dataTableOutput(ns("tableOut"))
+    plotOutput(ns("bmVisualPlot")),
+    actionButton(ns("saveSingleBM"), "Save")
+
   )
 }
 
@@ -82,15 +85,17 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
         # The simple version, if indicator is not pH
         if (indicator != "pH"){
           operators <- switch(IncDec,
-                              "Increases with stress" = c("<=", "<"),
-                              "Decreases with stress" = c(">=", ">"))
+                              #"Increases with stress" = c("<=", "<"),
+                              #"Decreases with stress" = c(">=", ">"))
+                              "Increases with stress" = c(">=", ">"),
+                              "Decreases with stress" = c("<=", "<"))
           # Account for both acidic and alkaline benchmarks both of which must be defined.
           # pHtype here is used to help define the 'choices' in the selectInputs below.
         } else if (indicator == "pH") {
           if (pHtype == "acidic") {          #"Decreases with stress"
-            operators <- c(">=", ">")       
+            operators <- c("<=", "<")       
           } else if (pHtype == "alkaline") { #"Increases with stress"
-            operators <- c("<=", "<")
+            operators <- c(">=", ">")
           }
         }
         
@@ -223,7 +228,11 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
     
     # Run makeUI() when Indicator or # of Condition Categories changes.
     # Returns:  newUI()[["visibleRenderUIInputVals"]] and newUI()[["uiLayout"]]
-    newUI <- reactive(makeUI(input$ConditionCategoryNum, input$Indicator, metadata))
+    newUI <- reactive({
+      req(input$ConditionCategoryNum, input$Indicator)
+      makeUI(input$ConditionCategoryNum, input$Indicator, metadata)
+      })
+    
     
     
     # Render Custom BM UI  
@@ -233,13 +242,13 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
     }
     )
     
-    
     # Save currently entered benchmark values.  Used for module return and possibly
     # graphical representation of values.
     currentlyEnteredValues <- reactive(
       {
+        req(newUI())
         # Flip the operator for MajorToModerateRel1 and MajorToModerateRel2.  The
-        # operature required in the table is oppisite from what make sense in the UI
+        # operator required in the table is oppisite from what make sense in the UI
         flipSymbol <- function(operator){
           if (!is.null(operator)) {
             switch(operator,
@@ -254,15 +263,15 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
         newDat_allVals <- list(
           Indicator = input$Indicator,
           ConditionCategoryNum = input$ConditionCategoryNum,
-          ModerateBenchmark1 = input$ModerateBenchmark1,
-          MajorBenchmark1 = input$MajorBenchmark1,
-          ModerateBenchmark2 = input$ModerateBenchmark2,
-          MajorBenchmark2 = input$MajorBenchmark2,
+          ModerateBenchmark1 = as.numeric(input$ModerateBenchmark1),
+          MajorBenchmark1 = as.numeric(input$MajorBenchmark1),
+          ModerateBenchmark2 = as.numeric(input$ModerateBenchmark2),
+          MajorBenchmark2 = as.numeric(input$MajorBenchmark2),
           IncreaserDecreaser = metadata %>% filter(Indicator == input$Indicator & ConditionCategoryNum == input$ConditionCategoryNum) %>% pull(IncreaserDecreaser),
-          MajorToModerateRel1 = flipSymbol(input$MajorToModerateRel1),  # flip the operator
-          MajorToModerateRel2 = flipSymbol(input$MajorToModerateRel2),  # flip the operator
-          MinimalToModerateRel1 = input$MinimalToModerateRel1,
-          MinimalToModerateRel2 = input$MinimalToModerateRel2,
+          MajorToModerateRel1 = input$MajorToModerateRel1,  
+          MajorToModerateRel2 = input$MajorToModerateRel2,  
+          MinimalToModerateRel1 = flipSymbol(input$MinimalToModerateRel1),  # flip the operator to match BLM table
+          MinimalToModerateRel2 = flipSymbol(input$MinimalToModerateRel2),  # flip the operator to match BLM table
           MajorToMinimalRel1 = input$MajorToMinimalRel1,
           MajorToMinimalRel2 = input$MajorToMinimalRel2
         )
@@ -270,14 +279,17 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
 
         # List to dataframe
         newDat <- newDat_allVals %>%
-          .[c("Indicator","ConditionCategoryNum","IncreaserDecreaser", newUI()[["visibleRenderUIInputVals"]])] %>%
+          .[c("Indicator","ConditionCategoryNum","IncreaserDecreaser", newUI()[["visibleRenderUIInputVals"]] )] %>%
           bind_cols()
-        
         newDat
         #print(newUI()[["visibleRenderUIInputVals"]])
       }
     )
+    
 
+    
+
+    
    
   # Create reactiveVal for module return()
     newInidicatorOutput <- reactiveVal()
@@ -285,8 +297,232 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
   # Save new benchmark for single indicator
     observeEvent(
       input$saveSingleBM,
-      {newInidicatorOutput(currentlyEnteredValues())}
+      {newInidicatorOutput(currentlyEnteredValues())
+        print(currentlyEnteredValues())}
       )
+  
+
+    ## BM VISUAL
+    bmDefVisual <- function(metadata, custBM){
+  
+      
+      # Simplify value names from input custBM dataframe
+      indic <- custBM$Indicator
+      incOrDec <- custBM$IncreaserDecreaser
+      numCats <- custBM$ConditionCategoryNum
+      mod1 <- custBM$ModerateBenchmark1
+      mod2 <- custBM$ModerateBenchmark2
+      maj1 <- custBM$MajorBenchmark1
+      maj2 <- custBM$MajorBenchmark2
+      
+      # Lower and Upper ranges for the plot
+      rangeLow <- metadata %>% filter(Indicator == indic) %>% pull(RangeLower) %>% first() %>% as.numeric()
+      rangeUp <- metadata %>% filter(Indicator == indic) %>% pull(RangeUpper) %>% first() %>% as.numeric()
+      
+      # Account for ranges with no true lower or upper end
+      if (rangeUp == Inf){
+        rangeUp <- maj1 * 1.2 # add 20% to create some padding
+      }
+      
+      if (rangeLow == -Inf){
+        rangeLow <- mod1 * 0.8 # add 20% to create some padding
+      }
+      
+      ### Assign xmin and xmax values for Minimal, Moderate, and Major boxes to
+      # be used in ggplot annotate() boxes.
+      # 3 categorries
+      if (numCats == 3){
+        # NOT ph
+        if (incOrDec == "Increases with stress") {
+          min_xmin <- rangeLow
+          min_xmax <- mod1
+          
+          mod_xmin <- mod1
+          mod_xmax <- maj1
+          
+          maj_xmin <- maj1
+          maj_xmax <- rangeUp
+        } 
+        if (incOrDec == "Decreases with stress") {
+          min_xmin <- mod1
+          min_xmax <- rangeUp
+          
+          mod_xmin <- maj1
+          mod_xmax <- mod1
+          
+          maj_xmin <- rangeLow
+          maj_xmax <- maj1
+        } 
+        # pH
+        if (incOrDec == "Decreases and increases with stress") {
+          # Acidic
+          min_xmin_acid <- mod1
+          min_xmax_acid <- rangeUp
+          
+          mod_xmin_acid <- maj1
+          mod_xmax_acid <- mod1
+          
+          maj_xmin_acid <- rangeLow
+          maj_xmax_acid <- maj1
+          
+          # Alkaline
+          min_xmin_alk <- rangeLow
+          min_xmax_alk <- mod2
+          
+          mod_xmin_alk <- mod2
+          mod_xmax_alk <- maj2
+          
+          maj_xmin_alk <- maj2
+          maj_xmax_alk <- rangeUp
+        } 
+      } 
+      
+      if (numCats == 2){
+        # NOT ph
+        if (incOrDec == "Increases with stress") {
+          min_xmin <- rangeLow
+          min_xmax <- maj1
+          
+          maj_xmin <- maj1
+          maj_xmax <- rangeUp
+        } 
+        if (incOrDec == "Decreases with stress") {
+          min_xmin <- maj1
+          min_xmax <- rangeUp
+          
+          maj_xmin <- rangeLow
+          maj_xmax <- maj1
+        }
+        # pH
+        if (incOrDec == "Decreases and increases with stress") {
+          # Acidic
+          min_xmin_acid <- maj1
+          min_xmax_acid <- rangeUp
+          
+          maj_xmin_acid <- rangeLow
+          maj_xmax_acid <- maj1
+          
+          # Alkaline
+          min_xmin_alk <- rangeLow
+          min_xmax_alk <- maj2
+          
+          maj_xmin_alk <- maj2
+          maj_xmax_alk <- rangeUp
+        }
+      }
+      
+      # Set up blank plot framework
+      p <- ggplot() +
+        coord_cartesian(
+          ylim=c(0,1),
+          clip = "off",
+          expand = FALSE) +
+        theme_classic() +
+        theme(
+          axis.text = element_text(size = 12),
+          axis.title = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line = element_blank(),
+          plot.margin = margin(t = 10,  # Top margin
+                               r = 10,  # Right margin
+                               b = 10,  # Bottom margin
+                               l = 10)) # Left margin) # Left margin
+      
+      
+      ### Add annotations (colored areas) to plot
+      # NOT ph
+      if (indic != "pH"){
+        if(numCats == 3){
+          p <- p  +
+            annotate("rect", xmin = mod_xmin, xmax = mod_xmax, ymin = 0, ymax = 1, fill = "#e6e600", color = "black") +
+            annotate("rect", xmin = min_xmin, xmax = min_xmax, ymin = 0, ymax = 1, fill = "#00a9e6", color = "black") +
+            annotate("rect", xmin = maj_xmin, xmax = maj_xmax, ymin = 0, ymax = 1, fill = "#895a44", color = "black") 
+          
+        } 
+        if (numCats == 2){
+          p <- p  +
+            annotate("rect", xmin = min_xmin, xmax = min_xmax, ymin = 0, ymax = 1, fill = "#00a9e6", color = "black") +
+            annotate("rect", xmin = maj_xmin, xmax = maj_xmax, ymin = 0, ymax = 1, fill = "#895a44", color = "black") 
+        }
+        
+        p <- p + scale_x_continuous(limits = c(rangeLow,rangeUp), 
+                                    breaks = breaks_pretty(n = 10),  # helps with arbitrary input ranges
+                                    expand = c(0,0),
+                                    sec.axis = dup_axis(breaks = c(mod1,maj1)))
+      }
+      # pH
+      if (indic == "pH"){
+        if(numCats == 3){
+          p_acid <- p  +
+            annotate("rect", xmin = mod_xmin_acid, xmax = mod_xmax_acid, ymin = 0, ymax = 1, fill = "#e6e600", color = "black") +
+            annotate("rect", xmin = min_xmin_acid, xmax = min_xmax_acid, ymin = 0, ymax = 1, fill = "#00a9e6", color = "black") +
+            annotate("rect", xmin = maj_xmin_acid, xmax = maj_xmax_acid, ymin = 0, ymax = 1, fill = "#895a44", color = "black") 
+          
+          p_alk <- p  +
+            annotate("rect", xmin = mod_xmin_alk, xmax = mod_xmax_alk, ymin = 0, ymax = 1, fill = "#e6e600", color = "black") +
+            annotate("rect", xmin = min_xmin_alk, xmax = min_xmax_alk, ymin = 0, ymax = 1, fill = "#00a9e6", color = "black") +
+            annotate("rect", xmin = maj_xmin_alk, xmax = maj_xmax_alk, ymin = 0, ymax = 1, fill = "#895a44", color = "black") 
+        } 
+        if (numCats == 2){
+          p_acid <- p  +
+            annotate("rect", xmin = min_xmin_acid, xmax = min_xmax_acid, ymin = 0, ymax = 1, fill = "#00a9e6", color = "black") +
+            annotate("rect", xmin = maj_xmin_acid, xmax = maj_xmax_acid, ymin = 0, ymax = 1, fill = "#895a44", color = "black") 
+          
+          p_alk <- p  +
+            annotate("rect", xmin = min_xmin_alk, xmax = min_xmax_alk, ymin = 0, ymax = 1, fill = "#00a9e6", color = "black") +
+            annotate("rect", xmin = maj_xmin_alk, xmax = maj_xmax_alk, ymin = 0, ymax = 1, fill = "#895a44", color = "black") 
+        }
+        
+        # Need 2 plots for pH fork acid and alkaline
+        p_acid <- p_acid + scale_x_continuous(limits = c(rangeLow,rangeUp), 
+                                              breaks = breaks_pretty(n = 10),  # helps with arbitrary input ranges
+                                              expand = c(0,0),
+                                              sec.axis = dup_axis(breaks = c(mod1,maj1))) +
+          labs(title = "Acidic")
+        
+        p_alk <- p_alk + scale_x_continuous(limits = c(rangeLow,rangeUp), 
+                                            breaks = breaks_pretty(n = 10),  # helps with arbitrary input ranges
+                                            expand = c(0,0),
+                                            sec.axis = dup_axis(breaks = c(mod2,maj2))) +
+          labs(title = "Alkaline")
+        
+        # patchwork package used for stacked plots
+        p <- p_acid / p_alk
+      }
+      
+      # Return plot
+      p
+      
+    } 
+  
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+   output$bmVisualPlot <- renderPlot({
+     print(sum(is.na(isolate(currentlyEnteredValues()))) == 0)
+     req(sum(is.na(currentlyEnteredValues())) == 0)
+     bmDefVisual(metadata = metadata, custBM = currentlyEnteredValues())
+     })
+
+   
+   
+   
+   
+   
+   
+   
+   
+   
 
     return(newInidicatorOutput)
     
