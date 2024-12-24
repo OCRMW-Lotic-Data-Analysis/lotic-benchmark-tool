@@ -32,8 +32,8 @@ defineBenchmarkMod_UI <- function(id){
     br(),
     radioButtons(ns("ConditionCategoryNum"), "Number of Condition Categories", choices = list("3" = 3, "2" = 2), selected = 3, inline = TRUE),
     uiOutput(ns("valuesAndOperators")),
-    plotOutput(ns("bmVisualPlot")),
-    actionButton(ns("saveSingleBM"), "Save")
+    plotOutput(ns("bmVisualPlot"), inline = T),
+    #actionButton(ns("saveSingleBM"), "Save")
     )
   )
 }
@@ -285,15 +285,17 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
       }
     )
     
-  # Create reactiveVal for module return()
-    newInidicatorOutput <- reactiveVal()
+  # # Create reactiveVal for module return()
+    # newInidicatorOutput <- reactiveVal()
+    # newInidicatorOutput(currentlyEnteredValues())
+
   
   # Save new benchmark for single indicator
-    observeEvent(
-      input$saveSingleBM,
-      {newInidicatorOutput(currentlyEnteredValues())
-      #print(currentlyEnteredValues())
-        })
+    # observeEvent(
+    #   input$saveSingleBM,
+    #   {newInidicatorOutput(currentlyEnteredValues())
+    #   #print(currentlyEnteredValues())
+    #     })
   
   ## BM Visual Plot ------------------------------------------------------------
     bmDefVisual <- function(metadata, custBM){
@@ -565,6 +567,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
         height = function(){
          if (input$Indicator != "pH") {
            return(125)
+           
            }
          if (input$Indicator == "pH") {
            return(200)
@@ -572,7 +575,11 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
         }
      ) 
 
-
+    newInidicatorOutput <- reactiveVal()
+    observe({
+      newInidicatorOutput(currentlyEnteredValues())
+      })
+    
     return(newInidicatorOutput)
     
     }) # end moduleServer
@@ -585,46 +592,45 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
 ################################################################################
 ui <- fluidPage(
   fluidRow(
-    #defineBenchmarkMod_UI(id = "defBM"),
     actionButton("newData","New Data")
-    
+    )
   )
-)
 
 server <- function(input, output, session) {
   # Load metadata and blank form
   indicatorMetadata <- read.csv("./indicator_metadata.csv", colClasses = "character")
   blankCustomBMForm <- read.csv("./custom_indicator_blank.csv", colClasses = "character")
-
-  # Return new indicator data
-  #newInidicator <- defineBenchmarkMod_server(id = "defBM", metadata = indicatorMetadata, blankForm = blankCustomBMForm)
-  #defineBenchmarkMod_server(id = "defBM", metadata = indicatorMetadata, blankForm = blankCustomBMForm)
   
+  # Empty reactiveVal to store new custom benchmark below
+  newCustBenchmarkDat <- reactiveVal()
   
-  
-  newIndicDat <- reactiveVal()
-  
-  # Modal
+  # Modal on click
   observeEvent(input$newData, {
     showModal(
       modalDialog(
         defineBenchmarkMod_UI(id = "defBM"),
-        verbatimTextOutput("newIndicOut")
+        footer = tagList(
+          actionButton("saveNewBM", "Save & Close"),
+          modalButton("Cancel")
+          )
         )
       )
-      test <- defineBenchmarkMod_server(id = "defBM", metadata = indicatorMetadata, blankForm = blankCustomBMForm)
-      output$newIndicOut <- renderPrint({test()})
-      print(test)
-  })
+    
+    # Run the module server and capture its return
+    moduleDataOutput <- defineBenchmarkMod_server(id = "defBM", metadata = indicatorMetadata, blankForm = blankCustomBMForm)
+    
+    # Capture output from module in reactiveVal.  This is what will be saved when user hits "save"
+    observe({
+      newCustBenchmarkDat(moduleDataOutput())
+    })
+    
+  }) # end modal
   
-  
-  
-  
-  
-  
-  #newInidicator
-  output$newIndicOut <- renderPrint({newIndicDat()})
-
+  # Close modal and add the newly created newCustBenchmarkDat() data to table of all custom benchmarks
+  observeEvent(input$saveNewBM, {
+    print(newCustBenchmarkDat())
+    removeModal()
+    })
 }
 
 shinyApp(ui = ui, server = server)

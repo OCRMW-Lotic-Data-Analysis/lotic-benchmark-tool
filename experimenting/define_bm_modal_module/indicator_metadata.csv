@@ -1,9 +1,9 @@
-Indicator,Units,ValueRange,IncreaserDecreaser,ConditionCategoryNum
-PctBankCoveredStableOld,%,0-100,Decreases with stress,3
-pH,pH,0-14,Decreases and increases with stress,3
-InstantTemp,Degrees C,0-100,Increases with stress,3
-PctFinesLessThan2mm,%,0-100,Increases with stress,3
-FloodplainConnectivity,Unitless,1-inf,Increases with stress,3
-pH,pH,0-14,Decreases and increases with stress,2
-InstantTemp,Degrees C,0-100,Increases with stress,2
-PctFinesLessThan2mm,%,0-100,Increases with stress,2
+Indicator,Units,ValueRange,RangeLower,RangeUpper,IncreaserDecreaser,ConditionCategoryNum
+PctBankCoveredStableOld,%,0-100,0,100,Decreases with stress,3
+pH,pH,0-14,0,14,Decreases and increases with stress,3
+InstantTemp,Degrees C,0-100,0,100,Increases with stress,3
+PctFinesLessThan2mm,%,0-100,0,100,Increases with stress,3
+FloodplainConnectivity,Unitless,1-inf,1,inf,Increases with stress,3
+pH,pH,0-14,0,14,Decreases and increases with stress,2
+InstantTemp,Degrees C,0-100,0,100,Increases with stress,2
+PctFinesLessThan2mm,%,0-100,0,100,Increases with stress,2
