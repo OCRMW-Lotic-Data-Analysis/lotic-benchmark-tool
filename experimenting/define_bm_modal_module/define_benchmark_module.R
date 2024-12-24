@@ -14,7 +14,8 @@ library(patchwork)
 # UI
 defineBenchmarkMod_UI <- function(id){
   ns <- NS(id)
-  fluidPage(
+  tagList(
+    fluidPage(
     # CSS for aligning Min/Mod/Maj labels with operator and value input boxes
     tags$style(
      ".min-p {
@@ -33,7 +34,7 @@ defineBenchmarkMod_UI <- function(id){
     uiOutput(ns("valuesAndOperators")),
     plotOutput(ns("bmVisualPlot")),
     actionButton(ns("saveSingleBM"), "Save")
-
+    )
   )
 }
 
@@ -50,8 +51,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
     # Update select inputs 
     observe({
       updateSelectInput(session, "Indicator",
-                        choices = unique(metadata$Indicator)
-      )
+                        choices = unique(metadata$Indicator))
     })
     
     
@@ -236,7 +236,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
     
     # Render Custom BM UI  
     output$valuesAndOperators <- renderUI({
-      req(input$Indicator)
+      #req(input$Indicator)
       newUI()[["uiLayout"]]
     }
     )
@@ -292,8 +292,8 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
     observeEvent(
       input$saveSingleBM,
       {newInidicatorOutput(currentlyEnteredValues())
-        print(currentlyEnteredValues())}
-      )
+      #print(currentlyEnteredValues())
+        })
   
   ## BM Visual Plot ------------------------------------------------------------
     bmDefVisual <- function(metadata, custBM){
@@ -585,9 +585,9 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
 ################################################################################
 ui <- fluidPage(
   fluidRow(
-    defineBenchmarkMod_UI(id = "defBM"),
+    #defineBenchmarkMod_UI(id = "defBM"),
     actionButton("newData","New Data")
-    #verbatimTextOutput("newIndicOut")
+    
   )
 )
 
@@ -596,10 +596,34 @@ server <- function(input, output, session) {
   indicatorMetadata <- read.csv("./indicator_metadata.csv", colClasses = "character")
   blankCustomBMForm <- read.csv("./custom_indicator_blank.csv", colClasses = "character")
 
-  newInidicator <- defineBenchmarkMod_server(id = "defBM", metadata = indicatorMetadata, blankForm = blankCustomBMForm)
+  # Return new indicator data
+  #newInidicator <- defineBenchmarkMod_server(id = "defBM", metadata = indicatorMetadata, blankForm = blankCustomBMForm)
+  #defineBenchmarkMod_server(id = "defBM", metadata = indicatorMetadata, blankForm = blankCustomBMForm)
+  
+  
+  
+  newIndicDat <- reactiveVal()
+  
+  # Modal
+  observeEvent(input$newData, {
+    showModal(
+      modalDialog(
+        defineBenchmarkMod_UI(id = "defBM"),
+        verbatimTextOutput("newIndicOut")
+        )
+      )
+      test <- defineBenchmarkMod_server(id = "defBM", metadata = indicatorMetadata, blankForm = blankCustomBMForm)
+      output$newIndicOut <- renderPrint({test()})
+      print(test)
+  })
+  
+  
+  
+  
+  
   
   #newInidicator
-  #output$newIndicOut <- renderPrint({newInidicator()})
+  output$newIndicOut <- renderPrint({newIndicDat()})
 
 }
 
