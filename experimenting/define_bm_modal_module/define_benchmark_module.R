@@ -272,6 +272,8 @@ bmDefVisual <- function(metadata, custBM){
   
 }
 
+# Check logic of input values.  Do inequalities make sense and match the indicators 'IncreaserDecreaser' category?
+# "Save & Close" buttin will remain greyed out until values are valid.
 saveValidator <- function(newData){
   if (newData$ConditionCategoryNum == 3){
     # Test "Decreases with stress" indicators
@@ -620,6 +622,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
 ### Shiny App ------------------------------------------------------------------
 # APP
 ui <- fluidPage(
+  shinyjs::useShinyjs(),
   fluidRow(
     actionButton("newData","New Data"),
     )
@@ -651,23 +654,32 @@ server <- function(input, output, session) {
     # Capture output from module in reactiveVal.  This is what will be saved when user hits "save"
     observe({
       newCustBenchmarkDat(moduleDataOutput())
+      print(nrow(newCustBenchmarkDat()))
       print(newCustBenchmarkDat())
+      
+      # Check if benchmark values and inequality operators are logical.  Had to nest if statements due to NULL values.
+      if (!is_empty(newCustBenchmarkDat())) { # needed because, for example, `nrow(NULL) > 1` returns logical(0).
+        if (nrow(newCustBenchmarkDat()) == 1){
+          
+          # Perform logical check of values.  'Save & Close' button only works if inputs are valid.
+          if (saveValidator(newCustBenchmarkDat())) {
+                shinyjs::enable("saveNewBM")
+              } else {
+                shinyjs::disable("saveNewBM")
+              }
+          }
+        }
+      
       })
     
 
+
+    
     
   }) # end modal
   
-  # observe({
-  #   req(newCustBenchmarkDat())
-  #   if (saveValidator(newCustBenchmarkDat())) {
-  #     shinyjs::enable("saveNewBM")
-  #   } else {
-  #     shinyjs::disable("saveNewBM")
-  #   }
-  # 
-  # })
-  # 
+
+
   # Close modal and add the newly created newCustBenchmarkDat() data to table of all custom benchmarks
   observeEvent(input$saveNewBM, {
 
