@@ -561,7 +561,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
         # Pull all input$ values into list.  Using list because it handles NULL inputs better.
         newDat_allVals <- list(
           Indicator = input$Indicator,
-          ConditionCategoryNum = input$ConditionCategoryNum,
+          ConditionCategoryNum = as.numeric(input$ConditionCategoryNum),
           ModerateBenchmark1 = as.numeric(input$ModerateBenchmark1),
           MajorBenchmark1 = as.numeric(input$MajorBenchmark1),
           ModerateBenchmark2 = as.numeric(input$ModerateBenchmark2),
@@ -622,7 +622,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
 ### Shiny App ------------------------------------------------------------------
 # APP
 ui <- fluidPage(
-  shinyjs::useShinyjs(),
+  shinyjs::useShinyjs(), # needed for greying out "Save & Close" button
   fluidRow(
     actionButton("newData","New Data"),
     )
@@ -630,8 +630,13 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   # Load metadata and blank form
-  indicatorMetadata <- read.csv("./indicator_metadata.csv", colClasses = "character")
-  blankCustomBMForm <- read.csv("./custom_indicator_blank.csv", colClasses = "character")
+  indicatorMetadata <- read_csv("./indicator_metadata.csv", col_types = cols(.default = "c"))
+  blankCustomBMForm <- read_csv("./custom_indicator_blank.csv", col_types = cols(.default = "c", 
+                                                                                 ModerateBenchmark1 = "n", 
+                                                                                 MajorBenchmark1 = "n",
+                                                                                 ModerateBenchmark2 = "n",
+                                                                                 MajorBenchmark2 = "n",
+                                                                                 ConditionCategoryNum = "n"))
   
   # Empty reactiveVal to store new custom benchmark below
   newCustBenchmarkDat <- reactiveVal()
@@ -654,8 +659,8 @@ server <- function(input, output, session) {
     # Capture output from module in reactiveVal.  This is what will be saved when user hits "save"
     observe({
       newCustBenchmarkDat(moduleDataOutput())
-      print(nrow(newCustBenchmarkDat()))
-      print(newCustBenchmarkDat())
+      #print(nrow(newCustBenchmarkDat()))
+      #print(newCustBenchmarkDat())
       
       # Check if benchmark values and inequality operators are logical.  Had to nest if statements due to NULL values.
       if (!is_empty(newCustBenchmarkDat())) { # needed because, for example, `nrow(NULL) > 1` returns logical(0).
@@ -672,22 +677,17 @@ server <- function(input, output, session) {
       
       })
     
-
-
-    
-    
-  }) # end modal
+  }) # end modal on click
   
-
-
-  # Close modal and add the newly created newCustBenchmarkDat() data to table of all custom benchmarks
+  # New benchmark group to store all newly defined individual benchmarks
+  newBMGroup <- reactiveVal(blankCustomBMForm)
+  
+  # Save botton.  Close modal and add the newly created newCustBenchmarkDat() data to table of all custom benchmarks
   observeEvent(input$saveNewBM, {
-
+    newVals <- bind_rows(newBMGroup(), newCustBenchmarkDat()) %>% arrange(Indicator) 
+    newBMGroup(newVals)
     
-
-    
-    
-    print(newCustBenchmarkDat())
+    print(newBMGroup)
     removeModal()
     })
   
