@@ -1,17 +1,3 @@
-library(shiny)
-library(shinyjs)
-library(here)
-library(DT)
-library(htmltools)
-library(bslib)
-library(dplyr)
-library(stringr)
-library(purrr)
-library(ggplot2)
-library(scales)
-library(patchwork)
-library(bslib)
-
 ### Supporting Functions -------------------------------------------------------
 # Note, not all large functions can be pulled out due to namespacing
 
@@ -320,24 +306,24 @@ defineBenchmarkMod_UI <- function(id){
   ns <- NS(id)
   tagList(
     fluidPage(
-    # CSS for aligning Min/Mod/Maj labels with operator and value input boxes
-    tags$style(
-     ".min-p {
+      # CSS for aligning Min/Mod/Maj labels with operator and value input boxes
+      tags$style(
+        ".min-p {
         text-align: right;
       }
       .modmax-p {
         text-align: right; 
         padding-top: 25px
       }"),
-    selectInput(ns("Indicator"), "Select Indicator", choices = NULL),
-    textOutput(ns("indic_units")),
-    textOutput(ns("indic_range")),
-    textOutput(ns("indic_increaseDecrease")),
-    br(),
-    radioButtons(ns("ConditionCategoryNum"), "Number of Condition Categories", choices = list("3" = 3, "2" = 2), selected = 3, inline = TRUE),
-    uiOutput(ns("valuesAndOperators")),
-    plotOutput(ns("bmVisualPlot"), inline = T),
-    #actionButton(ns("saveSingleBM"), "Save")
+      selectInput(ns("Indicator"), "Select Indicator", choices = NULL),
+      textOutput(ns("indic_units")),
+      textOutput(ns("indic_range")),
+      textOutput(ns("indic_increaseDecrease")),
+      br(),
+      radioButtons(ns("ConditionCategoryNum"), "Number of Condition Categories", choices = list("3" = 3, "2" = 2), selected = 3, inline = TRUE),
+      uiOutput(ns("valuesAndOperators")),
+      plotOutput(ns("bmVisualPlot"), inline = T),
+      #actionButton(ns("saveSingleBM"), "Save")
     )
   )
 }
@@ -346,7 +332,7 @@ defineBenchmarkMod_UI <- function(id){
 # SERVER
 defineBenchmarkMod_server <- function(id, metadata, blankForm){
   moduleServer(id, function(input, output, session) {
-
+    
     # Get namespace of current module to pass to uiOutput/renderUI.
     ns <- session$ns
     
@@ -405,7 +391,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
         
         return(operators)
       } # end setOperators()
-    
+      
       
       # Huge logic test that decided which of 4 layouts to use.
       # Option 1) 3 Categories, not pH
@@ -523,7 +509,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
       # Export ui labels and layout
       uiOut <- list(visibleRenderUIInputVals = visibleRenderUIInputVals,
                     uiLayout = uiLayout)
-    
+      
       return(uiOut)
       
       
@@ -534,14 +520,14 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
     newUI <- reactive({
       req(input$ConditionCategoryNum, input$Indicator)
       makeUI(input$ConditionCategoryNum, input$Indicator, metadata)
-      })
+    })
     
     # Render Custom BM UI  
     output$valuesAndOperators <- renderUI({
       newUI()[["uiLayout"]]
-      })
+    })
     
-  # REALTIME SAVING OF ENTERED VALUES ------------------------------------------  
+    # REALTIME SAVING OF ENTERED VALUES ------------------------------------------  
     # Save currently entered benchmark values.  Used for module return and possibly
     # graphical representation of values.
     currentlyEnteredValues <- reactive(
@@ -558,7 +544,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
                    "<=" = ">=")
           }
         }
-
+        
         # Pull all input$ values into list.  Using list because it handles NULL inputs better.
         newDat_allVals <- list(
           Indicator = input$Indicator,
@@ -575,7 +561,7 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
           MajorToMinimalRel1 = input$MajorToMinimalRel1,
           MajorToMinimalRel2 = input$MajorToMinimalRel2
         )
-
+        
         # List to dataframe
         newDat <- newDat_allVals %>%
           .[c("Indicator","ConditionCategoryNum","IncreaserDecreaser", newUI()[["visibleRenderUIInputVals"]] )] %>%
@@ -584,114 +570,36 @@ defineBenchmarkMod_server <- function(id, metadata, blankForm){
       }
     )
     
-
+    
     
     
     # Visualization of currently entered benchmark. Updates in realtime as values change.
     output$bmVisualPlot <- renderPlot({
-     # Only plot if currentlyEnteredValues() has data and is COMPLETELY filled out
-     if (nrow(currentlyEnteredValues()) > 0 & sum(is.na(currentlyEnteredValues())) == 0){
-       
-       bmDefVisual(metadata = metadata, custBM = newInidicatorOutput())
-       
-       } 
-     }, # Set size of renderPlot() output.  Otherwise, a non-pH plot is very "tall"
-        width = 425, 
-        height = function(){
-         if (input$Indicator != "pH") {
-           return(125)
-           
-           }
-         if (input$Indicator == "pH") {
-           return(200)
-           }
-        }
-     ) 
-
+      # Only plot if currentlyEnteredValues() has data and is COMPLETELY filled out
+      if (nrow(currentlyEnteredValues()) > 0 & sum(is.na(currentlyEnteredValues())) == 0){
+        
+        bmDefVisual(metadata = metadata, custBM = newInidicatorOutput())
+        
+      } 
+    }, # Set size of renderPlot() output.  Otherwise, a non-pH plot is very "tall"
+    width = 425, 
+    height = function(){
+      if (input$Indicator != "pH") {
+        return(125)
+        
+      }
+      if (input$Indicator == "pH") {
+        return(200)
+      }
+    }
+    ) 
+    
     newInidicatorOutput <- reactiveVal()
     observe({
       newInidicatorOutput(currentlyEnteredValues())
-      })
+    })
     
     return(newInidicatorOutput)
     
-    }) # end moduleServer
+  }) # end moduleServer
 } # end defineBenchmarkMod_server
-
-
-
-### Shiny App ------------------------------------------------------------------
-# APP
-ui <- page_sidebar(
-  shinyjs::useShinyjs(), # needed for greying out "Save & Close" button
-  card(
-    actionButton("newData","New Data"),
-    )
-  )
-
-server <- function(input, output, session) {
-  # Load metadata and blank form
-  indicatorMetadata <- read_csv("./indicator_metadata.csv", col_types = cols(.default = "c")) %>% drop_na() # only include fully complete indicator metadata
-  blankCustomBMForm <- read_csv("./custom_indicator_blank.csv", col_types = cols(.default = "c", 
-                                                                                 ModerateBenchmark1 = "n", 
-                                                                                 MajorBenchmark1 = "n",
-                                                                                 ModerateBenchmark2 = "n",
-                                                                                 MajorBenchmark2 = "n",
-                                                                                 ConditionCategoryNum = "n"))
-  
-  # Empty reactiveVal to store new custom benchmark below
-  newCustBenchmarkDat <- reactiveVal()
-  
-  # Modal on click
-  observeEvent(input$newData, {
-    showModal(
-      modalDialog(
-        defineBenchmarkMod_UI(id = "defBM"),
-        footer = tagList(
-          actionButton("saveNewBM", "Save & Close"),
-          modalButton("Cancel")
-          )
-        )
-      )
-    
-    # Run the module server and capture its return
-    moduleDataOutput <- defineBenchmarkMod_server(id = "defBM", metadata = indicatorMetadata, blankForm = blankCustomBMForm)
-    
-    # Capture output from module in reactiveVal.  This is what will be saved when user hits "save"
-    observe({
-      newCustBenchmarkDat(moduleDataOutput())
-      #print(nrow(newCustBenchmarkDat()))
-      #print(newCustBenchmarkDat())
-      
-      # Check if benchmark values and inequality operators are logical.  Had to nest if statements due to NULL values.
-      if (!is_empty(newCustBenchmarkDat())) { # needed because, for example, `nrow(NULL) > 1` returns logical(0).
-        if (nrow(newCustBenchmarkDat()) == 1){
-          
-          # Perform logical check of values.  'Save & Close' button only works if inputs are valid.
-          if (saveValidator(newCustBenchmarkDat())) {
-                shinyjs::enable("saveNewBM")
-              } else {
-                shinyjs::disable("saveNewBM")
-              }
-          }
-        }
-      
-      })
-    
-  }) # end modal on click
-  
-  # New benchmark group to store all newly defined individual benchmarks
-  newBMGroup <- reactiveVal(blankCustomBMForm)
-  
-  # Save botton.  Close modal and add the newly created newCustBenchmarkDat() data to table of all custom benchmarks
-  observeEvent(input$saveNewBM, {
-    newVals <- bind_rows(newBMGroup(), newCustBenchmarkDat()) %>% arrange(Indicator) 
-    newBMGroup(newVals)
-    
-    print(newBMGroup)
-    removeModal()
-    })
-  
-}
-
-shinyApp(ui = ui, server = server)

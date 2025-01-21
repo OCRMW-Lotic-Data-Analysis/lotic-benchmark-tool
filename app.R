@@ -22,7 +22,8 @@ ui <- page_navbar(
   title = "Lotic AIM Custom Benchmark Tool",
   selected = "1. Select Indicators",
   collapsible = TRUE,
-  theme = bslib::bs_theme(font_scale = NULL, preset = "yeti"),
+  theme = bslib::bs_theme(font_scale = 0.9, preset = "yeti"),
+  
   
   # 1. Select Indicators ----
   nav_panel(
@@ -92,27 +93,32 @@ ui <- page_navbar(
   
   # 2. Define Benchmarks ----
   nav_panel(
+    shinyjs::useShinyjs(),
     title = "2. Define Benchmarks",
     page_sidebar(
       #Sidebar
       sidebar = sidebar(
         width = "300px",
         h5("Create Benchmark Groups"),
+        p("Define individual benchmarks and assign a group name."),
+        actionButton("addNewBM", 
+                     label = shiny::tagList(bsicons::bs_icon("box-arrow-in-right"),"Add New Benchmark"), 
+                     style="color: #000000; background-color: #deefff"),
         textInput("bmGroupNameinput", label = "Group Name"),
-        pickerInput(inputId = "selectBenchmarks3",
-                    label = "Three Condition Categories",
-                    choices = "",    # choices are updated based on input of indicatorList()
-                    options = list(
-                      `actions-box` = TRUE),
-                    multiple = TRUE
-        ),
-        pickerInput(inputId = "selectBenchmarks2",
-                    label = "Two Condition Categories",
-                    choices = "",    # choices are updated based on input of indicatorList()
-                    options = list(
-                      `actions-box` = TRUE),
-                    multiple = TRUE
-        ),
+        # pickerInput(inputId = "selectBenchmarks3",
+        #             label = "Three Condition Categories",
+        #             choices = "",    # choices are updated based on input of indicatorList()
+        #             options = list(
+        #               `actions-box` = TRUE),
+        #             multiple = TRUE
+        # ),
+        # pickerInput(inputId = "selectBenchmarks2",
+        #             label = "Two Condition Categories",
+        #             choices = "",    # choices are updated based on input of indicatorList()
+        #             options = list(
+        #               `actions-box` = TRUE),
+        #             multiple = TRUE
+        # ),
         br(),
         
         actionButton("saveNewBMGroup", 
@@ -230,7 +236,13 @@ ui <- page_navbar(
 server <- function(input, output, session) {
   #bs_themer()
 # 0. Global Items ------------------------------------------------------------
-  
+  indicatorMetadata <- read_csv("./appData/indicator_metadata.csv", col_types = cols(.default = "c")) %>% drop_na() # only include fully complete indicator metadata
+  blankCustomBMForm <- read_csv("./appData/custom_indicator_blank.csv", col_types = cols(.default = "c", 
+                                                                                 ModerateBenchmark1 = "n", 
+                                                                                 MajorBenchmark1 = "n",
+                                                                                 ModerateBenchmark2 = "n",
+                                                                                 MajorBenchmark2 = "n",
+                                                                                 ConditionCategoryNum = "n"))
 # 1. Select Indicators -------------------------------------------------------
   # Indicator Filtering
   
@@ -441,70 +453,152 @@ server <- function(input, output, session) {
   
 # 2. Define Benchmarks -------------------------------------------------------
   
-  # Load default benchmarks
-  #indicatorList <-reactiveVal(read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character"))
-  indicatorList <- reactiveVal(read.csv("./appData/custom_indicator_list.csv", colClasses = "character") %>% arrange(Indicator))
+  # START OLD  -------
   
-  # Update benchmark selectors based on indicatorList().
-  observe({
-    updatePickerInput(session, "selectBenchmarks3",
-                      choices = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator))
-    
-    updatePickerInput(session, "selectBenchmarks2",
-                      choices = filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator))
-  })
-  
-  # Create mutually exclusive selectors for 2 and 3 category benchmarks.
-  # For example: if pH is selected for 3 Category, it will be removed
-  # from the dropdown selector for 2 Category.
-  observeEvent(
-    input$selectBenchmarks3,
-    {
-      updatePickerInput(
-        session = session,
-        inputId = "selectBenchmarks2",
-        choices = setdiff(filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator), 
-                          input$selectBenchmarks3),
-        selected = input$selectBenchmarks2
-      )
-    },
-    ignoreNULL = FALSE
-  )
-  observeEvent(
-    input$selectBenchmarks2,
-    {
-      updatePickerInput(
-        session = session,
-        inputId = "selectBenchmarks3",
-        choices = setdiff(filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator), 
-                          input$selectBenchmarks2),
-        selected = input$selectBenchmarks3
-      )
-    },
-    ignoreNULL = FALSE
-  )
-  
-  # Editable benchmark table.  This is where users enter major/moderate thresholds
+  # # Load default benchmarks
+  # #indicatorList <-reactiveVal(read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character"))
+  # indicatorList <- reactiveVal(read.csv("./appData/custom_indicator_list.csv", colClasses = "character") %>% arrange(Indicator))
+  # 
+  # # Update benchmark selectors based on indicatorList().
+  # observe({
+  #   updatePickerInput(session, "selectBenchmarks3",
+  #                     choices = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator))
+  #   
+  #   updatePickerInput(session, "selectBenchmarks2",
+  #                     choices = filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator))
+  # })
+  # 
+  # # Create mutually exclusive selectors for 2 and 3 category benchmarks.
+  # # For example: if pH is selected for 3 Category, it will be removed
+  # # from the dropdown selector for 2 Category.
+  # observeEvent(
+  #   input$selectBenchmarks3,
+  #   {
+  #     updatePickerInput(
+  #       session = session,
+  #       inputId = "selectBenchmarks2",
+  #       choices = setdiff(filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator), 
+  #                         input$selectBenchmarks3),
+  #       selected = input$selectBenchmarks2
+  #     )
+  #   },
+  #   ignoreNULL = FALSE
+  # )
+  # observeEvent(
+  #   input$selectBenchmarks2,
+  #   {
+  #     updatePickerInput(
+  #       session = session,
+  #       inputId = "selectBenchmarks3",
+  #       choices = setdiff(filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator), 
+  #                         input$selectBenchmarks2),
+  #       selected = input$selectBenchmarks3
+  #     )
+  #   },
+  #   ignoreNULL = FALSE
+  # )
+  # 
+  # # Editable benchmark table.  This is where users enter major/moderate thresholds
+  # output$defineBenchmark_hot <- renderRHandsontable({
+  #   
+  #   # Wait to display table until benchmark categories are selected.
+  #   req(isTruthy(input$selectBenchmarks3 != "") || isTruthy(input$selectBenchmarks2 != ""))
+  #   
+  #   # Filter to selected benchmarks
+  #   cond2 <- dplyr::filter(indicatorList(), Indicator %in% input$selectBenchmarks3 & ConditionCategoryNum == 3)
+  #   cond3 <- dplyr::filter(indicatorList(), Indicator %in% input$selectBenchmarks2 & ConditionCategoryNum == 2)
+  #   
+  #   # Merge above filtered data.  Since this is no longer the indicatorList, remove column with "Default" group.
+  #   # Column removed as opposed to just removing values bc column is added later.
+  #   dat <- bind_rows(cond2, cond3) %>% arrange(Indicator) 
+  #   
+  #   rhandsontable(data = dat) %>%
+  #     hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE) %>%
+  #     hot_table(highlightRow = TRUE) %>%
+  #     hot_cols(fixedColumnsLeft = 1) %>%
+  #     hot_col(1, width = 200)
+  #   
+  # })
+  # END OLD -------------
   output$defineBenchmark_hot <- renderRHandsontable({
-    
-    # Wait to display table until benchmark categories are selected.
-    req(isTruthy(input$selectBenchmarks3 != "") || isTruthy(input$selectBenchmarks2 != ""))
-    
-    # Filter to selected benchmarks
-    cond2 <- dplyr::filter(indicatorList(), Indicator %in% input$selectBenchmarks3 & ConditionCategoryNum == 3)
-    cond3 <- dplyr::filter(indicatorList(), Indicator %in% input$selectBenchmarks2 & ConditionCategoryNum == 2)
-    
-    # Merge above filtered data.  Since this is no longer the indicatorList, remove column with "Default" group.
-    # Column removed as opposed to just removing values bc column is added later.
-    dat <- bind_rows(cond2, cond3) %>% arrange(Indicator) 
-    
-    rhandsontable(data = dat) %>%
-      hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE) %>%
-      hot_table(highlightRow = TRUE) %>%
-      hot_cols(fixedColumnsLeft = 1) %>%
-      hot_col(1, width = 200)
-    
+    rhandsontable(data = newBMGroup())
   })
+  
+  
+  
+  
+  
+  
+  
+  # Empty reactiveVal to store new custom benchmark below
+  newCustBenchmarkDat <- reactiveVal()
+  
+  # Modal on click
+  observeEvent(input$addNewBM, {
+    showModal(
+      modalDialog(
+        defineBenchmarkMod_UI(id = "defBM"),
+        footer = tagList(
+          actionButton("saveNewBM", "Save & Close"),
+          modalButton("Cancel")
+        )
+      )
+    )
+    
+    # Run the module server and capture its return
+    moduleDataOutput <- defineBenchmarkMod_server(id = "defBM", metadata = indicatorMetadata, blankForm = blankCustomBMForm)
+    
+    # Capture output from module in reactiveVal.  This is what will be saved when user hits "save"
+    observe({
+      newCustBenchmarkDat(moduleDataOutput())
+      #print(nrow(newCustBenchmarkDat()))
+      #print(newCustBenchmarkDat())
+      
+      # Check if benchmark values and inequality operators are logical.  Had to nest if statements due to NULL values.
+      if (!is_empty(newCustBenchmarkDat())) { # needed because, for example, `nrow(NULL) > 1` returns logical(0).
+        if (nrow(newCustBenchmarkDat()) == 1){
+          
+          # Perform logical check of values.  'Save & Close' button only works if inputs are valid.
+          if (saveValidator(newCustBenchmarkDat())) {
+            shinyjs::enable("saveNewBM")
+          } else {
+            shinyjs::disable("saveNewBM")
+          }
+        }
+      }
+      
+    })
+    
+  }) # end modal on click
+  
+  # New benchmark group to store all newly defined individual benchmarks
+  newBMGroup <- reactiveVal(blankCustomBMForm)
+  
+  # Save botton.  Close modal and add the newly created newCustBenchmarkDat() data to table of all custom benchmarks
+  observeEvent(input$saveNewBM, {
+    newVals <- bind_rows(newBMGroup(), newCustBenchmarkDat()) %>% arrange(Indicator) 
+    newBMGroup(newVals)
+    
+    print(newBMGroup)
+    removeModal()
+  })
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   # Save the currently displayed values of the 'defineBenchmark_hot' table
   definedBenchmarks <- reactive({
