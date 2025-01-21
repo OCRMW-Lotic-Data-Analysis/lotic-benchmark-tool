@@ -141,19 +141,18 @@ ui <- page_navbar(
         #actionButton("editBMGroup", label = "Edit Selected Benchmark Group"),
       ),
       # Main Panel
-      layout_columns(
-        card(rHandsontableOutput("defineBenchmark_hot"),
-             class = "border-0 p-0"),
-        navset_card_tab(
-          nav_panel("Default Conditions",
-                    card(reactableOutput("defaultConditionsTable"), class = "border-0 p-0")),
-          nav_panel("Benchmark Groups",
-                    card(reactableOutput("benchmarkGroupsTable"), class = "border-0 p-0"))
-          )
-        ,
-        col_widths = c(12),
-        row_heights = c(1,1)
-      )
+      card(rHandsontableOutput("defineBenchmark_hot"),
+           class = "border-0 p-0",
+           fill = FALSE,
+           height = "50%"),
+      navset_card_tab(
+        nav_panel("Default Conditions",
+                  card(reactableOutput("defaultConditionsTable"), 
+                       class = "border-0 p-0")),
+        nav_panel("Benchmark Groups",
+                  card(reactableOutput("benchmarkGroupsTable"), 
+                       class = "border-0 p-0"))
+        )
     )
   ),
   
@@ -455,91 +454,10 @@ server <- function(input, output, session) {
   
 # 2. Define Benchmarks -------------------------------------------------------
   
-  # START OLD  -------
-  
-  # # Load default benchmarks
-  # #indicatorList <-reactiveVal(read.csv("./appData/default_benchmark_and_operators.csv", colClasses = "character"))
-  # indicatorList <- reactiveVal(read.csv("./appData/custom_indicator_list.csv", colClasses = "character") %>% arrange(Indicator))
-  # 
-  # # Update benchmark selectors based on indicatorList().
-  # observe({
-  #   updatePickerInput(session, "selectBenchmarks3",
-  #                     choices = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator))
-  #   
-  #   updatePickerInput(session, "selectBenchmarks2",
-  #                     choices = filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator))
-  # })
-  # 
-  # # Create mutually exclusive selectors for 2 and 3 category benchmarks.
-  # # For example: if pH is selected for 3 Category, it will be removed
-  # # from the dropdown selector for 2 Category.
-  # observeEvent(
-  #   input$selectBenchmarks3,
-  #   {
-  #     updatePickerInput(
-  #       session = session,
-  #       inputId = "selectBenchmarks2",
-  #       choices = setdiff(filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator), 
-  #                         input$selectBenchmarks3),
-  #       selected = input$selectBenchmarks2
-  #     )
-  #   },
-  #   ignoreNULL = FALSE
-  # )
-  # observeEvent(
-  #   input$selectBenchmarks2,
-  #   {
-  #     updatePickerInput(
-  #       session = session,
-  #       inputId = "selectBenchmarks3",
-  #       choices = setdiff(filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator), 
-  #                         input$selectBenchmarks2),
-  #       selected = input$selectBenchmarks3
-  #     )
-  #   },
-  #   ignoreNULL = FALSE
-  # )
-  # 
-  # # Editable benchmark table.  This is where users enter major/moderate thresholds
-  # output$defineBenchmark_hot <- renderRHandsontable({
-  #   
-  #   # Wait to display table until benchmark categories are selected.
-  #   req(isTruthy(input$selectBenchmarks3 != "") || isTruthy(input$selectBenchmarks2 != ""))
-  #   
-  #   # Filter to selected benchmarks
-  #   cond2 <- dplyr::filter(indicatorList(), Indicator %in% input$selectBenchmarks3 & ConditionCategoryNum == 3)
-  #   cond3 <- dplyr::filter(indicatorList(), Indicator %in% input$selectBenchmarks2 & ConditionCategoryNum == 2)
-  #   
-  #   # Merge above filtered data.  Since this is no longer the indicatorList, remove column with "Default" group.
-  #   # Column removed as opposed to just removing values bc column is added later.
-  #   dat <- bind_rows(cond2, cond3) %>% arrange(Indicator) 
-  #   
-  #   rhandsontable(data = dat) %>%
-  #     hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE) %>%
-  #     hot_table(highlightRow = TRUE) %>%
-  #     hot_cols(fixedColumnsLeft = 1) %>%
-  #     hot_col(1, width = 200)
-  #   
-  # })
-  # END OLD -------------
-  
-  
-  
-  
-  output$defineBenchmark_hot <- renderRHandsontable({
-    rhandsontable(data = newBMGroup())
-  })
-  
-  
-  
-  
-  
-  
-  
-  # Empty reactiveVal to store new custom benchmark below
+  # Empty reactiveVal to store single new custom benchmark below
   newCustBenchmarkDat <- reactiveVal()
   
-  # Modal on click
+  # Modal on click.  Benchmark entry GUI
   observeEvent(input$addNewBM, {
     showModal(
       modalDialog(
@@ -571,8 +489,7 @@ server <- function(input, output, session) {
             shinyjs::disable("saveNewBM")
           }
         }
-      }
-      
+      } #end logic check
     })
     
   }) # end modal on click
@@ -580,31 +497,12 @@ server <- function(input, output, session) {
   # New benchmark group to store all newly defined individual benchmarks
   newBMGroup <- reactiveVal(blankCustomBMForm)
   
-  # Save botton.  Close modal and add the newly created newCustBenchmarkDat() data to table of all custom benchmarks
+  # Save button.  Close modal and add the newly created newCustBenchmarkDat() data to table of all custom benchmarks
   observeEvent(input$saveNewBM, {
     newVals <- bind_rows(newBMGroup(), newCustBenchmarkDat()) %>% arrange(Indicator) 
     newBMGroup(newVals)
-    
-    print(newBMGroup)
     removeModal()
   })
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   
   # Save the currently displayed values of the 'defineBenchmark_hot' table
   definedBenchmarks <- reactive({
@@ -612,7 +510,7 @@ server <- function(input, output, session) {
     hot_to_r(input$defineBenchmark_hot)
   })
   
-  # Initialize empty container for saved benchmark groups
+  # Initialize empty container for all saved benchmark groups
   benchmarkGroupDF <- reactiveValues()
   
   # Load sample benchmark group
@@ -622,8 +520,6 @@ server <- function(input, output, session) {
     # Merge previously saved groups with newly entered group (long form)
     benchmarkGroupDF$df <- bind_rows(benchmarkGroupDF$df, newGroupData)
   })
-  
-  
   
   # SAVE edited benchmark table.  Also resets text/picker inputs and clears table.
   observeEvent(input$saveNewBMGroup,{
@@ -696,23 +592,22 @@ server <- function(input, output, session) {
   #    #print(indicatorList()) 
   #  })
 
+  # Table showing all indicator benchmarks for the current benchmark group
+  output$defineBenchmark_hot <- renderRHandsontable({
+    rhandsontable(data = newBMGroup()) %>%
+      hot_context_menu(allowColEdit = FALSE) %>%
+      hot_table(highlightRow = TRUE) %>%
+      hot_cols(fixedColumnsLeft = 1) %>%
+      hot_col(1, width = 200)
+    })
   
-  
-   #Summary table of defined benchmark groups.  
-   output$benchmarkGroupsTable <- renderDataTable(
-     benchmarkGroupDF$df,
-     selection = "single"
-   )
-
-  
-  
-  
-  
+  # Table of all currently saved benchmark groups.
   output$benchmarkGroupsTable <- renderReactable({
     req(nrow(benchmarkGroupDF$df) > 0)
     saved_benchmark_groups_table(benchmarkGroupDF$df)
   })
   
+  # Table of default conditions for selected points
   output$defaultConditionsTable <- renderReactable({
     req(selected_points())
     defCond <- defaultConditions %>% dplyr::select(
