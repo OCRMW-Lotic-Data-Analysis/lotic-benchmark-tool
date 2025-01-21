@@ -1,6 +1,7 @@
 library(shiny)
 library(readr)
 library(ggplot2)
+library(patchwork)
 library(dplyr)
 library(tidyr)
 library(purrr)
@@ -16,6 +17,7 @@ library(rhandsontable)
 library(reactable)
 library(htmltools)
 library(zip)
+library(scales)
 
 ### UI -------------------------------------------------------------------------
 ui <- page_navbar(
@@ -520,6 +522,10 @@ server <- function(input, output, session) {
   #   
   # })
   # END OLD -------------
+  
+  
+  
+  
   output$defineBenchmark_hot <- renderRHandsontable({
     rhandsontable(data = newBMGroup())
   })
