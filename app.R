@@ -159,18 +159,28 @@ ui <- page_navbar(
   # 3. Apply Benchmarks ----
   nav_panel(
     title = "3 Apply Benchmarks",
-    page_sidebar(
-      #Sidebar
-      sidebar = sidebar(
-        open = FALSE,
-        width = "300px",
-        h5("Apply Benchmarks")
-      ),
-      # Main Panel
-      rHandsontableOutput("applyBenchmarks_hot"),
-      #verbatimTextOutput("groupnames"),
-      #rHandsontableOutput("benchmarkGroupTEST")
-    )
+    # page_sidebar(
+    #   #Sidebar
+    #   sidebar = sidebar(
+    #     open = FALSE,
+    #     width = "300px",
+    #     h5("Apply Benchmarks")
+    #   ),
+    #   # Main Panel
+    #   rHandsontableOutput("applyBenchmarks_hot")
+    #   #verbatimTextOutput("groupnames"),
+    #   #rHandsontableOutput("benchmarkGroupTEST")
+    # )
+    
+    
+    
+    # trying fluidrow bc page_sidebar appears to be messing with scrollbars
+    fluidRow(
+      rHandsontableOutput("applyBenchmarks_hot")
+      )
+    
+    
+    
   ),
   
   # 4. Reach Conditions ----
@@ -627,6 +637,11 @@ server <- function(input, output, session) {
     req(benchmarkGroupDF$df)
     apply_benchmarks_table(benchmarkGroupDF, selected_points())
   })
+  
+  # output$applyBenchmarks_hot <- renderRHandsontable({
+  #   rhandsontable(data = do.call(cbind, lapply(1:20, function(i) data.table(rnorm(10000))))
+  #                 )
+  # })
   
   assignedBenchmarks <- reactive({
     hot_to_r(input$applyBenchmarks_hot)
