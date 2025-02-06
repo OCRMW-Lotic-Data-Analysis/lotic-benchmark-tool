@@ -123,7 +123,7 @@ ui <- page_navbar(
         # ),
         br(),
         
-        actionButton("saveNewBMGroup", 
+        actionButton("saveNewBenchmarkGroup", 
                      label = shiny::tagList(bsicons::bs_icon("floppy"),"Save New Group"), 
                      style="color: #000000; background-color: #DEFFDE"),
         actionButton("deleteBMGroup", 
@@ -141,7 +141,7 @@ ui <- page_navbar(
         #actionButton("editBMGroup", label = "Edit Selected Benchmark Group"),
       ),
       # Main Panel
-      card(rHandsontableOutput("defineBenchmark_hot"),
+      card(rHandsontableOutput("workingBenchmarks_hot"),
            class = "border-0 p-0",
            fill = FALSE,
            height = "50%"),
@@ -465,10 +465,12 @@ server <- function(input, output, session) {
     selected_points()},)
   
   
-# 2. Define Benchmarks -------------------------------------------------------
+# 2. Define Benchmarks ---------------------------------------------------------
   
-  # Empty reactiveVal to store single new custom benchmark below
-  newCustBenchmarkDat <- reactiveVal()
+  ## 2.1 Define Single New Benchmark -------------------------------------------
+  
+  # Empty reactiveVal to capture/store single new custom benchmark (defineBenchmarkMod_server output) below
+  newSingleBenchmark <- reactiveVal()
   
   # Modal on click.  Benchmark entry GUI
   observeEvent(input$addNewBM, {
@@ -485,18 +487,18 @@ server <- function(input, output, session) {
     # Run the module server and capture its return
     moduleDataOutput <- defineBenchmarkMod_server(id = "defBM", metadata = indicatorMetadata, blankForm = blankCustomBMForm)
     
-    # Capture output from module in reactiveVal.  This is what will be saved when user hits "save"
+    # Capture output from defineBenchmarkMod module in reactiveVal.  This is what will be saved when user hits "save" in the modal
     observe({
-      newCustBenchmarkDat(moduleDataOutput())
-      #print(nrow(newCustBenchmarkDat()))
-      #print(newCustBenchmarkDat())
+      newSingleBenchmark(moduleDataOutput())
+      #print(nrow(newSingleBenchmark()))
+      #print(newSingleBenchmark())
       
       # Check if benchmark values and inequality operators are logical.  Had to nest if statements due to NULL values.
-      if (!is_empty(newCustBenchmarkDat())) { # needed because, for example, `nrow(NULL) > 1` returns logical(0).
-        if (nrow(newCustBenchmarkDat()) == 1){
+      if (!is_empty(newSingleBenchmark())) { # needed because, for example, `nrow(NULL) > 1` returns logical(0).
+        if (nrow(newSingleBenchmark()) == 1){
           
           # Perform logical check of values.  'Save & Close' button only works if inputs are valid.
-          if (saveValidator(newCustBenchmarkDat())) {
+          if (saveValidator(newSingleBenchmark())) {
             shinyjs::enable("saveNewBM")
           } else {
             shinyjs::disable("saveNewBM")
@@ -507,48 +509,52 @@ server <- function(input, output, session) {
     
   }) # end modal on click
   
-  # New benchmark group to store all newly defined individual benchmarks
-  newBMGroup <- reactiveVal(blankCustomBMForm)
+  ## 2.2 Merge new and existing single benchmarks ------------------------------ 
   
-  # Save button.  Close modal and add the newly created newCustBenchmarkDat() data to table of all custom benchmarks
+  # New benchmark group to store all newly defined individual benchmarks
+  newBenchmarkGroup <- reactiveVal(blankCustomBMForm)
+  
+  # Save button for single benchmark.  Close modal and add the newly created newSingleBenchmark() data to table of all custom benchmarks
   observeEvent(input$saveNewBM, {
-    newVals <- bind_rows(newBMGroup(), newCustBenchmarkDat()) %>% arrange(Indicator) 
-    newBMGroup(newVals)
+    newVals <- bind_rows(newBenchmarkGroup(), newSingleBenchmark()) %>% arrange(Indicator) 
+    newBenchmarkGroup(newVals)
     removeModal()
   })
   
-  # Save the currently displayed values of the 'defineBenchmark_hot' table
-  definedBenchmarks <- reactive({
+  # Save the currently displayed values of the 'workingBenchmarks_hot' table
+  workingBenchmarks_dat <- reactive({
     req(input$bmGroupNameinput)
-    hot_to_r(input$defineBenchmark_hot)
+    hot_to_r(input$workingBenchmarks_hot)
   })
   
+  ## 2.x Manage benchmark groups  ----------------------------------------------
+  
   # Initialize empty container for all saved benchmark groups
-  benchmarkGroupDF <- reactiveValues()
+  allBenchmarkGroups <- reactiveValues()
   
   # Load sample benchmark group
   observeEvent(input$loadSampleBMGroup,{
     newGroupData <- read_csv("./appData/sample_benchmark_group.csv", col_types = cols(.default = col_character()), show_col_types = FALSE) %>% 
       tibble::add_column(BenchmarkGroup = "example", .before = 1)
     # Merge previously saved groups with newly entered group (long form)
-    benchmarkGroupDF$df <- bind_rows(benchmarkGroupDF$df, newGroupData)
+    allBenchmarkGroups$df <- bind_rows(allBenchmarkGroups$df, newGroupData)
   })
   
   # SAVE edited benchmark table.  Also resets text/picker inputs and clears table.
-  observeEvent(input$saveNewBMGroup,{
-    req(!is.null(input$bmGroupNameinput) & !is.null(input$defineBenchmark_hot))
+  observeEvent(input$saveNewBenchmarkGroup,{
+    req(!is.null(input$bmGroupNameinput) & !is.null(input$workingBenchmarks_hot))
     # Get new benchmark group data into data frame
-    newGroupData <- definedBenchmarks() %>% tibble::add_column(BenchmarkGroup = input$bmGroupNameinput, .before = 1)
+    newGroupData <- workingBenchmarks_dat() %>% tibble::add_column(BenchmarkGroup = input$bmGroupNameinput, .before = 1)
     
     # Merge previously saved groups with newly entered group (long form)
-    benchmarkGroupDF$df <- bind_rows(benchmarkGroupDF$df, newGroupData)
+    allBenchmarkGroups$df <- bind_rows(allBenchmarkGroups$df, newGroupData)
 
     
     # Reset all inputs to blank to prepare for next benchmark group
     updateTextInput(session, "bmGroupNameinput", value = "")
-    updatePickerInput(session,"selectBenchmarks3", selected = character(0))
-    updatePickerInput(session,"selectBenchmarks2", selected = character(0))
-    #print(names(benchmarkGroupDF))
+    #updatePickerInput(session,"selectBenchmarks3", selected = character(0))
+    #updatePickerInput(session,"selectBenchmarks2", selected = character(0))
+    #print(names(allBenchmarkGroups))
   })
   
   # DELETE the benchmark group based on the selected row in table.
@@ -558,10 +564,10 @@ server <- function(input, output, session) {
     
     if (!is.null(selected)) {
       # Get groupName(s) you want to delete into vector of strings
-      groupNames <- benchmarkGroupDF$df %>% slice(selected()) %>% pull(BenchmarkGroup)
+      groupNames <- allBenchmarkGroups$df %>% slice(selected()) %>% pull(BenchmarkGroup)
   
-      # Actually remove the data from benchmarkGroupDF reactive value
-      benchmarkGroupDF$df <- benchmarkGroupDF$df %>% subset(!(BenchmarkGroup %in% groupNames))
+      # Actually remove the data from allBenchmarkGroups reactive value
+      allBenchmarkGroups$df <- allBenchmarkGroups$df %>% subset(!(BenchmarkGroup %in% groupNames))
     }
   })
   
@@ -569,7 +575,7 @@ server <- function(input, output, session) {
   output$exportBMGroupsCSV <- downloadHandler(
     filename = "savedBenchmarkGroups.csv",
     content = function(file) {
-      write.csv(st_drop_geometry(benchmarkGroupDF$df), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
+      write.csv(st_drop_geometry(allBenchmarkGroups$df), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
       #write.csv(st_drop_geometry(reachConditionsLong()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
     }
   )
@@ -581,19 +587,19 @@ server <- function(input, output, session) {
                    csv = vroom::vroom(input$uploadBMGroup$datapath, delim = ",", col_types = cols(.default = "c"), show_col_types = FALSE),
                    validate("Invalid file; Please upload a .csv")
     )
-    benchmarkGroupDF$df <- bind_rows(benchmarkGroupDF$df, newGroupData)
+    allBenchmarkGroups$df <- bind_rows(allBenchmarkGroups$df, newGroupData)
   })
   # # EDIT previously saved benchmark group. 
   # # almost works. opens table to edit but doesnt allow for saving and selectInputs are not correct. 
   #  observeEvent(input$editBMGroup,{
   #    selected <- reactive(getReactableState("benchmarkGroupsTable", "selected"))
-  #    groupNames <- benchmarkGroupDF$df %>% slice(selected()) %>% pull(BenchmarkGroup)
-  #    #groupNames <- benchmarkGroupDF$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(BenchmarkGroup)
-  #    bmedit <- benchmarkGroupDF$df %>% subset(BenchmarkGroup %in% groupNames)
+  #    groupNames <- allBenchmarkGroups$df %>% slice(selected()) %>% pull(BenchmarkGroup)
+  #    #groupNames <- allBenchmarkGroups$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(BenchmarkGroup)
+  #    bmedit <- allBenchmarkGroups$df %>% subset(BenchmarkGroup %in% groupNames)
   #    print(groupNames)
   #    print(bmedit)
   #    #indicatorList(bmedit)
-  #    output$defineBenchmark_hot <- bmedit
+  #    output$workingBenchmarks_hot <- bmedit
   #    updateSelectInput(session, "selectBenchmarks3",
   #                      choices = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator),
   #                      selected = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator))
@@ -605,10 +611,11 @@ server <- function(input, output, session) {
   #    #print(indicatorList()) 
   #  })
 
+  ## 2.x Tables ----------------------------------------------------------------
   # Table showing all indicator benchmarks for the current benchmark group
-  output$defineBenchmark_hot <- renderRHandsontable({
-    req(nrow(newBMGroup()) > 0)
-    rhandsontable(data = newBMGroup()) %>%
+  output$workingBenchmarks_hot <- renderRHandsontable({
+    req(nrow(newBenchmarkGroup()) > 0)
+    rhandsontable(data = newBenchmarkGroup()) %>%
       hot_context_menu(allowColEdit = FALSE) %>%
       hot_table(highlightRow = TRUE) %>%
       hot_cols(fixedColumnsLeft = 1) %>%
@@ -617,8 +624,8 @@ server <- function(input, output, session) {
   
   # Table of all currently saved benchmark groups.
   output$benchmarkGroupsTable <- renderReactable({
-    req(nrow(benchmarkGroupDF$df) > 0)
-    saved_benchmark_groups_table(benchmarkGroupDF$df)
+    req(nrow(allBenchmarkGroups$df) > 0)
+    saved_benchmark_groups_table(allBenchmarkGroups$df)
   })
   
   # Table of default conditions for selected points
@@ -638,8 +645,8 @@ server <- function(input, output, session) {
   
   # Selected which benchmark groups to apply to each pointID/indicator combo.
   output$applyBenchmarks_hot <- renderRHandsontable({
-    req(benchmarkGroupDF$df)
-    apply_benchmarks_table(benchmarkGroupDF, selected_points())
+    req(allBenchmarkGroups$df)
+    apply_benchmarks_table(allBenchmarkGroups, selected_points())
   })
   
   output$applyBenchmarksMap <- renderLeaflet({
@@ -664,10 +671,10 @@ server <- function(input, output, session) {
   # Calculate Reach conditions (Min, Mod, Maj) for each indicator
   reachConditionsdf <- reactive({
     req(selected_points())
-    req(benchmarkGroupDF$df)
+    req(allBenchmarkGroups$df)
     req(assignedBenchmarks())
     determine_reach_conditions(indicators =  selected_points(),
-                                                          definedBenchmarks = benchmarkGroupDF$df,
+                                                          definedBenchmarks = allBenchmarkGroups$df,
                                                           assignments = assignedBenchmarks())
     
   })
@@ -678,8 +685,8 @@ server <- function(input, output, session) {
   #Use selectedBenchmarks to update dropdown options for plotting reach conditions
   observe({
     updateSelectInput(session, "reachCondMapSelect",
-                      choices = benchmarkGroupDF$df$Indicator,
-                      selected = benchmarkGroupDF$df$Indicator[1]
+                      choices = allBenchmarkGroups$df$Indicator,
+                      selected = allBenchmarkGroups$df$Indicator[1]
                       )
     })
   
@@ -721,7 +728,7 @@ server <- function(input, output, session) {
 # 5. Condition Summary ---------------------------------------------------------
   output$bmSummaryTable <- renderReactable({
     # Calculate summary data
-    #bmSummary <- condition_summary_df(reachConditionsWide(), benchmarkGroupDF$df$Indicator)
+    #bmSummary <- condition_summary_df(reachConditionsWide(), allBenchmarkGroups$df$Indicator)
     bmSummary <- condition_summary_df(reachConditionsWide(), unique(reachConditionsLong()$Indicator))
 
     # Render summary table
@@ -730,8 +737,8 @@ server <- function(input, output, session) {
   
   observe({
     updateSelectInput(session, "bmSummaryBoxplotsSelect",
-                      choices = benchmarkGroupDF$df$Indicator,
-                      selected = benchmarkGroupDF$df$Indicator[1]
+                      choices = allBenchmarkGroups$df$Indicator,
+                      selected = allBenchmarkGroups$df$Indicator[1]
     )
   })
   
