@@ -107,20 +107,6 @@ ui <- page_navbar(
                      label = shiny::tagList(bsicons::bs_icon("box-arrow-in-right"),"Add New Benchmark"), 
                      style="color: #000000; background-color: #deefff"),
         textInput("bmGroupNameinput", label = "Group Name"),
-        # pickerInput(inputId = "selectBenchmarks3",
-        #             label = "Three Condition Categories",
-        #             choices = "",    # choices are updated based on input of indicatorList()
-        #             options = list(
-        #               `actions-box` = TRUE),
-        #             multiple = TRUE
-        # ),
-        # pickerInput(inputId = "selectBenchmarks2",
-        #             label = "Two Condition Categories",
-        #             choices = "",    # choices are updated based on input of indicatorList()
-        #             options = list(
-        #               `actions-box` = TRUE),
-        #             multiple = TRUE
-        # ),
         br(),
         
         actionButton("saveNewBenchmarkGroup", 
@@ -180,7 +166,7 @@ ui <- page_navbar(
       rHandsontableOutput("applyBenchmarks_hot", height = "400px")
       ),
     fluidRow(
-      leafletOutput(outputId = "applyBenchmarksMap", height = "400px")
+      card(leafletOutput(outputId = "applyBenchmarksMap", height = "400px"))
     )
     )
     
@@ -250,15 +236,6 @@ ui <- page_navbar(
 
 # SERVER -----------------------------------------------------------------------
 server <- function(input, output, session) {
-  #bs_themer()
-# 0. Global Items ------------------------------------------------------------
-  indicatorMetadata <- read_csv("./appData/indicator_metadata.csv", col_types = cols(.default = "c")) %>% drop_na() # only include fully complete indicator metadata
-  blankCustomBMForm <- read_csv("./appData/custom_indicator_blank.csv", col_types = cols(.default = "c", 
-                                                                                 ModerateBenchmark1 = "n", 
-                                                                                 MajorBenchmark1 = "n",
-                                                                                 ModerateBenchmark2 = "n",
-                                                                                 MajorBenchmark2 = "n",
-                                                                                 ConditionCategoryNum = "n"))
 # 1. Select Indicators -------------------------------------------------------
   # Indicator Filtering
   
@@ -550,12 +527,13 @@ server <- function(input, output, session) {
     
     # Merge previously saved groups with newly entered group (long form)
     allBenchmarkGroups$df <- bind_rows(allBenchmarkGroups$df, newGroupData)
-
     
     # Reset all inputs to blank to prepare for next benchmark group
     updateTextInput(session, "bmGroupNameinput", value = "")
-    #updatePickerInput(session,"selectBenchmarks3", selected = character(0))
-    #updatePickerInput(session,"selectBenchmarks2", selected = character(0))
+    
+    # Clear new benchmark group so it's not rendered in 'workingBenchmarks_hot' 
+    newBenchmarkGroup(blankCustomBMForm)
+    
     #print(names(allBenchmarkGroups))
   })
   

@@ -6,7 +6,7 @@ BankfullHeightAvg,cm,0,inf,
 BankfullWidthAvg,m,0,inf,
 BenchDepthAvg,cm,0,inf,
 BenchHeightAvg,cm,0,inf,
-ChannelIncision,,,,
+ChannelIncision,Unitless,-1,2,Increases with stress
 D16,mm,0,,
 D50,mm,0,,
 D84,mm,0,,
@@ -16,17 +16,17 @@ ExpectedInvertRichness,,,,
 FloodplainConnectivity,Unitless,1,inf,Increases with stress
 GeometricMeanParticleDiam,,,,
 InstantTemp,Degrees C,0,100,Increases with stress
-InstreamHabitatComplexity,,,,
-LgWoodAboveChanCount,Count,0,inf,
-LgWoodAboveChanFreq,,0,inf,
-LgWoodAboveChanVol,,0,inf,
-LgWoodInChanCount,Count,0,inf,
-LgWoodInChanFreq,,0,inf,Decreases with stress
-LgWoodInChanVol,,0,inf,
+InstreamHabitatComplexity,Unitless,0,2.3,Decreases with stress
+LgWoodAboveChanCount,Count,0,inf,Decreases with stress
+LgWoodAboveChanFreq,pieces/100m,0,inf,Decreases with stress
+LgWoodAboveChanVol,m3/100m,0,inf,Decreases with stress
+LgWoodInChanCount,Count,0,inf,Decreases with stress
+LgWoodInChanFreq,pieces/100m,0,inf,Decreases with stress
+LgWoodInChanVol,m3/100m,0,inf,Decreases with stress
 MacroinvertebrateCount,Count,0,inf,
 MMI_Macroinvertebrate,,,,Decreases with stress
 ObservedInvertRichness,,,,
-OE_Macroinvertebrate,,,,Decreases with stress
+OE_Macroinvertebrate,Unitless,0,1.5,Decreases with stress
 PctBankCoveredMIM,%,0,100,Decreases with stress
 PctBankCoveredOld,%,0,100,Decreases with stress
 PctBankCoveredStableMIM,%,0,100,Decreases with stress
@@ -37,14 +37,14 @@ PctBanksUndercut,%,0,100,
 PctDry,%,0,100,
 PctEquisetumSpecies,%,0,100,
 PctFinesLessThan2mm,%,0,100,Increases with stress
-PctFinesLessThan6mm,%,0,100,
+PctFinesLessThan6mm,%,0,100,Increases with stress
 PctNativeWoodySpecies,%,0,100,Decreases with stress
 PctNoxiousHerbSpecies,%,0,100,
 PctNoxiousWoodySpecies,%,0,100,Increases with stress
-PctOverheadCover,%,0,100,
-PctPools,%,0,100,
-PctPoolTailFinesLessThan2mm,%,0,100,
-PctPoolTailFinesLessThan6mm,%,0,100,
+PctOverheadCover,%,0,100,Decreases with stress
+PctPools,%,0,100,Decreases with stress
+PctPoolTailFinesLessThan2mm,%,0,100,Increases with stress
+PctPoolTailFinesLessThan6mm,%,0,100,Increases with stress
 PctSedgeRushSpecies,%,0,100,
 PctSlope,,,,
 pH,pH,0,14,Decreases and increases with stress
@@ -52,16 +52,16 @@ PoolCount,,,,
 PoolFreq,,,,
 ResPoolDepthAvg,cm,,,
 Sinuosity,,,,
-SpecificConductance,,,,
-SpecificConductance_Modeled,,,,
+SpecificConductance,μS/cm,0,inf,Increases with stress
+SpecificConductance_Modeled,μS/cm,0,inf,Increases with stress
 ThalwegDepthAvg,cm,,,
 ThalwegDepthCV,,,,
-TotalNitrogen,,,,Increases with stress
-TotalNitrogen_Modeled,,,,Increases with stress
-TotalPhosphorous,,,,Increases with stress
-TotalPhosphorous_Modeled,,,,Increases with stress
+TotalNitrogen,μg/L,0,inf,Increases with stress
+TotalNitrogen_Modeled,μg/L,0,inf,Increases with stress
+TotalPhosphorous,μg/L,0,inf,Increases with stress
+TotalPhosphorous_Modeled,μg/L,0,inf,Increases with stress
 TurbidityAvg,,,,
-VegComplexity,,,,
+VegComplexity,%,0,2.6,Decreases with stress
 VegComplexityUnderstoryGround,,,,
 VegComplexityWoody,,,,
 WettedWidthAvg,m,,,

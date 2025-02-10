@@ -15,3 +15,12 @@ indicatorData_raw <- reactive({
 
 # Load default conditions
 defaultConditions <- readr::read_csv("./appData/A_DefaultConditions.csv", show_col_types = FALSE)
+
+
+indicatorMetadata <- readr::read_csv("./appData/indicator_metadata.csv", col_types = readr::cols(.default = "c")) %>% tidyr::drop_na() # only include fully complete indicator metadata
+blankCustomBMForm <- readr::read_csv("./appData/blankCustomBMForm.csv", col_types = readr::cols(.default = "c", 
+                                                                                  ModerateBenchmark1 = "n", 
+                                                                                  MajorBenchmark1 = "n",
+                                                                                  ModerateBenchmark2 = "n",
+                                                                                  MajorBenchmark2 = "n",
+                                                                                  ConditionCategoryNum = "n"))
