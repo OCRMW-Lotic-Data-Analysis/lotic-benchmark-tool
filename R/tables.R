@@ -112,6 +112,7 @@ apply_benchmarks_table <- function(benchmarkGroupDF, indicatorData) {
   rhot <- rhandsontable(applyBechmarkDat,
                         overflow = "hidden",
                         rowHeaders = FALSE,
+                        selectCallback = TRUE,
                         height = 350
                         ) %>%
     hot_table(highlightRow = TRUE, contextMenu = FALSE) %>%

@@ -148,6 +148,7 @@ ui <- page_navbar(
     
     # fluidRow() breaks the scroll bars.  Restricting height within card() also breaks scroll bars.
     card(rHandsontableOutput("applyBenchmarks_hot"), height = "400px", class = "border-0 p-0"),
+    verbatimTextOutput("appSelect"),
     card(leafletOutput(outputId = "applyBenchmarksMap", height = "350px"), class = "border-0 p-0")
 
   ),
@@ -487,7 +488,14 @@ server <- function(input, output, session) {
   
   # Load sample benchmark group
   observeEvent(input$loadSampleBMGroup,{
-    newGroupData <- read_csv("./appData/sample_benchmark_group.csv", col_types = cols(.default = col_character()), show_col_types = FALSE) %>% 
+    newGroupData <- read_csv("./appData/sample_benchmark_group.csv", 
+                             col_types = readr::cols(.default = "c", 
+                                                     ModerateBenchmark1 = "n", 
+                                                     MajorBenchmark1 = "n",
+                                                     ModerateBenchmark2 = "n",
+                                                     MajorBenchmark2 = "n",
+                                                     ConditionCategoryNum = "n"), 
+                             show_col_types = FALSE) %>% 
       tibble::add_column(BenchmarkGroup = "example", .before = 1)
     # Merge previously saved groups with newly entered group (long form)
     allBenchmarkGroups$df <- bind_rows(allBenchmarkGroups$df, newGroupData)
@@ -605,11 +613,24 @@ server <- function(input, output, session) {
   
   output$applyBenchmarksMap <- renderLeaflet({
     req(selected_points())
-    indicator_leaflet_applyBM(data = selected_points())
+    applyBenchmark_leaflet(data = selected_points())
   })
 
   assignedBenchmarks <- reactive({
     hot_to_r(input$applyBenchmarks_hot)
+  })
+  
+  output$appSelect <- renderPrint({
+    req(input$applyBenchmarks_hot_select$select$r)
+    input$applyBenchmarks_hot_select$select$r
+  })
+  
+  # Updated applyBenchmarksMap to highlight location of selected row
+  observeEvent(input$applyBenchmarks_hot_select,{
+    selectedEvalID <- assignedBenchmarks()[input$applyBenchmarks_hot_select$select$r,"EvaluationID"]
+    selectedPtInApplyBMTable <- selected_points() %>% filter(EvaluationID == selectedEvalID)
+  
+    applyBenchmark_leaflet_proxy("applyBenchmarksMap", selectedPtInApplyBMTable)
   })
   
 # 4. Reach Conditions --------------------------------------------------------
@@ -620,8 +641,8 @@ server <- function(input, output, session) {
     req(allBenchmarkGroups$df)
     req(assignedBenchmarks())
     determine_reach_conditions(indicators =  selected_points(),
-                                                          definedBenchmarks = allBenchmarkGroups$df,
-                                                          assignments = assignedBenchmarks())
+                               definedBenchmarks = allBenchmarkGroups$df,
+                               assignments = assignedBenchmarks())
     
   })
 

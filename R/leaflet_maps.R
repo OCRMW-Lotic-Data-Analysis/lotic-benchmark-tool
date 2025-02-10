@@ -1,6 +1,6 @@
 library(leaflet)
 
-### Palettes and Labels -------------------------------------------------------
+# Palettes and Labels -------------------------------------------------------
 
 ## Initial view of all indicators palette
 indicatorPalette <- colorFactor(palette = c("#1e4ca2", "#59c2fa", "#7bf8cf"), levels = c("RandomGRTS","Targeted","RandomSystematic"))
@@ -14,16 +14,18 @@ indicator_labels <- function(indicatorData){
     lapply(htmltools::HTML)
 }
 
-## Reach Conditions (Min, Mod, Maj) palette
-# Factors/levels - used in both legend and map symbology. Leaflet needs these both defined. 
+# Reach Conditions (Min, Mod, Maj) palette
+## Factors/levels - used in both legend and map symbology. Leaflet needs these both defined. 
 reachCondFactors <- factor(c("Major", "Moderate", "Minimal"), levels = c("Major", "Moderate", "Minimal"))
 reachCondPalette <- colorFactor(c("#895a44", "#e6e600", "#00a9e6"),
                                 na.color = NA,
                                 levels = reachCondFactors,
                                 ordered = TRUE)
 
-### Maps -----------------------------------------------------------------------
-# Initial map with just basemaps and general settings.
+# Maps -------------------------------------------------------------------------
+
+## Select Indicators -----------------------------------------------------------
+## Initial map with just basemaps and general settings.
 indicator_leaflet_map <- function() {
 
   leaflet(
@@ -106,8 +108,9 @@ indicator_leaflet_selection_proxy <- function(mapId, data){
     )
 }
 
+## Assign Benchmarks  ----------------------------------------------------------
 # Map showing selected_points() on "Assign Benchmark" page
-indicator_leaflet_applyBM <- function(data){
+applyBenchmark_leaflet <- function(data){
   
   data <- data %>% st_transform(crs = 4326)
   
@@ -129,6 +132,7 @@ indicator_leaflet_applyBM <- function(data){
                    position = "topleft") %>%
     addCircleMarkers(
       layerId = ~EvaluationID,
+      group = "applyBenchmarks",
       radius = 4,
       color = "white",
       fillColor = ~indicatorPalette(PointSelectionType),
@@ -143,10 +147,29 @@ indicator_leaflet_applyBM <- function(data){
 
 }
 
+# Proxy map to display the selected point in applyBenchmarks_hot table
+applyBenchmark_leaflet_proxy <- function(mapId, data){
+  
+  data <- data %>% st_transform(crs = 4326)
+  
+  leafletProxy(mapId) %>%
+    clearGroup("selectedApplyBenchmarks") %>%
+    addCircleMarkers(
+      data = data,
+      fillColor = "red",
+      group = "selectedApplyBenchmarks",
+      layerId = ~PointID,
+      radius = 4,
+      color = "white",  # point border/outline
+      stroke = TRUE,
+      weight = 1,
+      fillOpacity = 1,
+      label = ~indicator_labels(data)
+    )
+}
 
 
-
-
+## Reach Conditions ------------------------------------------------------------
 # Map displaying reach conditions after benchmarks have been defined and applied
 reachCond_leaflet_map <- function(reachConditions, mappingVarInput) {
 # Pull variable to plot from input select.  Input just shows benchmark name
