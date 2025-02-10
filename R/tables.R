@@ -111,8 +111,8 @@ apply_benchmarks_table <- function(benchmarkGroupDF, indicatorData) {
   # Actual table
   rhot <- rhandsontable(applyBechmarkDat,
                         overflow = "hidden",
-                        rowHeaders = FALSE, 
-                        #height = 500
+                        rowHeaders = FALSE,
+                        height = 350
                         ) %>%
     hot_table(highlightRow = TRUE, contextMenu = FALSE) %>%
     hot_row(extraRowNums, readOnly = TRUE) %>%    # lock the blank rows

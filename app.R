@@ -145,33 +145,11 @@ ui <- page_navbar(
   # 3. Apply Benchmarks ----
   nav_panel(
     title = "3 Apply Benchmarks",
-    # page_sidebar(
-    #   #Sidebar
-    #   sidebar = sidebar(
-    #     open = FALSE,
-    #     width = "300px",
-    #     h5("Apply Benchmarks")
-    #   ),
-    #   # Main Panel
-    #   rHandsontableOutput("applyBenchmarks_hot")
-    #   #verbatimTextOutput("groupnames"),
-    #   #rHandsontableOutput("benchmarkGroupTEST")
-    # )
     
-    
-    
-    #trying fluidrow bc page_sidebar appears to be messing with scrollbars
-    fluidPage(
-    fluidRow(
-      rHandsontableOutput("applyBenchmarks_hot", height = "400px")
-      ),
-    fluidRow(
-      card(leafletOutput(outputId = "applyBenchmarksMap", height = "400px"))
-    )
-    )
-    
-    
-    
+    # fluidRow() breaks the scroll bars.  Restricting height within card() also breaks scroll bars.
+    card(rHandsontableOutput("applyBenchmarks_hot"), height = "400px", class = "border-0 p-0"),
+    card(leafletOutput(outputId = "applyBenchmarksMap", height = "350px"), class = "border-0 p-0")
+
   ),
   
   # 4. Reach Conditions ----
@@ -443,7 +421,6 @@ server <- function(input, output, session) {
   output$indicatorTable <- renderDT({
     selected_points()},)
   
-  
 # 2. Define Benchmarks ---------------------------------------------------------
   
   ## 2.1 Define Single New Benchmark -------------------------------------------
@@ -469,9 +446,6 @@ server <- function(input, output, session) {
     # Capture output from defineBenchmarkMod module in reactiveVal.  This is what will be saved when user hits "save" in the modal
     observe({
       newSingleBenchmark(moduleDataOutput())
-      #print(nrow(newSingleBenchmark()))
-      #print(newSingleBenchmark())
-      
       # Check if benchmark values and inequality operators are logical.  Had to nest if statements due to NULL values.
       if (!is_empty(newSingleBenchmark())) { # needed because, for example, `nrow(NULL) > 1` returns logical(0).
         if (nrow(newSingleBenchmark()) == 1){
@@ -556,7 +530,6 @@ server <- function(input, output, session) {
     filename = "savedBenchmarkGroups.csv",
     content = function(file) {
       write.csv(st_drop_geometry(allBenchmarkGroups$df), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
-      #write.csv(st_drop_geometry(reachConditionsLong()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
     }
   )
   
@@ -569,6 +542,7 @@ server <- function(input, output, session) {
     )
     allBenchmarkGroups$df <- bind_rows(allBenchmarkGroups$df, newGroupData)
   })
+  
   # # EDIT previously saved benchmark group. 
   # # almost works. opens table to edit but doesnt allow for saving and selectInputs are not correct. 
   #  observeEvent(input$editBMGroup,{
@@ -625,7 +599,7 @@ server <- function(input, output, session) {
   
   # Selected which benchmark groups to apply to each pointID/indicator combo.
   output$applyBenchmarks_hot <- renderRHandsontable({
-    #req(allBenchmarkGroups$df)
+    req(isTruthy(allBenchmarkGroups$df) & isTruthy(selected_points()))
     apply_benchmarks_table(allBenchmarkGroups, selected_points())
   })
   
@@ -673,7 +647,6 @@ server <- function(input, output, session) {
     filename = "reachConditions.csv",
     content = function(file) {
       write.csv(st_drop_geometry(reachConditionsWide()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
-      #write.csv(st_drop_geometry(reachConditionsLong()), file, row.names = FALSE) # need st_drop_geometry or it splits geom into two columns that overwrite data.
     }
   )
   
@@ -685,7 +658,6 @@ server <- function(input, output, session) {
     )
   
   # TABLE - 'Full Ouput Table' 
-  #output$reachConditionTable <- renderDT({reachConditionsWide()},)
   output$reachConditionTable <- renderDT({
     req(reachConditionsWide())
     reachConditionsWide()
@@ -700,7 +672,6 @@ server <- function(input, output, session) {
 # 5. Condition Summary ---------------------------------------------------------
   output$bmSummaryTable <- renderReactable({
     # Calculate summary data
-    #bmSummary <- condition_summary_df(reachConditionsWide(), allBenchmarkGroups$df$Indicator)
     bmSummary <- condition_summary_df(reachConditionsWide(), unique(reachConditionsLong()$Indicator))
 
     # Render summary table
@@ -713,11 +684,6 @@ server <- function(input, output, session) {
                       selected = allBenchmarkGroups$df$Indicator[1]
     )
   })
-  
-  
-  # output$bmSummaryBoxplots <- renderPlotly({
-  #   conditions_boxplot(reachConditionsWide(), input$bmSummaryBoxplotsSelect)
-  # })
   
   output$bmSummaryBoxplots <- renderGirafe({
     conditions_boxplot(reachConditionsWide(), input$bmSummaryBoxplotsSelect, input$showDensity)
