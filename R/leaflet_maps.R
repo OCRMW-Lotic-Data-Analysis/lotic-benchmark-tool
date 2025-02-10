@@ -110,8 +110,6 @@ indicator_leaflet_selection_proxy <- function(mapId, data){
 indicator_leaflet_applyBM <- function(data){
   
   data <- data %>% st_transform(crs = 4326)
-  print(data)
-  
   
   leaflet(data = data,
     options = leafletOptions(
