@@ -106,6 +106,49 @@ indicator_leaflet_selection_proxy <- function(mapId, data){
     )
 }
 
+# Map showing selected_points() on "Assign Benchmark" page
+indicator_leaflet_applyBM <- function(data){
+  
+  data <- data %>% st_transform(crs = 4326)
+  print(data)
+  
+  
+  leaflet(data = data,
+    options = leafletOptions(
+      attributionControl=FALSE,
+      maxZoom = 16)
+    ) %>%
+    addTiles() %>%
+    addProviderTiles("Esri.NatGeoWorldMap", group = "Esri.NatGeoWorldMap") %>%
+    addProviderTiles("Esri.WorldImagery"  , group = "Esri.WorldImagery") %>%
+    addProviderTiles("Esri.WorldTopoMap"  , group = "Esri.WorldTopoMap") %>%
+    addProviderTiles("USGS.USTopo"        , group = "USGS.USTopo") %>%
+    addProviderTiles("USGS.USImagery"     , group = "USGS.USImagery") %>%
+    addProviderTiles("USGS.USImageryTopo" , group = "USGS.USImageryTopo") %>%
+    addLayersControl(baseGroups = c("Esri.NatGeoWorldMap", "Esri.WorldImagery",
+                                    "Esri.WorldTopoMap", "USGS.USTopo",
+                                  "USGS.USImagery", "USGS.USImageryTopo"), 
+                   position = "topleft") %>%
+    addCircleMarkers(
+      layerId = ~EvaluationID,
+      radius = 4,
+      color = "white",
+      fillColor = ~indicatorPalette(PointSelectionType),
+      stroke = TRUE,
+      weight = 1,
+      fillOpacity = 1,
+      label = ~indicator_labels(data)) %>%
+    addLegend(pal = indicatorPalette,
+              values = ~PointSelectionType,
+              opacity = 1,
+              title = "Point Selection Type")
+
+}
+
+
+
+
+
 # Map displaying reach conditions after benchmarks have been defined and applied
 reachCond_leaflet_map <- function(reachConditions, mappingVarInput) {
 # Pull variable to plot from input select.  Input just shows benchmark name

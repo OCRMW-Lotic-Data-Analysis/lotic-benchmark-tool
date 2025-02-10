@@ -84,7 +84,6 @@ saved_benchmark_groups_table <- function(bmGroups) {
 
 ### Editable table allowing user to select which benchmark group to use for point indicators (rhandsontable)
 apply_benchmarks_table <- function(benchmarkGroupDF, indicatorData) {
-  #function(indicatorList, benchmarkGroupDF, indicatorData) {
   
   # Get the names of all possible benchmarks (will likley need to tweak this)
   bmVars <- benchmarkGroupDF[['df']] %>% pull(Indicator) %>% unique()
@@ -113,7 +112,7 @@ apply_benchmarks_table <- function(benchmarkGroupDF, indicatorData) {
   rhot <- rhandsontable(applyBechmarkDat,
                         overflow = "hidden",
                         rowHeaders = FALSE, 
-                        height = 500
+                        #height = 500
                         ) %>%
     hot_table(highlightRow = TRUE, contextMenu = FALSE) %>%
     hot_row(extraRowNums, readOnly = TRUE) %>%    # lock the blank rows
@@ -135,7 +134,7 @@ apply_benchmarks_table <- function(benchmarkGroupDF, indicatorData) {
                            Handsontable.renderers.DropdownRenderer.apply(this, arguments);
                          }"
     )
-  
+
   return(rhot)
 }
 

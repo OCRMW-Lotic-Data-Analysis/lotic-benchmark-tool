@@ -174,12 +174,14 @@ ui <- page_navbar(
     
     
     
-    # trying fluidrow bc page_sidebar appears to be messing with scrollbars
+    #trying fluidrow bc page_sidebar appears to be messing with scrollbars
+    fluidPage(
     fluidRow(
-      card(rHandsontableOutput("applyBenchmarks_hot"))
+      rHandsontableOutput("applyBenchmarks_hot", height = "400px")
       ),
     fluidRow(
-      card(leafletOutput(outputId = "applyBenchmarksMap"))
+      leafletOutput(outputId = "applyBenchmarksMap", height = "400px")
+    )
     )
     
     
@@ -645,22 +647,14 @@ server <- function(input, output, session) {
   
   # Selected which benchmark groups to apply to each pointID/indicator combo.
   output$applyBenchmarks_hot <- renderRHandsontable({
-    req(allBenchmarkGroups$df)
+    #req(allBenchmarkGroups$df)
     apply_benchmarks_table(allBenchmarkGroups, selected_points())
   })
   
   output$applyBenchmarksMap <- renderLeaflet({
-    #selected_points()
-    indicator_leaflet_map()
-    indicator_leaflet_selection_proxy(mapId = "applyBenchmarksMap", data = selected_points())
-      
+    req(selected_points())
+    indicator_leaflet_applyBM(data = selected_points())
   })
-  
-  # output$applyBenchmarks_hot <- renderRHandsontable({
-  #   rhandsontable(data = do.call(cbind, lapply(1:20, function(i) data.table(rnorm(100)))),
-  #                 height = 500
-  #                 )
-  # })
 
   assignedBenchmarks <- reactive({
     hot_to_r(input$applyBenchmarks_hot)
