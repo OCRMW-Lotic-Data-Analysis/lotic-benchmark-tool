@@ -14,7 +14,7 @@ indicatorData_raw <- reactive({
 })
 
 # Load default conditions
-defaultConditions <- readr::read_csv("./appData/A_DefaultConditions.csv", show_col_types = FALSE)
+defaultConditions <- vroom::vroom("./appData/stateNatDefaultCondJoined.csv", show_col_types = FALSE)
 
 
 indicatorMetadata <- readr::read_csv("./appData/indicator_metadata.csv", col_types = readr::cols(.default = "c")) %>% tidyr::drop_na() # only include fully complete indicator metadata

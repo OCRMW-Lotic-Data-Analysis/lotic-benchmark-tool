@@ -145,12 +145,9 @@ ui <- page_navbar(
   # 3. Apply Benchmarks ----
   nav_panel(
     title = "3 Apply Benchmarks",
-    
     # fluidRow() breaks the scroll bars.  Restricting height within card() also breaks scroll bars.
     card(rHandsontableOutput("applyBenchmarks_hot"), height = "400px", class = "border-0 p-0"),
-    verbatimTextOutput("appSelect"),
     card(leafletOutput(outputId = "applyBenchmarksMap", height = "350px"), class = "border-0 p-0")
-
   ),
   
   # 4. Reach Conditions ----
@@ -553,25 +550,14 @@ server <- function(input, output, session) {
   
   # # EDIT previously saved benchmark group. 
   # # almost works. opens table to edit but doesnt allow for saving and selectInputs are not correct. 
-  #  observeEvent(input$editBMGroup,{
-  #    selected <- reactive(getReactableState("benchmarkGroupsTable", "selected"))
-  #    groupNames <- allBenchmarkGroups$df %>% slice(selected()) %>% pull(BenchmarkGroup)
-  #    #groupNames <- allBenchmarkGroups$df %>% slice(input$benchmarkGroupsTable_rows_selected) %>% pull(BenchmarkGroup)
-  #    bmedit <- allBenchmarkGroups$df %>% subset(BenchmarkGroup %in% groupNames)
-  #    print(groupNames)
-  #    print(bmedit)
-  #    #indicatorList(bmedit)
-  #    output$workingBenchmarks_hot <- bmedit
-  #    updateSelectInput(session, "selectBenchmarks3",
-  #                      choices = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator),
-  #                      selected = filter(indicatorList(), ConditionCategoryNum == 3) %>% pull(Indicator))
-  #    
-  #    updateSelectInput(session, "selectBenchmarks2",
-  #                      choices = filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator),
-  #                      selected = filter(indicatorList(), ConditionCategoryNum == 2) %>% pull(Indicator))
-  #    
-  #    #print(indicatorList()) 
-  #  })
+   # observeEvent(input$editBMGroup,{
+   #   selected <- reactive(getReactableState("benchmarkGroupsTable", "selected"))
+   #   if (!is.null(selected)) {
+   #     # Get groupName(s) you want to delete into vector of strings
+   #     groupNames <- allBenchmarkGroups$df %>% slice(selected()) %>% pull(BenchmarkGroup)
+   #     
+   #   }
+   # })
 
   ## 2.x Tables ----------------------------------------------------------------
   # Table showing all indicator benchmarks for the current benchmark group
@@ -611,28 +597,24 @@ server <- function(input, output, session) {
     apply_benchmarks_table(allBenchmarkGroups, selected_points())
   })
   
+  # Map and proxy
   output$applyBenchmarksMap <- renderLeaflet({
     req(selected_points())
     applyBenchmark_leaflet(data = selected_points())
   })
-
-  assignedBenchmarks <- reactive({
-    hot_to_r(input$applyBenchmarks_hot)
-  })
   
-  output$appSelect <- renderPrint({
-    req(input$applyBenchmarks_hot_select$select$r)
-    input$applyBenchmarks_hot_select$select$r
-  })
-  
-  # Updated applyBenchmarksMap to highlight location of selected row
   observeEvent(input$applyBenchmarks_hot_select,{
     selectedEvalID <- assignedBenchmarks()[input$applyBenchmarks_hot_select$select$r,"EvaluationID"]
     selectedPtInApplyBMTable <- selected_points() %>% filter(EvaluationID == selectedEvalID)
-  
+    
     applyBenchmark_leaflet_proxy("applyBenchmarksMap", selectedPtInApplyBMTable)
   })
-  
+
+  # Track current state of applyBenchmarks_hot table
+  assignedBenchmarks <- reactive({
+    hot_to_r(input$applyBenchmarks_hot)
+  })
+
 # 4. Reach Conditions --------------------------------------------------------
   
   # Calculate Reach conditions (Min, Mod, Maj) for each indicator

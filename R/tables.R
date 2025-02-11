@@ -94,7 +94,7 @@ apply_benchmarks_table <- function(benchmarkGroupDF, indicatorData) {
   
   # Strip indicator table to basic info and set benchmark group to "Default".
   # "Default" setting will be used to apply BLM's pre-defined, default conditions.
-  applyBechmarkDat <- indicatorData %>% st_drop_geometry() %>% select(c(PointID, EvaluationID))
+  applyBechmarkDat <- indicatorData %>% st_drop_geometry() %>% select(c(PointID, EvaluationID)) %>% arrange(EvaluationID)
   applyBechmarkDat[bmVars] <- "Default"
   
   # Expand table to at least 5 rows.  This is a workaround to make the dropdowns work with 
