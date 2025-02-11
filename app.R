@@ -167,8 +167,8 @@ ui <- page_navbar(
           label = "Download CSV"
         ),
         downloadButton(
-          outputId = "reachCondDLgdb",
-          label = "Download ESRI FileGDB"
+          outputId = "reachCondDLgpkg",
+          label = "Download GeoPackage"
         ),
         width = "300px"
       ),
@@ -653,12 +653,13 @@ server <- function(input, output, session) {
     }
   )
   
-  # Download ESRI FileGDB button (currently works locally but not on Shinyapps.io)
-  output$reachCondDLgdb <- downloadHandler(
-    filename = "reachConditions.zip",
+  # Download Geopackage button
+  output$reachCondDLgpkg <- downloadHandler(
+    filename = "reachConditions.gpkg",
     content = function(file) {
-      make_reach_cond_GDB(reachConditionsWide(), file)}
-    )
+      st_write(obj = reachConditionsWide(), dsn = file, layer = "reachCond")
+      }
+  )
   
   # TABLE - 'Full Ouput Table' 
   output$reachConditionTable <- renderDT({
