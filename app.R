@@ -540,7 +540,14 @@ server <- function(input, output, session) {
   observeEvent(input$uploadBMGroup,{
     ext <- tools::file_ext(input$uploadBMGroup$name)
     newGroupData <- switch(ext,
-                   csv = vroom::vroom(input$uploadBMGroup$datapath, delim = ",", col_types = cols(.default = "c"), show_col_types = FALSE),
+                   csv = vroom::vroom(input$uploadBMGroup$datapath, 
+                                      delim = ",", 
+                                      col_types = readr::cols(.default = "c", 
+                                                             ModerateBenchmark1 = "n", 
+                                                             MajorBenchmark1 = "n",
+                                                             ModerateBenchmark2 = "n",
+                                                             MajorBenchmark2 = "n",
+                                                             ConditionCategoryNum = "n"), show_col_types = FALSE),
                    validate("Invalid file; Please upload a .csv")
     )
     allBenchmarkGroups$df <- bind_rows(allBenchmarkGroups$df, newGroupData)
