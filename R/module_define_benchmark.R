@@ -23,17 +23,31 @@ bmDefVisual <- function(metadata, custBM){
   }
   
   # Lower and Upper ranges for the plot
-  rangeLow <- metadata %>% filter(Indicator == indic) %>% pull(RangeLower) %>% first() %>% as.numeric()
-  rangeUp <- metadata %>% filter(Indicator == indic) %>% pull(RangeUpper) %>% first() %>% as.numeric()
+  rangeLow <- metadata %>% filter(Indicator == indic) %>% pull(RangeLower) %>% as.numeric()
+  rangeUp <- metadata %>% filter(Indicator == indic) %>% pull(RangeUpper) %>% as.numeric()
   
-  # Account for ranges with no true lower or upper end
-  if (rangeUp == Inf){
-    rangeUp <- maj1 * 1.2 # add 20% to create some padding
+  # Account for ranges with no true lower or upper end (i.e. -Inf or Inf)
+  if (incOrDec == "Increases with stress") {
+    if (rangeUp == Inf){
+      rangeUp <- maj1 * 1.2 # add 20% to create some padding
+    }
+    
+    if (rangeLow == -Inf){
+      rangeLow <- mod1 * 0.8 # add 20% to create some padding
+    }
   }
-  
-  if (rangeLow == -Inf){
-    rangeLow <- mod1 * 0.8 # add 20% to create some padding
+  if (incOrDec == "Decreases with stress") {
+    if (rangeUp == Inf){
+      rangeUp <- mod1 * 1.2 # add 20% to create some padding
+      print(paste0("rangeUpInf: ", rangeUp))
+    }
+    
+    if (rangeLow == -Inf){
+      rangeLow <- maj1 * 0.8 # add 20% to create some padding
+      print(paste0("rangeLowinf: ", rangeLow))
+    }
   }
+    
   
   # ASSIGN GLOBAL MIN/MAX --------------------------------------------------
   ### Assign xmin and xmax values for Minimal, Moderate, and Major boxes to

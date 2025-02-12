@@ -23,7 +23,7 @@ library(scales)
 ui <- page_navbar(
   title = "Lotic AIM Custom Benchmark Tool",
   selected = "1. Select Indicators",
-  theme = bslib::bs_theme(font_scale = 0.9, preset = "yeti"),
+  theme = bslib::bs_theme(font_scale = 0.9, bootswatch  = "yeti"),
   navbar_options = navbar_options(collapsible = TRUE),
   
   
