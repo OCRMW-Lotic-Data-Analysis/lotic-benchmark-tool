@@ -16,7 +16,6 @@ library(shinyWidgets)
 library(rhandsontable)
 library(reactable)
 library(htmltools)
-library(zip)
 library(scales)
 
 ### UI -------------------------------------------------------------------------
