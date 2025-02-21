@@ -184,7 +184,8 @@ ui <- page_navbar(
   nav_panel(
     title = "5. Summary",
     navset_card_tab(
-      nav_panel(title = "Table", #DTOutput("bmSummaryTable")
+      nav_panel(title = "Table",
+                csvDownloadButton("bmSummaryTable", filename = "SummaryTable.csv"),
                 reactableOutput("bmSummaryTable")),
       nav_panel(title = "Box Plots", 
                 layout_sidebar(
@@ -209,7 +210,7 @@ ui <- page_navbar(
 
 # SERVER -----------------------------------------------------------------------
 server <- function(input, output, session) {
-# 1. Select Indicators -------------------------------------------------------
+# 1. Select Indicators ---------------------------------------------------------
   # Indicator Filtering
   
   # Update indicator selectors based on indicatorData_raw().  This could come from

@@ -29,9 +29,9 @@ p <- ggplot(plotdat, aes(x = indicator, y = value)) +
     alpha = .7,
     position = position_jitter(
       seed = 1, width = .1)) +
-  scale_fill_manual_interactive(values = c(Minimal = "green2", 
-                                           Moderate = "yellow2", 
-                                           Major = "red2"),
+  scale_fill_manual_interactive(values = c(Minimal = "#00a9e6", 
+                                           Moderate = "#e6e600", 
+                                           Major = "#895a44"),
                                 data_id = c(Minimal = "Minimal", Moderate = "Moderate", Major = "Major"),
                                 name = "Condition") +
   labs(x = "", y = "") +

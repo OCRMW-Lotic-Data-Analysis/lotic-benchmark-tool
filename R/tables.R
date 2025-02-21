@@ -49,6 +49,14 @@ dynamicColWidths <- function(reachCondLong, otherColDefs = NULL){
   allColDefs <- map(names(allColDefsMerged), ~setColDefAttr(allColDefsMerged,.x)) %>% flatten()
 }
 
+# Download CSV button for condition_summary_table
+csvDownloadButton <- function(id, filename = "data.csv", label = "Download as CSV") {
+  tags$button(
+    tagList(icon("download"), label),
+    width = "20%",
+    onclick = sprintf("Reactable.downloadDataCSV('%s', '%s')", id, filename)
+  )
+}
 
 ##### Tables ---------------------------------------------------------------------
 
