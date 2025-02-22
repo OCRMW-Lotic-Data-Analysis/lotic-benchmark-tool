@@ -27,24 +27,48 @@ bmDefVisual <- function(metadata, custBM){
   rangeUp <- metadata %>% filter(Indicator == indic) %>% pull(RangeUpper) %>% as.numeric()
   
   # Account for ranges with no true lower or upper end (i.e. -Inf or Inf)
-  if (incOrDec == "Increases with stress") {
-    if (rangeUp == Inf){
-      rangeUp <- maj1 * 1.2 # add 20% to create some padding
+  # 3 categories
+  if (numCats == 3){
+    if (incOrDec == "Increases with stress") {
+      if (rangeUp == Inf){
+        rangeUp <- maj1 * 1.2 # add 20% to create some padding
+      }
+      
+      if (rangeLow == -Inf){
+        rangeLow <- mod1 * 0.8 # subtract 20% to create some padding
+      }
     }
-    
-    if (rangeLow == -Inf){
-      rangeLow <- mod1 * 0.8 # add 20% to create some padding
+    if (incOrDec == "Decreases with stress") {
+      if (rangeUp == Inf){
+        rangeUp <- mod1 * 1.2 # add 20% to create some padding
+      }
+      
+      if (rangeLow == -Inf){
+        rangeLow <- maj1 * 0.8 # subtract 20% to create some padding
+      }
     }
   }
-  if (incOrDec == "Decreases with stress") {
-    if (rangeUp == Inf){
-      rangeUp <- mod1 * 1.2 # add 20% to create some padding
-      print(paste0("rangeUpInf: ", rangeUp))
+  # 2 categories
+  if (numCats == 2){
+    if (incOrDec == "Increases with stress") {
+      if (rangeUp == Inf){
+        rangeUp <- maj1 * 1.2 # add 20% to create some padding
+      }
+      
+      if (rangeLow == -Inf){
+        rangeLow <- maj1 * 0.8 # subtract 20% to create some padding
+      }
     }
-    
-    if (rangeLow == -Inf){
-      rangeLow <- maj1 * 0.8 # add 20% to create some padding
-      print(paste0("rangeLowinf: ", rangeLow))
+    if (incOrDec == "Decreases with stress") {
+      if (rangeUp == Inf){
+        rangeUp <- maj1 * 1.2 # add 20% to create some padding
+        print(paste0("rangeUpInf: ", rangeUp))
+      }
+      
+      if (rangeLow == -Inf){
+        rangeLow <- maj1 * 0.8 # subtract 20% to create some padding
+        print(paste0("rangeLowinf: ", rangeLow))
+      }
     }
   }
     
