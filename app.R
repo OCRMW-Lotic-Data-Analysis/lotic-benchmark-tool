@@ -185,8 +185,8 @@ ui <- page_navbar(
     title = "5. Summary",
     navset_card_tab(
       nav_panel(title = "Table",
-                csvDownloadButton("bmSummaryTable", filename = "SummaryTable.csv"),
-                reactableOutput("bmSummaryTable")),
+                fluidPage(csvDownloadButton("bmSummaryTable", filename = "SummaryTable.csv"),
+                reactableOutput("bmSummaryTable"))),
       nav_panel(title = "Box Plots", 
                 layout_sidebar(
                   sidebar = sidebar(

@@ -53,7 +53,6 @@ dynamicColWidths <- function(reachCondLong, otherColDefs = NULL){
 csvDownloadButton <- function(id, filename = "data.csv", label = "Download as CSV") {
   tags$button(
     tagList(icon("download"), label),
-    width = "20%",
     onclick = sprintf("Reactable.downloadDataCSV('%s', '%s')", id, filename)
   )
 }
