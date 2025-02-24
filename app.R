@@ -141,7 +141,7 @@ ui <- page_navbar(
   
   # 3. Apply Benchmarks ----
   nav_panel(
-    title = "3 Apply Benchmarks",
+    title = "3. Apply Benchmarks",
     # fluidRow() breaks the scroll bars.  Restricting height within card() also breaks scroll bars.
     card(rHandsontableOutput("applyBenchmarks_hot"), height = "400px", class = "border-0 p-0"),
     card(leafletOutput(outputId = "applyBenchmarksMap", height = "350px"), class = "border-0 p-0")
@@ -200,8 +200,12 @@ ui <- page_navbar(
                       value = TRUE),
                     width = "300px",
                     open = "always"),
-                  card(max_height = 500,
-                       girafeOutput("bmSummaryBoxplots"))
+                  layout_column_wrap(width = 1/2,
+                                     card(min_height = 500, 
+                                          class = "border-0 p-0", 
+                                          girafeOutput("bmSummaryBoxplots")
+                                          )
+                                     )
                 )
       )
     )

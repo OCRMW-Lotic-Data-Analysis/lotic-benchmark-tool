@@ -57,7 +57,7 @@ indicator_leaflet_map <- function() {
       handlers =  handlersOptions(
         polygon = list(tooltipStart  = "Start drawing.  Click first point to complete shape")
       ),
-      editOptions = editToolbarOptions(),
+      editOptions = editToolbarOptions(edit = F),
       polylineOptions = F, rectangleOptions = T, circleOptions = F,
       polygonOptions = T, markerOptions = F, circleMarkerOptions = F)
 }
