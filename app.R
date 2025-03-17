@@ -17,6 +17,8 @@ library(rhandsontable)
 library(reactable)
 library(htmltools)
 library(scales)
+library(shinyjs)
+library(ggdist)
 
 ### UI -------------------------------------------------------------------------
 ui <- page_navbar(
