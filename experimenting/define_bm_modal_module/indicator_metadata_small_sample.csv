@@ -1,9 +1,0 @@
-Indicator,Units,RangeLower,RangeUpper,IncreaserDecreaser
-PctBankCoveredStableOld,%,0,100,Decreases with stress
-pH,pH,0,14,Decreases and increases with stress
-InstantTemp,Degrees C,0,100,Increases with stress
-PctFinesLessThan2mm,%,0,100,Increases with stress
-FloodplainConnectivity,Unitless,1,inf,Increases with stress
-pH,pH,0,14,Decreases and increases with stress
-InstantTemp,Degrees C,0,100,Increases with stress
-PctFinesLessThan2mm,%,0,100,Increases with stress
