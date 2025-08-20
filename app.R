@@ -23,14 +23,14 @@ library(ggdist)
 ### UI -------------------------------------------------------------------------
 ui <- page_navbar(
   title = "Lotic AIM Custom Benchmark Tool",
-  selected = "1. Select Indicators",
+  selected = "1. Select Site Visits",
   theme = bslib::bs_theme(font_scale = 0.9, bootswatch  = "yeti"),
   navbar_options = navbar_options(collapsible = TRUE),
   
   
   # 1. Select Indicators ----
   nav_panel(
-    title = "1. Select Indicators",
+    title = "1. Select Site Visits",
     page_sidebar(
       sidebar = sidebar(
         h5("Filter and Select"),
