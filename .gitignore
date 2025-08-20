@@ -9,3 +9,5 @@ rsconnect
 pre-processing
 app2.R
 fromBLM/
+lotic-benchmark-tool.Rproj
+.gitignore
