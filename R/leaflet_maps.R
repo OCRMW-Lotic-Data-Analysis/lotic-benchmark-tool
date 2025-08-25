@@ -16,10 +16,10 @@ indicator_labels <- function(indicatorData){
 
 # Reach Conditions (Min, Mod, Maj) palette
 ## Factors/levels - used in both legend and map symbology. Leaflet needs these both defined. 
-reachCondFactors <- factor(c("Major", "Moderate", "Minimal"), levels = c("Major", "Moderate", "Minimal"))
+reachCondFactors <- factor(c("Major", "Moderate", "Minimal", NA), levels = c("Major", "Moderate", "Minimal"))
 reachCondPalette <- colorFactor(c("#895a44", "#e6e600", "#00a9e6"),
-                                na.color = NA,
-                                levels = reachCondFactors,
+                                na.color = "#abababff",
+                                domain = reachCondFactors,
                                 ordered = TRUE)
 
 # Maps -------------------------------------------------------------------------
@@ -215,7 +215,9 @@ reachCond_leaflet_map <- function(reachConditions, mappingVarInput) {
         # position it on the topleft
         position = "topleft") %>%
       addLegend(pal = reachCondPalette, 
-                values = reachCondFactors,
+                values = ~reachCondFactors,
                 opacity = 1, 
-                title = conditionVar)
+                title = conditionVar,
+                na.label = "No Data"
+                )
 }

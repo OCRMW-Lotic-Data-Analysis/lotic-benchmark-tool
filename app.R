@@ -695,8 +695,8 @@ server <- function(input, output, session) {
   
   observe({
     updateSelectInput(session, "bmSummaryBoxplotsSelect",
-                      choices = allBenchmarkGroups$df$Indicator,
-                      selected = allBenchmarkGroups$df$Indicator[1]
+                      choices = unique(reachConditionsLong()$Indicator),
+                      selected = unique(reachConditionsLong()$Indicator)[1]
     )
   })
   
