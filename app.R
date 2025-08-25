@@ -645,8 +645,8 @@ server <- function(input, output, session) {
   #Use selectedBenchmarks to update dropdown options for plotting reach conditions
   observe({
     updateSelectInput(session, "reachCondMapSelect",
-                      choices = allBenchmarkGroups$df$Indicator,
-                      selected = allBenchmarkGroups$df$Indicator[1]
+                      choices = unique(reachConditionsLong()$Indicator),
+                      selected = unique(reachConditionsLong()$Indicator)[1]
                       )
     })
   
