@@ -1,6 +1,7 @@
 # Interactive boxplot for summary page
 conditions_boxplot <- function(reachCond, benchmark, showDensity) {
-  
+
+# Data prep
 selectedVars <- c(benchmark, paste0(benchmark, "Condition"),
                   "EvaluationID", "StreamName")
 
@@ -13,32 +14,49 @@ plotdat <- reachCond %>%
          tooltiptext = paste0("EvaluationID: ", EvaluationID, 
                               "\n Stream Name: ", StreamName, 
                               "\n Condition: ", condition, 
-                              "\n Value: ", value))
-
+                              "\n Value: ", value)) %>%
+  drop_na()
+# ggplot base
 p <- ggplot(plotdat, aes(x = indicator, y = value)) + 
   geom_boxplot_interactive(
     width = .25, 
     outlier.shape = NA,
-    show.legend = FALSE) +  # hide boxplot legend items
+    show.legend = FALSE,
+    fill = "white",          
+    color = "gray40",         
+    alpha = 0.6) +            
   geom_point_interactive(
     aes(tooltip = tooltiptext, data_id = EvaluationID, fill = condition),
-    color = "black", # color = border (stroke), fill = inside of point when both are used.  
+    color = "grey30", # color = border (stroke), fill = inside of point when both are used.         
     shape = 21,
-    stroke = 0.3,
-    size = 3,
-    alpha = .7,
-    position = position_jitter(
-      seed = 1, width = .1)) +
-  scale_fill_manual_interactive(values = c(Minimal = "#00a9e6", 
-                                           Moderate = "#e6e600", 
-                                           Major = "#895a44"),
-                                data_id = c(Minimal = "Minimal", Moderate = "Moderate", Major = "Major"),
-                                name = "Condition") +
-  labs(x = "", y = "") +
+    stroke = 0.5,             
+    size = 3,               
+    alpha = .85,              
+    position = position_jitter(seed = 1, width = .1)) +
+  scale_fill_manual_interactive(
+    values = c(Minimal = "#00a9e6", 
+               Moderate = "#e6e600", 
+               Major = "#895a44"),
+    data_id = c(Minimal = "Minimal", Moderate = "Moderate", Major = "Major"),
+    name = "Condition") +
+  labs(x = "", 
+       y = "") +
   coord_cartesian(xlim = c(1.3, 1.35)) +
-  theme_bw() +
-  theme(legend.position = "right",
-        legend.text.align = 0)  # left justified text
+  theme_minimal() +
+  theme(
+    # Legend
+    legend.position = "right",
+    legend.title = element_text(face = "bold", size = 11),
+    legend.text = element_text(size = 10),
+    legend.key.size = unit(0.8, "cm"),
+    legend.margin = margin(l = 20),
+    # Panel
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.5),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(color = "gray80", fill = NA, linewidth = 0.5),
+    # Text
+    axis.text = element_text(size = 10, color = "gray30"),
+  )
 
 if (showDensity == TRUE) {
   p <- p + ggdist::stat_slab(
@@ -50,8 +68,24 @@ if (showDensity == TRUE) {
     fill = "gray85") 
 }
 
-girplot <- girafe(ggobj = p)
-girafe_options(girplot, 
-               opts_toolbar(hidden = c("lasso_select", "lasso_deselect")),
-               opts_selection(type = "none"))
+# covert to ggiraph
+girplot <- girafe(ggobj = p,
+  options = list(
+    opts_toolbar(hidden = c("lasso_select", "lasso_deselect")),
+    opts_selection(type = "none"),
+    opts_tooltip(
+      css = "background-color: #d5d5d5ff;
+        color: black; 
+        font-family: 'Arial', sans-serif; 
+        font-size: 14px;
+        padding: 5px; 
+        border-radius: 8px; 
+        border: 1px solid #34495e;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        opacity: 0.95;"
+      )
+    )
+  )
+  girplot
+
 }
