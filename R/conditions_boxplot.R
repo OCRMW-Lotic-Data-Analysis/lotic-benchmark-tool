@@ -1,4 +1,5 @@
 # Interactive boxplot for summary page
+# Interactive boxplot for summary page
 conditions_boxplot <- function(reachCond, benchmark, showDensity) {
 
 # Data prep
@@ -40,7 +41,8 @@ p <- ggplot(plotdat, aes(x = indicator, y = value)) +
     data_id = c(Minimal = "Minimal", Moderate = "Moderate", Major = "Major"),
     name = "Condition") +
   labs(x = "", 
-       y = "") +
+       y = "",
+      tag = paste("n = ", nrow(plotdat))) +
   coord_cartesian(xlim = c(1.3, 1.35)) +
   theme_minimal() +
   theme(
@@ -51,11 +53,14 @@ p <- ggplot(plotdat, aes(x = indicator, y = value)) +
     legend.key.size = unit(0.8, "cm"),
     legend.margin = margin(l = 20),
     # Panel
+    plot.margin = margin(t = 15, r = 5, b = 15, l = 5, unit = "pt"),
     panel.grid.major = element_line(color = "gray90", linewidth = 0.5),
     panel.grid.minor = element_blank(),
-    panel.border = element_rect(color = "gray80", fill = NA, linewidth = 0.5),
+    panel.border = element_rect(color = "gray80", fill = NA, linewidth = 1),
     # Text
-    axis.text = element_text(size = 10, color = "gray30"),
+    axis.text = element_text(size = 11, color = "black"),
+    plot.tag = element_text(size = 10),
+    plot.tag.position = c(0.25, 0.01),
   )
 
 if (showDensity == TRUE) {
@@ -87,5 +92,4 @@ girplot <- girafe(ggobj = p,
     )
   )
   girplot
-
 }
