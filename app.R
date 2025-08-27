@@ -107,7 +107,6 @@ ui <- page_navbar(
                      style="color: #000000; background-color: #deefff"),
         textInput("bmGroupNameinput", label = "Group Name"),
         br(),
-        
         actionButton("saveNewBenchmarkGroup", 
                      label = shiny::tagList(bsicons::bs_icon("floppy"),"Save New Group"), 
                      style="color: #000000; background-color: #DEFFDE"),
@@ -144,7 +143,7 @@ ui <- page_navbar(
   # 3. Apply Benchmarks ----
   nav_panel(
     title = "3. Apply Benchmarks",
-    # fluidRow() breaks the scroll bars.  Restricting height within card() also breaks scroll bars.
+    # fluidRow() breaks the scroll bars.
     card(rHandsontableOutput("applyBenchmarks_hot"), height = "400px", class = "border-0 p-0"),
     card(leafletOutput(outputId = "applyBenchmarksMap", height = "350px"), class = "border-0 p-0")
   ),
@@ -201,18 +200,19 @@ ui <- page_navbar(
                       label = "Include Density Plot", 
                       value = TRUE),
                     width = "300px",
-                    open = "always"),
+                    open = "always"
+                  ),
                   layout_column_wrap(width = 1/2,
-                                     card(min_height = 500, 
-                                          class = "border-0 p-0", 
-                                          girafeOutput("bmSummaryBoxplots")
-                                          )
-                                     )
+                    card(min_height = 500,
+                      class = "border-0 p-0",
+                      girafeOutput("bmSummaryBoxplots")
+                    )
+                  )
                 )
-      )
-    )
-  )
-)
+              )
+            )
+          )
+        )
 
 # SERVER -----------------------------------------------------------------------
 server <- function(input, output, session) {

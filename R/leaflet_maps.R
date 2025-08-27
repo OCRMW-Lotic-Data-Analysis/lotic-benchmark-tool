@@ -176,16 +176,16 @@ reachCond_leaflet_map <- function(reachConditions, mappingVarInput) {
     # to make select cleaner but "Condition" is appended to select col with value.
     conditionVar <- paste0(mappingVarInput, "Condition")
     indicatorVar <- mappingVarInput
-    
-    
+
     # Label that shows up on hover
     labels <- paste0(
-      "<strong>", reachConditions$PointID, "</strong><br>",
-      reachConditions$StreamName, "<br>",
-      indicatorVar,": ", reachConditions[[indicatorVar]], "<br>",
+      "<strong>", 
+      reachConditions$PointID, "</strong><br>", 
+      reachConditions$StreamName, "<br>", 
+      as.Date(reachConditions$FieldEvalDate), "<br>",
+      indicatorVar,": ", reachConditions[[indicatorVar]], "<br>", 
       "Condition: ", reachConditions[[conditionVar]]) %>%
       lapply(htmltools::HTML)
-    
     
     # Map
     reachConditions %>%
