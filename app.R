@@ -26,71 +26,40 @@ ui <- page_navbar(
   selected = "1. Select Site Visits",
   theme = bslib::bs_theme(font_scale = 0.9, bootswatch  = "yeti"),
   navbar_options = navbar_options(collapsible = TRUE),
-  
-  
-  # 1. Select Indicators ----
+
   nav_panel(
     title = "1. Select Site Visits",
     page_sidebar(
       sidebar = sidebar(
-        h5("Filter and Select"),
-        accordion(
-           accordion_panel(
-             "Geographic Filters",
-             icon = bsicons::bs_icon("globe-americas"),
-             pickerInput(inputId = "adminState_filter",
-                         label = "Admin State",
-                         choices = NULL,
-                         selected = NULL,
-                         multiple = TRUE,
-                         options = pickerOptions(maxOptions = 1)),
-             pickerInput(inputId = "project_filter",
-                         label = "Project",
-                         choices = c("test1", "test2"),
-                         options = list(
-                           `actions-box` = TRUE),
-                         multiple = TRUE)
-             ),
-           accordion_panel(
-             "Attribute Filters",
-             icon = bsicons::bs_icon("list-nested"),
-             pickerInput(inputId = "pointType_filter",
-                         label = "Point Type",
-                         choices = "",
-                         options = list(
-                           `actions-box` = TRUE),
-                         multiple = TRUE),
-             pickerInput(inputId = "protocol_filter",
-                         label = "Protocol",
-                         choices = "",
-                         options = list(
-                           `actions-box` = TRUE),
-                         multiple = TRUE),
-             dateRangeInput(inputId = 'dateRange_filter',
-                            label = 'Date range',
-                            start = as.Date("2013-06-01"), 
-                            end = NULL),
-             checkboxInput("onlyRecentVisits", 
-                           label = "Only include most recent visit", 
-                           value = FALSE),
-             )
-           ),
-        actionButton("clearSelection", label = "Clear Selection")
-         ,
+        #p("Select site visits for analysis by filtering.  For more specific selection, click on individual site visits or use the polygon drawing tools"),
+        value_box(
+          title = span(
+            "Selcted Site Visits",
+            tooltip(
+              bsicons::bs_icon("question-circle"), 
+              "Select site visits for analysis by filtering and/or manual selection.  For manual selection, click on individual site visits or use the polygon drawing tools.",
+              placement = "right")),
+          value = uiOutput("siteVisitSelectionCount"),
+          showcase = NULL,
+          full_screen = FALSE,
+          fill = FALSE, height = 100L
+        ),
+        filter_UI("filters", indicatorData_raw),
+        actionButton(inputId = "clear_selection", 
+                      label = "Clear Selection"),
+
         width = "320px"
       ),
       navset_card_tab(
-        nav_panel("Map",
-                  leafletOutput(outputId = "indicatorMap"),
-                  top = 80, right = 300,
-                  
-        ),
-        nav_panel("Table",
-                  DTOutput(outputId = "indicatorTable",height = "auto",fill = TRUE)
+        nav_panel(title = "Map",
+                  map_UI("map"),
+                  #top = 80, right = 300
+                  ),
+        nav_panel(title = "Table",
+                  DTOutput(outputId = "indicatorTable",height = "auto",fill = TRUE))
         )
       )
     ),
-  ),
   
   # 2. Define Benchmarks ----
   nav_panel(
@@ -218,95 +187,8 @@ ui <- page_navbar(
 server <- function(input, output, session) {
 # 1. Select Indicators ---------------------------------------------------------
   # Indicator Filtering
-  
-  # Update indicator selectors based on indicatorData_raw().  This could come from
-  # manual entry or upload.
-  observe({
-    updatePickerInput(
-      session = session, 
-      inputId = "pointType_filter",
-      choices = na.omit(unique(indicatorData_raw()$PointSelectionType)))
-    
-    updatePickerInput(
-      session = session, 
-      inputId = "protocol_filter",
-      choices = na.omit(unique(indicatorData_raw()$ProtocolType)))
-    
-    updatePickerInput(
-      session = session,
-      inputId = "adminState_filter",
-      choices = c("", unique(indicatorData_raw()$BLM_AdminState) %>% sort()), # "" to force blank entry in dropdown
-      selected = NULL)
-    
-    updatePickerInput(
-      session = session,
-      inputId = "project_filter",
-      choices = unique(indicatorData_raw()$Project) %>% sort(),
-      selected = NULL)
-    })
-  
-  # If an admin state is selected, only show projects within that state.
-  observeEvent(
-    input$adminState_filter, {
-      if (input$adminState_filter == "") {
-        updatePickerInput(
-          session = session,
-          inputId = "project_filter",
-          choices = unique(indicatorData_raw()$Project),
-          selected = NULL
-          )
-        } else {
-        updatePickerInput(
-          session = session,
-          inputId = "project_filter",
-          choices = indicatorData_raw() %>% filter(BLM_AdminState == input$adminState_filter) %>% pull(Project) %>% unique() %>% sort(),
-          selected = NULL
-          )
-        }
-      }
-    )
-  
-  
-  # Logic for applying all user-selected filters
-  
-  indicatorData_active <- reactive({
-    filtered_data <- indicatorData_raw()
-    filtered_data
-    
-    # Admin State
-    if (is.null(input$adminState_filter)){
-      filtered_data
-    } else if (input$adminState_filter != "") {
-       filtered_data <- filtered_data %>% filter(BLM_AdminState == input$adminState_filter)
-    }
-    
-    # Project
-    if (!is.null(input$project_filter)) {
-      filtered_data <- filtered_data %>% filter(Project %in% input$project_filter)
-    }
-    
-    # Point Type (targeted or random)
-    if (!is.null(input$pointType_filter)) {
-      filtered_data <- filtered_data %>% filter(PointSelectionType %in% input$pointType_filter)
-    }
-    
-    # Protocl (waderable or boatable)
-    if (!is.null(input$protocol_filter)) {
-      filtered_data <- filtered_data %>% filter(ProtocolType %in% input$protocol_filter)
-    }
-    
-    # Field Eval date range
-    if (all(!is.na(input$dateRange_filter))) {
-      filtered_data <- filtered_data %>% filter(as.Date(FieldEvalDate) >= input$dateRange_filter[1] & as.Date(FieldEvalDate) <= input$dateRange_filter[2]) 
-    }
-    
-    # Include only most recent visits  onlyRecentVisits
-    if (input$onlyRecentVisits == TRUE){
-      filtered_data <- filtered_data %>% group_by(PointID) %>% filter(FieldEvalDate == max(as.Date(FieldEvalDate))) %>% ungroup()
-    }
-    
-    filtered_data
-    })
+  # Module to filter by state, field office, etc.
+  filteredData <- filter_server("filters", indicatorData_raw)  
   
   # Clear selection button
   observeEvent(input$clearSelection, {
@@ -314,114 +196,24 @@ server <- function(input, output, session) {
     leafletProxy("indicatorMap") %>%
       clearGroup("selectedPts")
   })
-  
-  # Reactive value to store selected points
-  selected_points <- reactiveVal()
-  
-  ### Leaflet map initialization and proxies
-  
-  # Initialized leaflet map.  No data added yet.
-  output$indicatorMap <- renderLeaflet({
-    indicator_leaflet_map()
-  })
-  
-  # Add filtered data to map (i.e indicatorData_active() data)
-  observeEvent(indicatorData_active(), {
-    indicator_leaflet_activeData_proxy(mapId = "indicatorMap", data = indicatorData_active())
-  })
-  
-  # When indicatorData_active() changes via filters, selected points are preserved on map
-  observeEvent(indicatorData_active(), {
-    if (!is.null(selected_points())) {
-      indicator_leaflet_selection_proxy(mapId = "indicatorMap", data = selected_points())
-    }
-  })
-  
-  # INDIVIDUAL POINT SELECTION - When point is clicked, select/unselect it
-  observeEvent(input$indicatorMap_marker_click, {
-    # Retrieve click ID.  From an unselected point, this will return the 'PointID'.
-    # From a selected point, this will return the 'selectionID'. Two different IDs are needed because
-    # if two points share the same 'layerId' in leaflet the second one will just replace the original.
-    # Here, selected points are drawn "on top" of 'allPts'.
-    clickID <- input$indicatorMap_marker_click$id
-    clickGroup <- input$indicatorMap_marker_click$group
 
-    selected <- selected_points()
-    
-    # Logic to change selection status.  All original points are in the "allPts" 'group'.
-    # All selected points are in the "selectedPts" 'group'.  Groups are defined in the leaflet and
-    # leaflet proxy 'addCircleMarkers' function.
-
-    # Get PointID from point.
-    if (clickGroup == "allPts") {  # allPts = unselected
-      clickPtID <- str_split_i(clickID, "_", i = 1) 
-    } else if (clickGroup == "selectedPts") {
-      clickPtID <- selected %>% filter(selectionID == clickID) %>% pull(PointID)
-    }
-    
-    # Check if the point is already selected.  If selected, unselect it. If not selected, select it.
-    if (clickPtID %in% selected$PointID) {
-      # Remove the point from selected_points
-      new_selection <- selected %>% filter(PointID != clickPtID)
-    } else {
-      # Add the point to selected_points
-      new_selection <- bind_rows(selected, indicatorData_active() %>% filter(PointID == clickPtID))
-    }
-    
-    # Make new selectionID to act as layerId for selected points.
-    new_selection$selectionID <- seq_len(nrow(new_selection))
-    
-    # Save the updated selection
-    selected_points(new_selection) 
-    
-    # Update map with new selection
-    indicator_leaflet_selection_proxy(mapId = "indicatorMap", data = selected_points())
+  # Clear out "selected" points.  This value sent to map_server
+  clearReactive <- reactiveVal()
+  observe({  
+    clearReactive(input$clear_selection)
   })
   
-  # POLYON SELECTION - Select all points within a drawn polygon
-  observeEvent(input$indicatorMap_draw_new_feature, {
-    selected <- selected_points()
-    
-    # Extract polygon feature 
-    feature <- input$indicatorMap_draw_new_feature
-    coords <- feature$geometry$coordinates[[1]]
-    selectionPoly <- st_polygon(list(matrix(unlist(coords), ncol = 2, byrow = TRUE)))
-    
-    # Find points within the polygon
-    pointsInPoly <- st_filter(indicatorData_active(), selectionPoly)
-    
-    # Identify only the new points.  Do not include points already selected.
-    new_points <- pointsInPoly %>% filter(!(EvaluationID %in% selected$EvaluationID))
-    
-    # Combined previous and new selection
-    new_selection <- bind_rows(selected, indicatorData_active() %>% filter(EvaluationID %in% new_points$EvaluationID))
-    
-    # Make new selectionID to act as layerId for selected points.
-    new_selection$selectionID <- seq_len(nrow(new_selection))
-    
-    # Save the updated selection
-    selected_points(new_selection)
-    
-    # Update map with new selection
-    indicator_leaflet_selection_proxy(mapId = "indicatorMap", data = selected_points())  # Update the map to reflect the color change
-    
-    # # Optional workaround to immediately remove the drawn feature once completed.  Toolbar may quickly flash.
-    # leafletProxy(indicatorMap) %>%
-    #   removeDrawToolbar(clearFeatures = TRUE) %>%
-    #   addDrawToolbar(
-    #     polylineOptions = FALSE,
-    #     polygonOptions = drawPolygonOptions(shapeOptions = drawShapeOptions(color = 'red')),
-    #     rectangleOptions = drawRectangleOptions(shapeOptions = drawShapeOptions(color = 'red')),
-    #     circleOptions = FALSE,
-    #     markerOptions = FALSE,
-    #     editOptions = editToolbarOptions(edit = FALSE)
-    #   )
-    
-  })
+  # Initialize map module.  Returns manually selected points if selected, else filtered points
+  selected_points <- map_server("map", 
+                            data = filteredData,
+                            original_data = indicatorData_raw,
+                            clear_selection = clearReactive)
   
   # Simple table showing selected indicators - doesnt autofit data though.
   output$indicatorTable <- renderDT({
     selected_points()},)
+  
+  output$siteVisitSelectionCount <- renderText({paste(nrow(selected_points()))})
   
 # 2. Define Benchmarks ---------------------------------------------------------
   
