@@ -3,7 +3,7 @@ library(leaflet)
 # Palettes and Labels -------------------------------------------------------
 
 ## Initial view of all indicators palette
-indicatorPalette <- colorFactor(palette = c("#1e4ca2", "#59c2fa", "#7bf8cf"), levels = c("RandomGRTS","Targeted","RandomSystematic"))
+indicatorPalette <- colorFactor(palette = c("#1e4ca2", "#59c2fa", "#7bf8cf", "#c668fc", "#fc68d0" ), levels = c("RandomGRTS","Targeted","RandomSystematic", "BACI-Impact", "BACI-Control"))
 
 # Label to display when hovering over point on idicator selection map
 indicator_labels <- function(indicatorData){

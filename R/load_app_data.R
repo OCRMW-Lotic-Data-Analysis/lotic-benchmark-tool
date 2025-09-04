@@ -1,7 +1,8 @@
 # Raw indicator data
-indicatorData_raw <- vroom::vroom("./appData/BLM_Natl_AIM_Lotic_Indicators_Hub.csv", delim = ",", show_col_types = FALSE) %>% 
-                  sf::st_as_sf(coords = c("SampledMidLongitude", "SampledMidLatitude"), crs = 4269) %>%
-                  sf::st_transform(crs = 4326)
+indicatorData_raw <- readr::read_csv("./appData/BLM_Natl_AIM_Lotic_Indicators_Hub.csv", show_col_types = FALSE) %>%
+  dplyr::mutate(FieldEvalDate = as.Date(FieldEvalDate, tryFormats = c("%m/%d/%Y"))) %>%
+  sf::st_as_sf(coords = c("SampledMidLongitude", "SampledMidLatitude"), crs = 4269) %>%
+  sf::st_transform(crs = 4326)
 
 # Load default conditions
 defaultConditions <- vroom::vroom("./appData/stateNatDefaultCondJoined.csv", show_col_types = FALSE)
