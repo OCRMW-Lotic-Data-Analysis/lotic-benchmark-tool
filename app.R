@@ -34,7 +34,7 @@ ui <- page_navbar(
         #p("Select site visits for analysis by filtering.  For more specific selection, click on individual site visits or use the polygon drawing tools"),
         value_box(
           title = span(
-            "Selcted Site Visits",
+            "Selected Site Visits",
             tooltip(
               bsicons::bs_icon("question-circle"), 
               "Select site visits for analysis by filtering and/or manual selection.  For manual selection, click on individual site visits or use the polygon drawing tools.",
