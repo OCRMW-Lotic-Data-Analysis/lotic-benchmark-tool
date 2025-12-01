@@ -6,7 +6,6 @@ deploy.R
 code_prototyping.nb.html
 code_prototyping.Rmd
 rsconnect
-pre-processing
 app2.R
 fromBLM/
 lotic-benchmark-tool.Rproj
