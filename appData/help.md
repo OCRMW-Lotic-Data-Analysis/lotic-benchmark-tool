@@ -1,4 +1,7 @@
-# This is a test
+# Lotic AIM Custom Benchmark Tool Help
 
--   of this
--   and that
+Some overview and intro text
+
+## Selecting Indicators
+
+![](images/select_indicators_test.jpg)
