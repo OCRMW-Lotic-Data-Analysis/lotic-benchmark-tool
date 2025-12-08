@@ -4,4 +4,4 @@ Some overview and intro text
 
 ## Selecting Indicators
 
-![](images/select_indicators_test.jpg)
+![](help_images/select_indicators_test.jpg)

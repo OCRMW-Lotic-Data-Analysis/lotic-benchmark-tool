@@ -259,7 +259,7 @@ ui <- page_navbar(
       "Help", 
       bsicons::bs_icon("question-circle")
     ),
-    includeMarkdown("appData/help.md")
+    includeMarkdown("www/help.md") # have to specify www/ folder for includeMarkdown to work properly
   )
 )
 
