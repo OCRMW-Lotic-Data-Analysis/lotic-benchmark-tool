@@ -36,10 +36,9 @@ filter_UI <- function(id, data) {
         pickerInput(inputId = ns("protocol_filter"),
                     label = "Protocol",
                     choices = na.omit(unique(data$ProtocolType)),
-                    selected = "Wadable",
                     options = list(
                       `actions-box` = TRUE),
-                    multiple = FALSE),
+                    multiple = TRUE),
         dateRangeInput(inputId = ns("dateRange_filter"),
                        label = 'Date range',
                        start = as.Date("2013-06-01"), 

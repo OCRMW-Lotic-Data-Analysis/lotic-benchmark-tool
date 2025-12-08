@@ -1,6 +1,5 @@
 # Interactive boxplot for summary page
-# Interactive boxplot for summary page
-conditions_boxplot <- function(reachCond, benchmark, showDensity) {
+conditions_boxplot <- function(reachCond, benchmark, showDensity, plotOutput) {
 
 # Data prep
 selectedVars <- c(benchmark, paste0(benchmark, "Condition"),
@@ -17,8 +16,9 @@ plotdat <- reachCond %>%
                               "\n Condition: ", condition, 
                               "\n Value: ", value)) %>%
   drop_na()
+  
 # ggplot base
-p <- ggplot(plotdat, aes(x = indicator, y = value)) + 
+ggplotObj <- ggplot(plotdat, aes(x = indicator, y = value)) + 
   geom_boxplot_interactive(
     width = .25, 
     outlier.shape = NA,
@@ -64,7 +64,7 @@ p <- ggplot(plotdat, aes(x = indicator, y = value)) +
   )
 
 if (showDensity == TRUE) {
-  p <- p + ggdist::stat_slab(
+  ggplotObj <- ggplotObj + ggdist::stat_slab(
     adjust = .5,
     width = .6,
     justification = -.3,
@@ -72,14 +72,17 @@ if (showDensity == TRUE) {
     color = "gray50",
     fill = "gray85") 
 }
-
-# covert to ggiraph
-girplot <- girafe(ggobj = p,
-  options = list(
-    opts_toolbar(hidden = c("lasso_select", "lasso_deselect")),
-    opts_selection(type = "none"),
-    opts_tooltip(
-      css = "background-color: #d5d5d5ff;
+if (plotOutput == "ggplot") {
+  return(ggplotObj)
+} else if (plotOutput == "ggiraph") {
+  # covert to ggiraph
+  girplot <- girafe(
+    ggobj = ggplotObj,
+    options = list(
+      opts_toolbar(hidden = c("lasso_select", "lasso_deselect")),
+      opts_selection(type = "none"),
+      opts_tooltip(
+        css = "background-color: #d5d5d5ff;
         color: black; 
         font-family: 'Arial', sans-serif; 
         font-size: 14px;
@@ -91,5 +94,8 @@ girplot <- girafe(ggobj = p,
       )
     )
   )
-  girplot
+  return(girplot)
+}
+  
+
 }
