@@ -252,6 +252,14 @@ ui <- page_navbar(
         )
       )
     )
+  ),
+  nav_spacer(),
+  nav_panel(
+    title = tagList(
+      "Help", 
+      bsicons::bs_icon("question-circle")
+    ),
+    includeMarkdown("appData/help.md")
   )
 )
 
