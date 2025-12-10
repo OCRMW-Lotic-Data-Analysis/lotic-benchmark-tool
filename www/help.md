@@ -1,6 +1,6 @@
 # Lotic AIM Custom Benchmark Tool Help
 
-Some overview and intro text
+Welcome to the Lotic AIM Custom Benchmark Tool! This application allows users to define and apply custom benchmarks to Lotic AIM data for stream condition assessment.  This help document will guide you through the main features and workflow of the application.
 
 ## 1. Selecting Indicators
 
